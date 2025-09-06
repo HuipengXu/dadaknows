@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var questionsAsked = 24
-    @State private var timeSpent = "2小时30分"
-    @State private var subscriptionStatus = "free"
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var analyticsManager = AnalyticsManager.shared
+    @StateObject private var authManager = AuthManager.shared
     @State private var showSettings = false
+    @State private var showProSubscription = false
     
     var body: some View {
         ZStack {
@@ -41,6 +42,9 @@ struct ProfileView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
+        .sheet(isPresented: $showProSubscription) {
+            ProSubscriptionView()
+        }
     }
     
     private var headerSection: some View {
@@ -65,9 +69,9 @@ struct ProfileView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.darkGray)
                     
-                    Text(subscriptionStatus == "pro" ? "Pro会员" : "免费用户")
+                    Text(subscriptionManager.isProMember ? "Pro会员" : "免费用户")
                         .font(.subheadline)
-                        .foregroundColor(subscriptionStatus == "pro" ? .vibrantOrange : .lightGray)
+                        .foregroundColor(subscriptionManager.isProMember ? .vibrantOrange : .lightGray)
                 }
             }
         }
@@ -82,17 +86,17 @@ struct ProfileView: View {
             
             HStack(spacing: 15) {
                 // Questions count
-                StatCard(
+                ProfileStatCard(
                     title: "已提问题数",
-                    value: "\(questionsAsked)个",
+                    value: "\(analyticsManager.learningStats.totalQuestions)个",
                     icon: "bubble.left.and.bubble.right.fill",
                     color: .vibrantOrange
                 )
                 
                 // Time spent
-                StatCard(
+                ProfileStatCard(
                     title: "陪伴时长",
-                    value: timeSpent,
+                    value: formatLearningTime(analyticsManager.learningStats.totalLearningTime),
                     icon: "clock.fill",
                     color: .skyBlue
                 )
@@ -100,12 +104,23 @@ struct ProfileView: View {
         }
     }
     
+    private func formatLearningTime(_ timeInterval: TimeInterval) -> String {
+        let hours = Int(timeInterval) / 3600
+        let minutes = (Int(timeInterval) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)小时\(minutes)分"
+        } else {
+            return "\(minutes)分钟"
+        }
+    }
+    
     private var proMembershipSection: some View {
         VStack(spacing: 0) {
-            if subscriptionStatus == "free" {
+            if !subscriptionManager.isProMember {
                 // Free user - upgrade card
                 Button(action: {
-                    // TODO: Handle Pro upgrade
+                    showProSubscription = true
                 }) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
@@ -191,8 +206,8 @@ struct ProfileView: View {
             FeatureButton(
                 icon: "book.fill",
                 title: "好奇心日志",
-                description: subscriptionStatus == "pro" ? "查看所有问答记录" : "Pro功能 - 升级后可用",
-                isProFeature: subscriptionStatus != "pro",
+                description: subscriptionManager.isProMember ? "查看所有问答记录" : "Pro功能 - 升级后可用",
+                isProFeature: !subscriptionManager.isProMember,
                 action: {
                     // TODO: Navigate to curiosity log
                 }
@@ -235,7 +250,7 @@ struct ProfileView: View {
 }
 
 // MARK: - Supporting Views
-struct StatCard: View {
+struct ProfileStatCard: View {
     let title: String
     let value: String
     let icon: String

@@ -18,6 +18,7 @@ class AIManager: ObservableObject {
     
     private let apiClient = APIClient.shared
     private let supabaseClient = SupabaseClient.shared
+    private let offlineManager = OfflineManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private init() {}
@@ -38,6 +39,38 @@ class AIManager: ObservableObject {
                         self.error = nil
                     }
                     
+                    // 检查是否有缓存的答案
+                    if let cachedAnswer = offlineManager.getCachedAnswer(
+                        question: question,
+                        targetAge: targetAge,
+                        language: language
+                    ) {
+                        // 模拟流式输出缓存的答案
+                        let words = cachedAnswer.split(separator: " ")
+                        for (index, word) in words.enumerated() {
+                            try await Task.sleep(nanoseconds: 100_000_000) // 0.1秒延迟
+                            let chunk = index == 0 ? String(word) : " " + String(word)
+                            continuation.yield(chunk)
+                        }
+                        continuation.finish()
+                        return
+                    }
+                    
+                    // 检查网络状态
+                    if !offlineManager.isOnline {
+                        // 离线模式：添加到队列并返回离线提示
+                        offlineManager.addToOfflineQueue(
+                            question: question,
+                            targetAge: targetAge,
+                            language: language
+                        )
+                        
+                        let offlineMessage = "您当前处于离线状态。这个问题已经保存，我们会在网络恢复后为您处理。现在您可以浏览一些离线内容！"
+                        continuation.yield(offlineMessage)
+                        continuation.finish()
+                        return
+                    }
+                    
                     // 使用 Supabase Edge Function 进行真实的AI调用
                     let streamingResponse = supabaseClient.callAskDadaFunction(
                         question: question,
@@ -54,7 +87,17 @@ class AIManager: ObservableObject {
                     }
                     
                     continuation.finish()
+                    
+                    // 缓存答案
                     await MainActor.run {
+                        if !self.currentResponse.isEmpty {
+                            self.offlineManager.cacheAnswer(
+                                question: question,
+                                answer: self.currentResponse,
+                                targetAge: targetAge,
+                                language: language
+                            )
+                        }
                         self.isLoading = false
                     }
                 } catch {

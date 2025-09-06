@@ -48,7 +48,7 @@ struct ChatView: View {
                         .padding(.top, 20)
                         .id("chatContent")
                     }
-                    .onChange(of: currentAnswer) { _ in
+                    .onChange(of: currentAnswer) {
                         withAnimation(.easeOut(duration: 0.3)) {
                             proxy.scrollTo("chatContent", anchor: .bottom)
                         }
@@ -63,6 +63,10 @@ struct ChatView: View {
                 }
             }
         }
+        .overlay(
+            // Voice recording overlay
+            VoiceRecordingOverlay()
+        )
         .onAppear {
             startAnswering()
         }
@@ -164,31 +168,36 @@ struct ChatView: View {
     }
     
     private var thinkingIndicator: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Circle()
-                .fill(Color.tenderYellow)
-                .frame(width: 35, height: 35)
-                .overlay(
-                    Image(systemName: "face.smiling")
-                        .font(.system(size: 16))
-                        .foregroundColor(.vibrantOrange)
-                )
-            
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    ThinkingDotsView()
+        SlideInView(from: .leading, delay: 0.2) {
+            HStack(alignment: .top, spacing: 12) {
+                PulseView {
+                    Circle()
+                        .fill(Color.tenderYellow)
+                        .frame(width: 35, height: 35)
+                        .overlay(
+                            Image(systemName: "face.smiling")
+                                .font(.system(size: 16))
+                                .foregroundColor(.vibrantOrange)
+                        )
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(Color.white.opacity(0.9))
-                .cornerRadius(18)
                 
-                Text("答答正在思考...")
-                    .font(.caption)
-                    .foregroundColor(.lightGray)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        TypingIndicator()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(18)
+                    .shimmer()
+                    
+                    Text("答答正在思考...")
+                        .font(.caption)
+                        .foregroundColor(.lightGray)
+                }
+                
+                Spacer()
             }
-            
-            Spacer()
         }
     }
     

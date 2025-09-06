@@ -22,15 +22,25 @@ struct MainTabView: View {
                 }
                 .tag(0)
             
+            // Analytics Tab
+            AnalyticsView()
+                .tabItem {
+                    Image(systemName: selectedTab == 1 ? "chart.bar.fill" : "chart.bar")
+                        .font(.system(size: 20))
+                    Text("分析")
+                        .font(.caption)
+                }
+                .tag(1)
+            
             // Profile Tab
             ProfileView()
                 .tabItem {
-                    Image(systemName: selectedTab == 1 ? "person.fill" : "person")
+                    Image(systemName: selectedTab == 2 ? "person.fill" : "person")
                         .font(.system(size: 20))
                     Text("我")
                         .font(.caption)
                 }
-                .tag(1)
+                .tag(2)
         }
         .accentColor(.vibrantOrange)
         .onAppear {

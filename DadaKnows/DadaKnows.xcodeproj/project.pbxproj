@@ -12,6 +12,8 @@
 		72F855EA2E6B3748003C290C /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E92E6B3748003C290C /* PostgREST */; };
 		72F855EC2E6B3748003C290C /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855EB2E6B3748003C290C /* Storage */; };
 		72F855EE2E6B3748003C290C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855ED2E6B3748003C290C /* Supabase */; };
+		72F855F22E6B4000003C290C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855F12E6B4000003C290C /* GoogleSignIn */; };
+		72F855F42E6B4000003C290C /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855F32E6B4000003C290C /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,9 +39,22 @@
 		72F855182E6B2D68003C290C /* DadaKnowsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DadaKnowsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		72F858122E6C3816003C290C /* Exceptions for "DadaKnows" folder in "DadaKnows" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 72F855002E6B2D66003C290C /* DadaKnows */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		72F855032E6B2D66003C290C /* DadaKnows */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				72F858122E6C3816003C290C /* Exceptions for "DadaKnows" folder in "DadaKnows" target */,
+			);
 			path = DadaKnows;
 			sourceTree = "<group>";
 		};
@@ -65,6 +80,8 @@
 				72F855EA2E6B3748003C290C /* PostgREST in Frameworks */,
 				72F855E82E6B3748003C290C /* Functions in Frameworks */,
 				72F855E62E6B3748003C290C /* Auth in Frameworks */,
+				72F855F22E6B4000003C290C /* GoogleSignIn in Frameworks */,
+				72F855F42E6B4000003C290C /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,6 +147,8 @@
 				72F855E92E6B3748003C290C /* PostgREST */,
 				72F855EB2E6B3748003C290C /* Storage */,
 				72F855ED2E6B3748003C290C /* Supabase */,
+				72F855F12E6B4000003C290C /* GoogleSignIn */,
+				72F855F32E6B4000003C290C /* GoogleSignInSwift */,
 			);
 			productName = DadaKnows;
 			productReference = 72F855012E6B2D66003C290C /* DadaKnows.app */;
@@ -215,6 +234,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				72F855F02E6B4000003C290C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 72F855022E6B2D66003C290C /* Products */;
@@ -589,6 +609,14 @@
 				minimumVersion = 2.5.1;
 			};
 		};
+		72F855F02E6B4000003C290C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -616,6 +644,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		72F855F12E6B4000003C290C /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72F855F02E6B4000003C290C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		72F855F32E6B4000003C290C /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72F855F02E6B4000003C290C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

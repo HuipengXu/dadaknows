@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct AuthView: View {
+    @StateObject private var authManager = AuthManager.shared
     @State private var isSignIn = true
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
-    @State private var isLoading = false
     @State private var showAlert = false
-    @State private var alertMessage = ""
+    @State private var showForgotPassword = false
     
     var onAuthSuccess: () -> Void
     
@@ -110,7 +110,7 @@ struct AuthView: View {
                             HStack {
                                 Spacer()
                                 Button("forgot_password") {
-                                    // TODO: Handle forgot password
+                                    showForgotPassword = true
                                 }
                                 .font(.subheadline)
                                 .foregroundColor(.vibrantOrange)
@@ -120,7 +120,7 @@ struct AuthView: View {
                         // Submit button
                         Button(action: handleAuth) {
                             HStack {
-                                if isLoading {
+                                if authManager.isLoading {
                                     ProgressView()
                                         .scaleEffect(0.8)
                                         .foregroundColor(.white)
@@ -134,7 +134,7 @@ struct AuthView: View {
                             .background(Color.vibrantOrange)
                             .cornerRadius(25)
                         }
-                        .disabled(isLoading || !isFormValid)
+                        .disabled(authManager.isLoading || !isFormValid)
                         .opacity(isFormValid ? 1.0 : 0.6)
                     }
                     .padding(.horizontal, 25)
@@ -161,18 +161,20 @@ struct AuthView: View {
                             title: "sign_in_with_google",
                             icon: "globe",
                             backgroundColor: .white,
-                            textColor: .darkGray
+                            textColor: .darkGray,
+                            isLoading: authManager.isLoading
                         ) {
-                            // TODO: Handle Google sign in
+                            handleGoogleSignIn()
                         }
                         
                         SocialLoginButton(
                             title: "sign_in_with_apple",
                             icon: "applelogo",
                             backgroundColor: .black,
-                            textColor: .white
+                            textColor: .white,
+                            isLoading: authManager.isLoading
                         ) {
-                            // TODO: Handle Apple sign in
+                            handleAppleSignIn()
                         }
                     }
                     .padding(.horizontal, 25)
@@ -182,9 +184,22 @@ struct AuthView: View {
             }
         }
         .alert("错误", isPresented: $showAlert) {
-            Button("确定") { }
+            Button("确定") { 
+                authManager.errorMessage = nil
+            }
         } message: {
-            Text(alertMessage)
+            Text(authManager.errorMessage ?? "")
+        }
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView()
+        }
+        .onChange(of: authManager.errorMessage) { errorMessage in
+            showAlert = errorMessage != nil
+        }
+        .onChange(of: authManager.isAuthenticated) { isAuthenticated in
+            if isAuthenticated {
+                onAuthSuccess()
+            }
         }
     }
     
@@ -199,13 +214,36 @@ struct AuthView: View {
     private func handleAuth() {
         guard isFormValid else { return }
         
-        isLoading = true
-        
-        // TODO: Implement actual authentication with Supabase
-        // Simulate network request
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            isLoading = false
-            onAuthSuccess()
+        Task {
+            do {
+                if isSignIn {
+                    try await authManager.signInWithEmail(email: email, password: password)
+                } else {
+                    try await authManager.signUpWithEmail(email: email, password: password)
+                }
+            } catch {
+                // 错误已在AuthManager中处理
+            }
+        }
+    }
+    
+    private func handleGoogleSignIn() {
+        Task {
+            do {
+                try await authManager.signInWithGoogle()
+            } catch {
+                // 错误已在AuthManager中处理
+            }
+        }
+    }
+    
+    private func handleAppleSignIn() {
+        Task {
+            do {
+                try await authManager.signInWithApple()
+            } catch {
+                // 错误已在AuthManager中处理
+            }
         }
     }
 }
@@ -271,13 +309,20 @@ struct SocialLoginButton: View {
     let icon: String
     let backgroundColor: Color
     let textColor: Color
+    let isLoading: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
             HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                        .foregroundColor(textColor)
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                }
                 
                 Text(title)
                     .fontWeight(.medium)
@@ -292,6 +337,8 @@ struct SocialLoginButton: View {
                     .stroke(Color.lightGray.opacity(0.2), lineWidth: 1)
             )
         }
+        .disabled(isLoading)
+        .opacity(isLoading ? 0.6 : 1.0)
     }
 }
 

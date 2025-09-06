@@ -17,7 +17,7 @@ class SupabaseClient: ObservableObject {
     private let supabaseURL = Config.supabaseURL
     private let supabaseKey = Config.supabaseAnonKey
     
-    private let supabase: Supabase.SupabaseClient
+    let supabase: Supabase.SupabaseClient
     
     private init() {
         // 验证配置
@@ -100,7 +100,7 @@ class SupabaseClient: ObservableObject {
             Task {
                 do {
                     // 准备请求参数
-                    let parameters: [String: Any] = [
+                    let _ = [
                         "question": question,
                         "age": targetAge,
                         "language": language,

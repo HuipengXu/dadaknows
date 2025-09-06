@@ -37,6 +37,15 @@ struct HomeView: View {
                 Spacer()
             }
         }
+        .overlay(
+            // Voice recording overlay
+            VoiceRecordingOverlay()
+        )
+        .overlay(
+            // Network status banner
+            NetworkStatusBanner(),
+            alignment: .top
+        )
         .fullScreenCover(isPresented: $showChat) {
             ChatView(
                 question: question,
@@ -69,24 +78,29 @@ struct HomeView: View {
                     .frame(width: 160, height: 160)
                 
                 // IP Character placeholder
-                VStack(spacing: 8) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.tenderYellow)
-                            .frame(width: 80, height: 80)
+                FloatingView(amplitude: 8, frequency: 3.0) {
+                    VStack(spacing: 8) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.tenderYellow)
+                                .frame(width: 80, height: 80)
+                            
+                            BounceView(trigger: isAsking) {
+                                Image(systemName: "face.smiling")
+                                    .font(.system(size: 35))
+                                    .foregroundColor(.vibrantOrange)
+                            }
+                        }
                         
-                        Image(systemName: "face.smiling")
-                            .font(.system(size: 35))
-                            .foregroundColor(.vibrantOrange)
+                        Text("答答")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.darkGray)
+                        
+                        // 离线状态指示器
+                        OfflineIndicator()
                     }
-                    
-                    Text("答答")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.darkGray)
                 }
-                .scaleEffect(isAsking ? 1.1 : 1.0)
-                .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isAsking)
             }
             .padding(.top, 40)
         }
@@ -95,28 +109,37 @@ struct HomeView: View {
     private var mainContentSection: some View {
         VStack(spacing: 30) {
             // Question input section
-            VStack(spacing: 20) {
-                Text("想问答答什么问题呢？")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.darkGray)
-                    .multilineTextAlignment(.center)
-                
-                // Question text field
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.9))
-                        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 2)
-                    
-                    TextField("ask_question_placeholder", text: $question, axis: .vertical)
-                        .lineLimit(3...6)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
-                        .font(.system(size: 16))
+            SlideInView(from: .bottom, delay: 0.3) {
+                VStack(spacing: 20) {
+                    Text("想问答答什么问题呢？")
+                        .font(.title3)
+                        .fontWeight(.semibold)
                         .foregroundColor(.darkGray)
+                        .multilineTextAlignment(.center)
+                    
+                    // Question input field with voice support
+                    VStack(spacing: 0) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white.opacity(0.9))
+                                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 2)
+                            
+                            HStack {
+                                TextField("ask_question_placeholder", text: $question, axis: .vertical)
+                                    .lineLimit(3...6)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 16)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.darkGray)
+                                
+                                VoiceInputButton(text: $question)
+                                    .padding(.trailing, 15)
+                            }
+                        }
+                        .frame(minHeight: 60)
+                        .padding(.horizontal, 25)
+                    }
                 }
-                .frame(minHeight: 60)
-                .padding(.horizontal, 25)
             }
             
             // Age selector
