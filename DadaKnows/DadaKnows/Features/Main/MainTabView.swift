@@ -9,9 +9,11 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
+    @StateObject private var offlineManager = OfflineManager.shared
     
     var body: some View {
-        TabView(selection: $selectedTab) {
+        ZStack {
+            TabView(selection: $selectedTab) {
             // Home Tab
             HomeView()
                 .tabItem {
@@ -41,8 +43,15 @@ struct MainTabView: View {
                         .font(.caption)
                 }
                 .tag(2)
+            }
+            .accentColor(.vibrantOrange)
+            
+            // 🔄 新增：全局网络状态横幅
+            VStack {
+                NetworkStatusBanner()
+                Spacer()
+            }
         }
-        .accentColor(.vibrantOrange)
         .onAppear {
             // Customize tab bar appearance
             let appearance = UITabBarAppearance()

@@ -2,31 +2,282 @@
 //  DataManager.swift
 //  DadaKnows
 //
-//  本地数据存储管理器
+//  本地数据存储管理器 - 集成CoreData和Supabase云端同步
 //
 
 import Foundation
 import CoreData
+import Combine
 
 class DataManager: ObservableObject {
     static let shared = DataManager()
     
+    @Published var isSyncing = false
+    @Published var lastSyncError: String?
+    
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "DadaKnowsModel")
-        container.loadPersistentStores { _, error in
+        // 首先检查模型文件是否存在
+        guard let modelURL = Bundle.main.url(forResource: "DadaKnowsModel", withExtension: "momd") else {
+            print("❌ Core Data model file not found in bundle")
+            print("📁 Bundle path: \(Bundle.main.bundlePath)")
+            print("📁 Available resources: \(Bundle.main.paths(forResourcesOfType: "momd", inDirectory: nil))")
+            
+            // 创建一个临时的内存存储作为fallback
+            return createInMemoryContainer()
+        }
+        
+        guard let model = NSManagedObjectModel(contentsOf: modelURL) else {
+            print("❌ Failed to create NSManagedObjectModel from URL: \(modelURL)")
+            return createInMemoryContainer()
+        }
+        
+        let container = NSPersistentContainer(name: "DadaKnowsModel", managedObjectModel: model)
+        container.loadPersistentStores { [weak self] _, error in
             if let error = error {
-                fatalError("Core Data error: \(error)")
+                print("❌ Core Data error: \(error)")
+                print("❌ Error details: \(error.localizedDescription)")
+                
+                // 尝试删除损坏的数据库文件并重新创建
+                self?.handleCoreDataError(error, container: container)
+            } else {
+                print("✅ Core Data loaded successfully")
             }
         }
         container.viewContext.automaticallyMergesChangesFromParent = true
         return container
     }()
     
+    private func createInMemoryContainer() -> NSPersistentContainer {
+        print("🔧 Creating in-memory Core Data store as fallback")
+        
+        // 创建一个简单的内存模型
+        let model = NSManagedObjectModel()
+        
+        // Chat实体
+        let chatEntity = NSEntityDescription()
+        chatEntity.name = "Chat"
+        chatEntity.managedObjectClassName = "Chat"
+        
+        let chatIdAttribute = NSAttributeDescription()
+        chatIdAttribute.name = "id"
+        chatIdAttribute.attributeType = .UUIDAttributeType
+        chatIdAttribute.isOptional = true
+        
+        let questionAttribute = NSAttributeDescription()
+        questionAttribute.name = "question"
+        questionAttribute.attributeType = .stringAttributeType
+        questionAttribute.isOptional = true
+        
+        let answerAttribute = NSAttributeDescription()
+        answerAttribute.name = "answer"
+        answerAttribute.attributeType = .stringAttributeType
+        answerAttribute.isOptional = true
+        
+        let targetAgeAttribute = NSAttributeDescription()
+        targetAgeAttribute.name = "targetAge"
+        targetAgeAttribute.attributeType = .integer16AttributeType
+        targetAgeAttribute.defaultValue = 0
+        
+        let languageAttribute = NSAttributeDescription()
+        languageAttribute.name = "language"
+        languageAttribute.attributeType = .stringAttributeType
+        languageAttribute.isOptional = true
+        
+        let userFeedbackAttribute = NSAttributeDescription()
+        userFeedbackAttribute.name = "userFeedback"
+        userFeedbackAttribute.attributeType = .stringAttributeType
+        userFeedbackAttribute.isOptional = true
+        
+        let createdAtAttribute = NSAttributeDescription()
+        createdAtAttribute.name = "createdAt"
+        createdAtAttribute.attributeType = .dateAttributeType
+        createdAtAttribute.isOptional = true
+        
+        chatEntity.properties = [chatIdAttribute, questionAttribute, answerAttribute, targetAgeAttribute, languageAttribute, userFeedbackAttribute, createdAtAttribute]
+        
+        // UserSettings实体
+        let userSettingsEntity = NSEntityDescription()
+        userSettingsEntity.name = "UserSettings"
+        userSettingsEntity.managedObjectClassName = "UserSettings"
+        
+        let preferredLanguageAttribute = NSAttributeDescription()
+        preferredLanguageAttribute.name = "preferredLanguage"
+        preferredLanguageAttribute.attributeType = .stringAttributeType
+        preferredLanguageAttribute.isOptional = true
+        
+        let subscriptionStatusAttribute = NSAttributeDescription()
+        subscriptionStatusAttribute.name = "subscriptionStatus"
+        subscriptionStatusAttribute.attributeType = .stringAttributeType
+        subscriptionStatusAttribute.isOptional = true
+        
+        let settingsCreatedAtAttribute = NSAttributeDescription()
+        settingsCreatedAtAttribute.name = "createdAt"
+        settingsCreatedAtAttribute.attributeType = .dateAttributeType
+        settingsCreatedAtAttribute.isOptional = true
+        
+        let updatedAtAttribute = NSAttributeDescription()
+        updatedAtAttribute.name = "updatedAt"
+        updatedAtAttribute.attributeType = .dateAttributeType
+        updatedAtAttribute.isOptional = true
+        
+        userSettingsEntity.properties = [preferredLanguageAttribute, subscriptionStatusAttribute, settingsCreatedAtAttribute, updatedAtAttribute]
+        
+        model.entities = [chatEntity, userSettingsEntity]
+        
+        let container = NSPersistentContainer(name: "DadaKnowsModel", managedObjectModel: model)
+        
+        // 配置为内存存储
+        let description = NSPersistentStoreDescription()
+        description.type = NSInMemoryStoreType
+        container.persistentStoreDescriptions = [description]
+        
+        container.loadPersistentStores { _, error in
+            if let error = error {
+                print("❌ Failed to create in-memory store: \(error)")
+            } else {
+                print("✅ In-memory Core Data store created successfully")
+            }
+        }
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        return container
+    }
+    
     var context: NSManagedObjectContext {
         return persistentContainer.viewContext
     }
     
-    private init() {}
+    // 云端同步服务
+    private let chatService = ChatService.shared
+    private let offlineManager = OfflineManager.shared
+    private var cancellables = Set<AnyCancellable>()
+    
+    private init() {
+        Task { @MainActor in
+            setupSyncObservers()
+        }
+    }
+    
+    // MARK: - Core Data Error Handling
+    
+    private func handleCoreDataError(_ error: Error, container: NSPersistentContainer) {
+        print("🔧 Attempting to recover from Core Data error...")
+        
+        // 获取应用程序支持目录
+        guard let applicationSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, 
+                                                                   in: .userDomainMask).first else {
+            print("❌ Could not find application support directory")
+            return
+        }
+        
+        let storeURL = applicationSupportURL.appendingPathComponent("DadaKnowsModel.sqlite")
+        let shmURL = applicationSupportURL.appendingPathComponent("DadaKnowsModel.sqlite-shm")
+        let walURL = applicationSupportURL.appendingPathComponent("DadaKnowsModel.sqlite-wal")
+        
+        do {
+            // 删除损坏的数据库文件
+            if FileManager.default.fileExists(atPath: storeURL.path) {
+                try FileManager.default.removeItem(at: storeURL)
+                print("🗑️ Removed corrupted database file")
+            }
+            if FileManager.default.fileExists(atPath: shmURL.path) {
+                try FileManager.default.removeItem(at: shmURL)
+            }
+            if FileManager.default.fileExists(atPath: walURL.path) {
+                try FileManager.default.removeItem(at: walURL)
+            }
+            
+            // 重新加载持久化存储
+            container.loadPersistentStores { _, newError in
+                if let newError = newError {
+                    print("❌ Failed to recreate Core Data store: \(newError)")
+                } else {
+                    print("✅ Successfully recreated Core Data store")
+                }
+            }
+            
+        } catch {
+            print("❌ Failed to remove corrupted database files: \(error)")
+        }
+    }
+    
+    // MARK: - Sync Observers
+    
+    @MainActor
+    private func setupSyncObservers() {
+        // 监听认证状态变化
+        AuthManager.shared.$isAuthenticated
+            .sink { [weak self] isAuthenticated in
+                if isAuthenticated {
+                    Task {
+                        await self?.performInitialSync()
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 监听网络状态变化
+        offlineManager.$isOnline
+            .sink { [weak self] isOnline in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    if isOnline {
+                        let shouldSync = await self.offlineManager.shouldAutoSync()
+                        if shouldSync {
+                            await self.syncWithCloud()
+                        }
+                    }
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func performInitialSync() async {
+        let isAuthenticated = await AuthManager.shared.isAuthenticated
+        let isOnline = await offlineManager.isOnline
+        guard isAuthenticated && isOnline else { return }
+        
+        isSyncing = true
+        lastSyncError = nil
+        
+        do {
+            // 同步聊天记录
+            await chatService.syncChatsFromCloud()
+            await chatService.syncAllChatsToCloud()
+            
+            if Config.isDebug {
+                print("✅ 初始数据同步完成")
+            }
+        } catch {
+            lastSyncError = "初始同步失败: \(error.localizedDescription)"
+            print("初始同步失败: \(error)")
+        }
+        
+        isSyncing = false
+    }
+    
+    func syncWithCloud() async {
+        let isAuthenticated = await AuthManager.shared.isAuthenticated
+        let isOnline = await offlineManager.isOnline
+        guard isAuthenticated && isOnline else { return }
+        
+        isSyncing = true
+        lastSyncError = nil
+        
+        do {
+            await chatService.syncAllChatsToCloud()
+            await chatService.syncChatsFromCloud()
+            
+            if Config.isDebug {
+                print("✅ 云端同步完成")
+            }
+        } catch {
+            lastSyncError = "同步失败: \(error.localizedDescription)"
+            print("同步失败: \(error)")
+        }
+        
+        isSyncing = false
+    }
     
     // MARK: - Core Data Operations
     func save() {
@@ -44,7 +295,7 @@ class DataManager: ObservableObject {
         save()
     }
     
-    // MARK: - Chat Operations
+    // MARK: - Enhanced Chat Operations
     func createChat(question: String, answer: String, targetAge: Int, language: String) -> Chat {
         let chat = Chat(context: context)
         chat.id = UUID()
@@ -56,7 +307,23 @@ class DataManager: ObservableObject {
         chat.userFeedback = "none"
         
         save()
+        
+        // 异步同步到云端
+        Task {
+            await chatService.syncChatToCloud(chat)
+        }
+        
         return chat
+    }
+    
+    func createChatWithSync(question: String, answer: String, targetAge: Int, language: String) async -> Chat {
+        // 创建本地聊天记录并立即同步到云端
+        return await chatService.createAndSyncChat(
+            question: question,
+            answer: answer,
+            targetAge: targetAge,
+            language: language
+        )
     }
     
     func fetchChats() -> [Chat] {
@@ -76,12 +343,40 @@ class DataManager: ObservableObject {
         save()
     }
     
-    // MARK: - User Settings
+    // MARK: - Enhanced User Settings
     func saveUserSettings(language: String, subscriptionStatus: String) {
         let settings = fetchOrCreateUserSettings()
         settings.preferredLanguage = language
         settings.subscriptionStatus = subscriptionStatus
+        settings.updatedAt = Date()
         save()
+        
+        // 异步同步到云端
+        Task {
+            await UserService.shared.updateUserProfile(
+                nickname: nil,
+                avatarUrl: nil,
+                preferredLanguage: language,
+                subscriptionStatus: subscriptionStatus
+            )
+        }
+    }
+    
+    func saveUserSettingsWithSync(language: String, subscriptionStatus: String, nickname: String? = nil, avatarUrl: String? = nil) async {
+        // 保存本地设置并同步到云端
+        let settings = fetchOrCreateUserSettings()
+        settings.preferredLanguage = language
+        settings.subscriptionStatus = subscriptionStatus
+        settings.updatedAt = Date()
+        save()
+        
+        // 同步到云端
+        await UserService.shared.updateUserProfile(
+            nickname: nickname,
+            avatarUrl: avatarUrl,
+            preferredLanguage: language,
+            subscriptionStatus: subscriptionStatus
+        )
     }
     
     func fetchOrCreateUserSettings() -> UserSettings {

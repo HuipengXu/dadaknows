@@ -154,14 +154,16 @@ struct BounceView<Content: View>: View {
     var body: some View {
         content
             .scaleEffect(bounceScale)
-            .onChange(of: trigger) {
-                withAnimation(.interpolatingSpring(stiffness: 300, damping: 10)) {
-                    bounceScale = 1.2
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            .onChange(of: trigger) { oldValue, newValue in
+                if newValue != oldValue {
                     withAnimation(.interpolatingSpring(stiffness: 300, damping: 10)) {
-                        bounceScale = 1.0
+                        bounceScale = 1.2
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.interpolatingSpring(stiffness: 300, damping: 10)) {
+                            bounceScale = 1.0
+                        }
                     }
                 }
             }
@@ -172,6 +174,7 @@ struct BounceView<Content: View>: View {
 
 struct TypingIndicator: View {
     @State private var animationPhase = 0
+    @State private var timer: Timer?
     
     var body: some View {
         HStack(spacing: 4) {
@@ -184,12 +187,24 @@ struct TypingIndicator: View {
             }
         }
         .onAppear {
-            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    animationPhase = (animationPhase + 1) % 3
-                }
+            startAnimation()
+        }
+        .onDisappear {
+            stopAnimation()
+        }
+    }
+    
+    private func startAnimation() {
+        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                animationPhase = (animationPhase + 1) % 3
             }
         }
+    }
+    
+    private func stopAnimation() {
+        timer?.invalidate()
+        timer = nil
     }
 }
 
@@ -229,6 +244,7 @@ struct SlideInView<Content: View>: View {
 
 struct ParticleView: View {
     @State private var particles: [Particle] = []
+    @State private var timer: Timer?
     let particleCount: Int
     let colors: [Color]
     
@@ -252,6 +268,9 @@ struct ParticleView: View {
             generateParticles()
             animateParticles()
         }
+        .onDisappear {
+            stopAnimation()
+        }
     }
     
     private func generateParticles() {
@@ -270,7 +289,7 @@ struct ParticleView: View {
     }
     
     private func animateParticles() {
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             withAnimation(.linear(duration: 0.1)) {
                 for i in particles.indices {
                     particles[i].position.x += CGFloat.random(in: -2...2)
@@ -280,6 +299,11 @@ struct ParticleView: View {
                 }
             }
         }
+    }
+    
+    private func stopAnimation() {
+        timer?.invalidate()
+        timer = nil
     }
 }
 

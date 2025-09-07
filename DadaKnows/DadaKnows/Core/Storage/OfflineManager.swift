@@ -2,7 +2,7 @@
 //  OfflineManager.swift
 //  DadaKnows
 //
-//  离线模式管理器
+//  离线数据管理器 - 处理网络断开时的数据缓存和恢复
 //
 
 import Foundation
@@ -14,24 +14,21 @@ class OfflineManager: ObservableObject {
     static let shared = OfflineManager()
     
     @Published var isOnline = true
-    @Published var connectionType: NWInterface.InterfaceType?
-    @Published var offlineQueueCount = 0
+    @Published var hasPendingSync = false
+    @Published var lastSyncDate: Date?
     
     private let monitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "NetworkMonitor")
     private var cancellables = Set<AnyCancellable>()
     
-    // 离线队列
-    private var offlineQueue: [OfflineRequest] = []
-    private let offlineQueueKey = "offline_request_queue"
-    
-    // 缓存的回答
-    private var cachedAnswers: [String: CachedAnswer] = [:]
-    private let cachedAnswersKey = "cached_answers"
+    // Lazy to avoid circular dependency issues during singleton initialization order.
+    private lazy var userService = UserService.shared
+    private lazy var chatService = ChatService.shared
     
     private init() {
         setupNetworkMonitoring()
-        loadOfflineData()
+        loadLastSyncDate()
+        checkPendingSync()
     }
     
     // MARK: - Network Monitoring
@@ -39,11 +36,18 @@ class OfflineManager: ObservableObject {
     private func setupNetworkMonitoring() {
         monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
+                let wasOnline = self?.isOnline ?? false
                 self?.isOnline = path.status == .satisfied
-                self?.connectionType = path.availableInterfaces.first?.type
                 
-                if path.status == .satisfied {
-                    self?.processOfflineQueue()
+                // 如果从离线变为在线，触发同步
+                if !wasOnline && path.status == .satisfied {
+                    Task {
+                        await self?.handleNetworkReconnection()
+                    }
+                }
+                
+                if Config.isDebug {
+                    print("🌐 网络状态: \(path.status == .satisfied ? "在线" : "离线")")
                 }
             }
         }
@@ -51,223 +55,214 @@ class OfflineManager: ObservableObject {
         monitor.start(queue: monitorQueue)
     }
     
-    // MARK: - Offline Queue Management
-    
-    func addToOfflineQueue(question: String, targetAge: Int, language: String) {
-        let request = OfflineRequest(
-            id: UUID().uuidString,
-            question: question,
-            targetAge: targetAge,
-            language: language,
-            timestamp: Date()
-        )
+    private func handleNetworkReconnection() async {
+        guard AuthManager.shared.isAuthenticated else { return }
         
-        offlineQueue.append(request)
-        offlineQueueCount = offlineQueue.count
-        saveOfflineQueue()
+        if Config.isDebug {
+            print("🔄 网络重连，开始同步数据...")
+        }
+        
+        // 同步用户配置
+        await userService.loadUserProfile()
+        
+        // 同步聊天记录
+        await chatService.syncAllChatsToCloud()
+        await chatService.syncChatsFromCloud()
+        
+        // 更新同步状态
+        updateLastSyncDate()
+        checkPendingSync()
+        
+        if Config.isDebug {
+            print("✅ 数据同步完成")
+        }
     }
     
-    private func processOfflineQueue() {
-        guard isOnline && !offlineQueue.isEmpty else { return }
-        
-        Task {
-            for request in offlineQueue {
-                do {
-                    // 处理离线请求
-                    try await processOfflineRequest(request)
-                    
-                    // 从队列中移除已处理的请求
-                    if let index = offlineQueue.firstIndex(where: { $0.id == request.id }) {
-                        offlineQueue.remove(at: index)
-                    }
-                } catch {
-                    print("❌ 处理离线请求失败: \(error)")
-                    // 保留失败的请求，稍后重试
-                }
+    // MARK: - Sync Management
+    
+    func forceSyncAll() async {
+        guard isOnline && AuthManager.shared.isAuthenticated else {
+            if Config.isDebug {
+                print("⚠️ 无法同步：网络离线或用户未登录")
             }
-            
-            offlineQueueCount = offlineQueue.count
-            saveOfflineQueue()
-        }
-    }
-    
-    private func processOfflineRequest(_ request: OfflineRequest) async throws {
-        // 调用AI服务处理请求
-        _ = AIManager.shared
-        
-        // 这里可以实现批量处理或后台处理逻辑
-        print("✅ 处理离线请求: \(request.question)")
-    }
-    
-    // MARK: - Answer Caching
-    
-    func cacheAnswer(question: String, answer: String, targetAge: Int, language: String) {
-        let cacheKey = generateCacheKey(question: question, targetAge: targetAge, language: language)
-        let cachedAnswer = CachedAnswer(
-            question: question,
-            answer: answer,
-            targetAge: targetAge,
-            language: language,
-            timestamp: Date()
-        )
-        
-        cachedAnswers[cacheKey] = cachedAnswer
-        saveCachedAnswers()
-    }
-    
-    func getCachedAnswer(question: String, targetAge: Int, language: String) -> String? {
-        let cacheKey = generateCacheKey(question: question, targetAge: targetAge, language: language)
-        
-        guard let cachedAnswer = cachedAnswers[cacheKey] else {
-            return nil
+            return
         }
         
-        // 检查缓存是否过期（7天）
-        let expirationDate = cachedAnswer.timestamp.addingTimeInterval(7 * 24 * 60 * 60)
-        if Date() > expirationDate {
-            cachedAnswers.removeValue(forKey: cacheKey)
-            saveCachedAnswers()
-            return nil
+        if Config.isDebug {
+            print("🔄 开始手动同步所有数据...")
         }
         
-        return cachedAnswer.answer
-    }
-    
-    private func generateCacheKey(question: String, targetAge: Int, language: String) -> String {
-        let normalizedQuestion = question.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        return "\(normalizedQuestion)_\(targetAge)_\(language)".data(using: .utf8)?.base64EncodedString() ?? ""
-    }
-    
-    // MARK: - Offline Content
-    
-    func getOfflineContent(for age: Int) -> [OfflineContent] {
-        // 返回预缓存的离线内容
-        return generateOfflineContent(for: age)
-    }
-    
-    private func generateOfflineContent(for age: Int) -> [OfflineContent] {
-        switch age {
-        case 2...4:
-            return [
-                OfflineContent(
-                    question: "什么是颜色？",
-                    answer: "颜色就像彩虹一样美丽！红色像苹果，蓝色像天空，绿色像小草。我们的世界因为有了颜色变得更加美丽和有趣！",
-                    category: "基础认知"
-                ),
-                OfflineContent(
-                    question: "动物怎么说话？",
-                    answer: "动物们有自己的语言哦！小狗汪汪叫，小猫喵喵叫，小鸟叽叽喳喳。虽然我们听不懂，但它们在用自己的方式交流呢！",
-                    category: "动物世界"
-                )
-            ]
-        case 5...7:
-            return [
-                OfflineContent(
-                    question: "为什么会下雨？",
-                    answer: "下雨就像天空在洗澡！太阳把水变成看不见的水蒸气，水蒸气飞到天空变成云朵，云朵太重了就变成雨滴落下来，给大地洗个澡！",
-                    category: "自然现象"
-                ),
-                OfflineContent(
-                    question: "植物怎么长大？",
-                    answer: "植物就像小朋友一样需要吃饭！它们喝水，晒太阳，从土里吸收营养，慢慢长高长大。阳光就是它们的食物，水就是它们的饮料！",
-                    category: "植物世界"
-                )
-            ]
-        default:
-            return [
-                OfflineContent(
-                    question: "什么是友谊？",
-                    answer: "友谊是世界上最珍贵的宝藏！好朋友会在你开心时和你一起笑，在你难过时安慰你，一起分享快乐和秘密。真正的朋友就像星星，即使看不见也一直在那里！",
-                    category: "情感认知"
-                )
-            ]
+        // 同步用户配置
+        await userService.loadUserProfile()
+        
+        // 同步聊天记录
+        await chatService.syncAllChatsToCloud()
+        await chatService.syncChatsFromCloud()
+        
+        // 更新同步状态
+        updateLastSyncDate()
+        checkPendingSync()
+        
+        if Config.isDebug {
+            print("✅ 手动同步完成")
         }
     }
     
-    // MARK: - Data Persistence
-    
-    private func loadOfflineData() {
-        loadOfflineQueue()
-        loadCachedAnswers()
+    func checkPendingSync() {
+        // 检查是否有待同步的数据
+        let pendingChats = UserDefaults.standard.data(forKey: "PendingSyncChats")
+        hasPendingSync = pendingChats != nil && !pendingChats!.isEmpty
     }
     
-    private func loadOfflineQueue() {
-        if let data = UserDefaults.standard.data(forKey: offlineQueueKey),
-           let queue = try? JSONDecoder().decode([OfflineRequest].self, from: data) {
-            offlineQueue = queue
-            offlineQueueCount = queue.count
-        }
+    private func updateLastSyncDate() {
+        lastSyncDate = Date()
+        UserDefaults.standard.set(lastSyncDate, forKey: "LastSyncDate")
     }
     
-    private func saveOfflineQueue() {
-        if let data = try? JSONEncoder().encode(offlineQueue) {
-            UserDefaults.standard.set(data, forKey: offlineQueueKey)
-        }
-    }
-    
-    private func loadCachedAnswers() {
-        if let data = UserDefaults.standard.data(forKey: cachedAnswersKey),
-           let answers = try? JSONDecoder().decode([String: CachedAnswer].self, from: data) {
-            cachedAnswers = answers
-        }
-    }
-    
-    private func saveCachedAnswers() {
-        if let data = try? JSONEncoder().encode(cachedAnswers) {
-            UserDefaults.standard.set(data, forKey: cachedAnswersKey)
-        }
+    private func loadLastSyncDate() {
+        lastSyncDate = UserDefaults.standard.object(forKey: "LastSyncDate") as? Date
     }
     
     // MARK: - Cache Management
     
-    func clearExpiredCache() {
-        let now = Date()
-        let expirationInterval: TimeInterval = 7 * 24 * 60 * 60 // 7天
-        
-        cachedAnswers = cachedAnswers.filter { _, cachedAnswer in
-            now.timeIntervalSince(cachedAnswer.timestamp) < expirationInterval
-        }
-        
-        saveCachedAnswers()
+    func getCachedAnswer(question: String, targetAge: Int, language: String) -> String? {
+        let cacheKey = "\(question)_\(targetAge)_\(language)".lowercased()
+        return UserDefaults.standard.string(forKey: "cached_answer_\(cacheKey)")
     }
     
-    func clearAllCache() {
-        cachedAnswers.removeAll()
-        offlineQueue.removeAll()
-        offlineQueueCount = 0
+    func cacheAnswer(question: String, answer: String, targetAge: Int, language: String) {
+        let cacheKey = "\(question)_\(targetAge)_\(language)".lowercased()
+        UserDefaults.standard.set(answer, forKey: "cached_answer_\(cacheKey)")
         
-        saveCachedAnswers()
-        saveOfflineQueue()
+        if Config.isDebug {
+            print("💾 缓存答案: \(question)")
+        }
+    }
+    
+    func addToOfflineQueue(question: String, targetAge: Int, language: String) {
+        var offlineQueue = getOfflineQueue()
+        let queueItem = OfflineQueueItem(
+            question: question,
+            targetAge: targetAge,
+            language: language,
+            timestamp: Date()
+        )
+        offlineQueue.append(queueItem)
+        saveOfflineQueue(offlineQueue)
+        
+        if Config.isDebug {
+            print("📥 添加到离线队列: \(question)")
+        }
+    }
+    
+    private func getOfflineQueue() -> [OfflineQueueItem] {
+        guard let data = UserDefaults.standard.data(forKey: "OfflineQueue"),
+              let queue = try? JSONDecoder().decode([OfflineQueueItem].self, from: data) else {
+            return []
+        }
+        return queue
+    }
+    
+    private func saveOfflineQueue(_ queue: [OfflineQueueItem]) {
+        if let data = try? JSONEncoder().encode(queue) {
+            UserDefaults.standard.set(data, forKey: "OfflineQueue")
+        }
+    }
+    
+    func clearOfflineCache() {
+        // 清除离线缓存数据
+        UserDefaults.standard.removeObject(forKey: "PendingSyncChats")
+        UserDefaults.standard.removeObject(forKey: "LastSyncDate")
+        
+        hasPendingSync = false
+        lastSyncDate = nil
+        
+        if Config.isDebug {
+            print("🗑️ 离线缓存已清除")
+        }
     }
     
     func getCacheSize() -> String {
-        let cacheCount = cachedAnswers.count
-        let queueCount = offlineQueue.count
-        return "缓存答案: \(cacheCount)条，待处理: \(queueCount)条"
+        // 计算缓存大小（简化实现）
+        let pendingChats = UserDefaults.standard.data(forKey: "PendingSyncChats")
+        let sizeInBytes = pendingChats?.count ?? 0
+        
+        if sizeInBytes < 1024 {
+            return "\(sizeInBytes) B"
+        } else if sizeInBytes < 1024 * 1024 {
+            return String(format: "%.1f KB", Double(sizeInBytes) / 1024.0)
+        } else {
+            return String(format: "%.1f MB", Double(sizeInBytes) / (1024.0 * 1024.0))
+        }
+    }
+    
+    // MARK: - Connectivity Helpers
+    
+    var networkStatusText: String {
+        if isOnline {
+            return "已连接"
+        } else {
+            return "离线"
+        }
+    }
+    
+    var networkStatusColor: String {
+        return isOnline ? "green" : "red"
+    }
+    
+    var shouldShowOfflineIndicator: Bool {
+        return !isOnline || hasPendingSync
+    }
+    
+    // MARK: - Cleanup
+    
+    deinit {
+        monitor.cancel()
+    }
+}
+
+// MARK: - Sync Status Extensions
+
+extension OfflineManager {
+    
+    var syncStatusText: String {
+        if !isOnline {
+            return "离线模式"
+        } else if hasPendingSync {
+            return "等待同步"
+        } else if let lastSync = lastSyncDate {
+            let formatter = RelativeDateTimeFormatter()
+            formatter.locale = Locale(identifier: "zh-CN")
+            return "上次同步：\(formatter.localizedString(for: lastSync, relativeTo: Date()))"
+        } else {
+            return "从未同步"
+        }
+    }
+    
+    var canSync: Bool {
+        return isOnline && AuthManager.shared.isAuthenticated
+    }
+    
+    func shouldAutoSync() -> Bool {
+        guard canSync else { return false }
+        
+        // 如果有待同步数据，立即同步
+        if hasPendingSync { return true }
+        
+        // 如果超过1小时未同步，自动同步
+        if let lastSync = lastSyncDate {
+            return Date().timeIntervalSince(lastSync) > 3600 // 1小时
+        }
+        
+        return true // 从未同步过
     }
 }
 
 // MARK: - Supporting Types
 
-struct OfflineRequest: Codable, Identifiable {
-    let id: String
+struct OfflineQueueItem: Codable {
     let question: String
     let targetAge: Int
     let language: String
     let timestamp: Date
-}
-
-struct CachedAnswer: Codable {
-    let question: String
-    let answer: String
-    let targetAge: Int
-    let language: String
-    let timestamp: Date
-}
-
-struct OfflineContent: Identifiable {
-    let id = UUID()
-    let question: String
-    let answer: String
-    let category: String
 }

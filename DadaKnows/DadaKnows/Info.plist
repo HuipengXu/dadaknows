@@ -13,6 +13,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>DadaKnows需要访问麦克风以支持语音输入功能</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

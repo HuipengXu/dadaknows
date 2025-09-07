@@ -8,37 +8,51 @@
 import SwiftUI
 
 struct OfflineIndicator: View {
-    @StateObject private var offlineManager = OfflineManager.shared
+    @ObservedObject private var offlineManager = OfflineManager.shared
+    @ObservedObject private var dataManager = DataManager.shared
     
     var body: some View {
-        if !offlineManager.isOnline {
+        if offlineManager.shouldShowOfflineIndicator {
             HStack(spacing: 8) {
-                Image(systemName: "wifi.slash")
-                    .font(.system(size: 14, weight: .medium))
-                
-                Text("离线模式")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                
-                if offlineManager.offlineQueueCount > 0 {
-                    Text("(\(offlineManager.offlineQueueCount))")
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.8))
+                if !offlineManager.isOnline {
+                    Image(systemName: "wifi.slash")
+                        .font(.system(size: 14, weight: .medium))
+                    
+                    Text("离线模式")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                } else if offlineManager.hasPendingSync {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 14, weight: .medium))
+                        .rotationEffect(.degrees(dataManager.isSyncing ? 360 : 0))
+                        .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: dataManager.isSyncing)
+                    
+                    Text(dataManager.isSyncing ? "同步中..." : "等待同步")
+                        .font(.caption)
+                        .fontWeight(.medium)
                 }
             }
             .foregroundColor(.white)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Color.orange)
+            .background(offlineManager.isOnline ? Color.blue : Color.orange)
             .cornerRadius(15)
             .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+            .onTapGesture {
+                if offlineManager.canSync && offlineManager.hasPendingSync {
+                    Task {
+                        await offlineManager.forceSyncAll()
+                    }
+                }
+            }
         }
     }
 }
 
 struct NetworkStatusBanner: View {
-    @StateObject private var offlineManager = OfflineManager.shared
+    @ObservedObject private var offlineManager = OfflineManager.shared
     @State private var showBanner = false
+    @State private var hideTask: Task<Void, Never>?
     
     var body: some View {
         VStack {
@@ -61,9 +75,7 @@ struct NetworkStatusBanner: View {
                     Spacer()
                     
                     Button("知道了") {
-                        withAnimation {
-                            showBanner = false
-                        }
+                        hideBanner()
                     }
                     .font(.caption)
                     .foregroundColor(.white)
@@ -79,107 +91,132 @@ struct NetworkStatusBanner: View {
             
             Spacer()
         }
-        .onChange(of: offlineManager.isOnline) {
-            if !offlineManager.isOnline {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    showBanner = true
-                }
-                
-                // 5秒后自动隐藏
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        showBanner = false
+        .onChange(of: offlineManager.isOnline) { oldValue, newValue in
+            handleNetworkStatusChange(isOnline: newValue)
+        }
+        .onDisappear {
+            hideTask?.cancel()
+        }
+    }
+    
+    private func handleNetworkStatusChange(isOnline: Bool) {
+        hideTask?.cancel()
+        
+        if !isOnline {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showBanner = true
+            }
+            
+            // 5秒后自动隐藏
+            hideTask = Task {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                if !Task.isCancelled {
+                    await MainActor.run {
+                        hideBanner()
                     }
                 }
-            } else {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    showBanner = false
-                }
             }
+        } else {
+            hideBanner()
         }
     }
-}
-
-struct OfflineContentView: View {
-    let targetAge: Int
-    @StateObject private var offlineManager = OfflineManager.shared
     
-    var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(offlineManager.getOfflineContent(for: targetAge)) { content in
-                    OfflineContentCard(content: content)
-                }
-            }
-            .padding()
+    private func hideBanner() {
+        hideTask?.cancel()
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showBanner = false
         }
-        .navigationTitle("离线内容")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
-struct OfflineContentCard: View {
-    let content: OfflineContent
-    @State private var isExpanded = false
+struct SyncStatusView: View {
+    @ObservedObject private var offlineManager = OfflineManager.shared
+    @ObservedObject private var dataManager = DataManager.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Header
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(content.category)
+                Image(systemName: offlineManager.isOnline ? "wifi" : "wifi.slash")
+                    .foregroundColor(offlineManager.isOnline ? .green : .red)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("网络状态")
                         .font(.caption)
-                        .foregroundColor(.vibrantOrange)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.vibrantOrange.opacity(0.1))
-                        .cornerRadius(4)
+                        .foregroundColor(.secondary)
                     
-                    Text(content.question)
-                        .font(.headline)
-                        .foregroundColor(.darkGray)
-                        .multilineTextAlignment(.leading)
+                    Text(offlineManager.networkStatusText)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                
+                Spacer()
+            }
+            
+            HStack {
+                Image(systemName: "arrow.clockwise")
+                    .foregroundColor(.blue)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("同步状态")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(offlineManager.syncStatusText)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
                 }
                 
                 Spacer()
                 
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isExpanded.toggle()
+                if offlineManager.canSync && offlineManager.hasPendingSync {
+                    Button("立即同步") {
+                        Task {
+                            await offlineManager.forceSyncAll()
+                        }
                     }
-                }) {
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.lightGray)
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(6)
                 }
             }
             
-            // Answer (expandable)
-            if isExpanded {
-                Text(content.answer)
-                    .font(.body)
-                    .foregroundColor(.darkGray)
-                    .multilineTextAlignment(.leading)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+            if offlineManager.hasPendingSync {
+                HStack {
+                    Image(systemName: "externaldrive")
+                        .foregroundColor(.orange)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("缓存大小")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text(offlineManager.getCacheSize())
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    
+                    Spacer()
+                }
             }
         }
         .padding()
-        .background(Color.white.opacity(0.9))
+        .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
 
 #Preview {
-    VStack {
+    VStack(spacing: 20) {
         OfflineIndicator()
         
-        OfflineContentCard(content: OfflineContent(
-            question: "什么是颜色？",
-            answer: "颜色就像彩虹一样美丽！红色像苹果，蓝色像天空，绿色像小草。",
-            category: "基础认知"
-        ))
+        SyncStatusView()
+        
+        NetworkStatusBanner()
     }
     .padding()
-    .background(Color.creamYellow)
+    .background(Color(.systemGroupedBackground))
 }

@@ -68,30 +68,127 @@ class SupabaseClient: ObservableObject {
     
     // MARK: - Chat Operations
     func saveChatToDatabase(question: String, answer: String, targetAge: Int, language: String) async throws {
-        // 保存聊天记录到 Supabase 数据库
-        // let chatData = [
-        //     "question_text": question,
-        //     "answer_text": answer,
-        //     "target_age": targetAge,
-        //     "language": language,
-        //     "user_id": getCurrentUserId(),
-        //     "created_at": ISO8601DateFormatter().string(from: Date())
-        // ]
-        // try await supabase.from("chats").insert(chatData)
+        let currentUser = await MainActor.run { getCurrentUser() }
+        guard let currentUser = currentUser else {
+            throw SupabaseError.userNotAuthenticated
+        }
         
-        print("模拟保存聊天记录: \(question)")
+        let chatData = ChatRequest(
+            uuid: UUID().uuidString,
+            userId: currentUser.id.uuidString,
+            parentChatId: nil,
+            questionText: question,
+            answerText: answer,
+            targetAge: targetAge,
+            language: language,
+            userFeedback: "none"
+        )
+        
+        try await supabase.from("chats").insert(chatData).execute()
+        
+        if Config.isDebug {
+            print("✅ 聊天记录已保存到云端: \(question)")
+        }
     }
     
     func fetchUserChats(limit: Int = 50) async throws -> [ChatRecord] {
-        // 从数据库获取用户的聊天历史
-        // let response = try await supabase.from("chats")
-        //     .select("*")
-        //     .order("created_at", ascending: false)
-        //     .limit(limit)
-        //     .execute()
+        let currentUser = await MainActor.run { getCurrentUser() }
+        guard let currentUser = currentUser else {
+            throw SupabaseError.userNotAuthenticated
+        }
         
-        // 临时返回空数组
-        return []
+        let response: [ChatResponse] = try await supabase
+            .from("chats")
+            .select("*")
+            .eq("user_id", value: currentUser.id.uuidString)
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+        
+        return response.map { chatResponse in
+            ChatRecord(
+                id: chatResponse.uuid,
+                question: chatResponse.questionText,
+                answer: chatResponse.answerText ?? "",
+                targetAge: chatResponse.targetAge,
+                language: chatResponse.language,
+                createdAt: ISO8601DateFormatter().date(from: chatResponse.createdAt) ?? Date()
+            )
+        }
+    }
+    
+    // MARK: - User Profile Operations
+    func createUserProfile(nickname: String?, avatarUrl: String?, preferredLanguage: String, subscriptionStatus: String) async throws {
+        let currentUser = await MainActor.run { getCurrentUser() }
+        guard let currentUser = currentUser else {
+            throw SupabaseError.userNotAuthenticated
+        }
+        
+        let userProfile = UserProfileRequest(
+            id: currentUser.id.uuidString,
+            nickname: nickname,
+            avatarUrl: avatarUrl,
+            preferredLanguage: preferredLanguage,
+            subscriptionStatus: subscriptionStatus
+        )
+        
+        try await supabase.from("users").insert(userProfile).execute()
+        
+        if Config.isDebug {
+            print("✅ 用户配置已创建")
+        }
+    }
+    
+    func updateUserProfile(nickname: String?, avatarUrl: String?, preferredLanguage: String, subscriptionStatus: String) async throws {
+        let currentUser = await MainActor.run { getCurrentUser() }
+        guard let currentUser = currentUser else {
+            throw SupabaseError.userNotAuthenticated
+        }
+        
+        let userProfile = UserProfileRequest(
+            id: currentUser.id.uuidString,
+            nickname: nickname,
+            avatarUrl: avatarUrl,
+            preferredLanguage: preferredLanguage,
+            subscriptionStatus: subscriptionStatus
+        )
+        
+        try await supabase
+            .from("users")
+            .update(userProfile)
+            .eq("id", value: currentUser.id.uuidString)
+            .execute()
+        
+        if Config.isDebug {
+            print("✅ 用户配置已更新")
+        }
+    }
+    
+    func fetchUserProfile() async throws -> UserProfile? {
+        let currentUser = await MainActor.run { getCurrentUser() }
+        guard let currentUser = currentUser else {
+            throw SupabaseError.userNotAuthenticated
+        }
+        
+        let response: [UserProfileResponse] = try await supabase
+            .from("users")
+            .select("*")
+            .eq("id", value: currentUser.id.uuidString)
+            .execute()
+            .value
+        
+        guard let userResponse = response.first else {
+            return nil
+        }
+        
+        return UserProfile(
+            id: userResponse.id,
+            nickname: userResponse.nickname,
+            avatarUrl: userResponse.avatarUrl,
+            preferredLanguage: userResponse.preferredLanguage,
+            subscriptionStatus: userResponse.subscriptionStatus
+        )
     }
     
     // MARK: - Edge Functions
@@ -104,7 +201,7 @@ class SupabaseClient: ObservableObject {
                         "question": question,
                         "age": targetAge,
                         "language": language,
-                        "previousAnswer": previousAnswer ?? NSNull(),
+                        "previousAnswer": (previousAnswer ?? NSNull()) as Any,
                         "apiKey": Config.geminiAPIKey
                     ]
                     
@@ -207,10 +304,15 @@ class SupabaseClient: ObservableObject {
     }
     
     // MARK: - Helper Methods
+    @MainActor
+    private func getCurrentUser() -> User? {
+        // 获取当前用户
+        return AuthManager.shared.currentUser
+    }
+    
+    @MainActor
     private func getCurrentUserId() -> String {
-        // 获取当前用户ID
-        // return supabase.auth.currentUser?.id ?? ""
-        return "mock-user-id"
+        return getCurrentUser()?.id.uuidString ?? ""
     }
 }
 
@@ -222,4 +324,115 @@ struct ChatRecord {
     let targetAge: Int
     let language: String
     let createdAt: Date
+}
+
+// MARK: - Error Types
+enum SupabaseError: LocalizedError {
+    case userNotAuthenticated
+    case invalidData
+    case networkError(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .userNotAuthenticated:
+            return "用户未登录"
+        case .invalidData:
+            return "数据格式无效"
+        case .networkError(let message):
+            return "网络错误: \(message)"
+        }
+    }
+}
+
+// MARK: - Data Models (Shared with other services)
+struct UserProfile {
+    let id: String
+    let nickname: String?
+    let avatarUrl: String?
+    let preferredLanguage: String
+    let subscriptionStatus: String
+}
+
+struct UserProfileResponse: Codable {
+    let id: String
+    let nickname: String?
+    let avatarUrl: String?
+    let preferredLanguage: String
+    let subscriptionStatus: String
+    let createdAt: String
+    let updatedAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case nickname
+        case avatarUrl = "avatar_url"
+        case preferredLanguage = "preferred_language"
+        case subscriptionStatus = "subscription_status"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+struct UserProfileRequest: Codable {
+    let id: String
+    let nickname: String?
+    let avatarUrl: String?
+    let preferredLanguage: String
+    let subscriptionStatus: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case nickname
+        case avatarUrl = "avatar_url"
+        case preferredLanguage = "preferred_language"
+        case subscriptionStatus = "subscription_status"
+    }
+}
+
+struct ChatResponse: Codable {
+    let id: Int
+    let uuid: String
+    let userId: String
+    let parentChatId: Int?
+    let questionText: String
+    let answerText: String?
+    let targetAge: Int
+    let language: String
+    let userFeedback: String
+    let createdAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case uuid
+        case userId = "user_id"
+        case parentChatId = "parent_chat_id"
+        case questionText = "question_text"
+        case answerText = "answer_text"
+        case targetAge = "target_age"
+        case language
+        case userFeedback = "user_feedback"
+        case createdAt = "created_at"
+    }
+}
+
+struct ChatRequest: Codable {
+    let uuid: String
+    let userId: String
+    let parentChatId: Int?
+    let questionText: String
+    let answerText: String?
+    let targetAge: Int
+    let language: String
+    let userFeedback: String
+    
+    enum CodingKeys: String, CodingKey {
+        case uuid
+        case userId = "user_id"
+        case parentChatId = "parent_chat_id"
+        case questionText = "question_text"
+        case answerText = "answer_text"
+        case targetAge = "target_age"
+        case language
+        case userFeedback = "user_feedback"
+    }
 }

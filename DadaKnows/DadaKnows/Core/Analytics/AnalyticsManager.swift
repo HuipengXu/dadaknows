@@ -371,19 +371,35 @@ struct LearningEvent: Codable {
 }
 
 struct DailyProgress: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     let date: Date
     let questionCount: Int
     let learningTime: TimeInterval
     let categories: Set<String>
+    
+    init(date: Date, questionCount: Int, learningTime: TimeInterval, categories: Set<String>) {
+        self.id = UUID()
+        self.date = date
+        self.questionCount = questionCount
+        self.learningTime = learningTime
+        self.categories = categories
+    }
 }
 
 struct CategoryStats: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     let name: String
     let questionCount: Int
     let averageResponseTime: TimeInterval
     let lastUsed: Date
+    
+    init(name: String, questionCount: Int, averageResponseTime: TimeInterval, lastUsed: Date) {
+        self.id = UUID()
+        self.name = name
+        self.questionCount = questionCount
+        self.averageResponseTime = averageResponseTime
+        self.lastUsed = lastUsed
+    }
 }
 
 enum Achievement: String, Codable, CaseIterable {

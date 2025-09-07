@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct VoiceInputButton: View {
-    @StateObject private var speechManager = SpeechRecognitionManager.shared
+    @ObservedObject private var speechManager = SpeechRecognitionManager.shared
     @Binding var text: String
     @State private var showPermissionAlert = false
     
@@ -49,14 +49,14 @@ struct VoiceInputButton: View {
         } message: {
             Text("请在设置中允许DadaKnows访问麦克风和语音识别功能")
         }
-        .onChange(of: speechManager.recognizedText) {
-            if !speechManager.recognizedText.isEmpty && !speechManager.isRecording {
-                text = speechManager.recognizedText
+        .onChange(of: speechManager.recognizedText) { oldValue, newValue in
+            if !newValue.isEmpty && !speechManager.isRecording {
+                text = newValue
                 speechManager.clearText()
             }
         }
-        .onChange(of: speechManager.errorMessage) {
-            if speechManager.errorMessage != nil && !speechManager.isAuthorized {
+        .onChange(of: speechManager.errorMessage) { oldValue, newValue in
+            if newValue != nil && !speechManager.isAuthorized {
                 showPermissionAlert = true
             }
         }
@@ -111,7 +111,7 @@ struct VoiceInputField: View {
 // MARK: - Voice Recording Overlay
 
 struct VoiceRecordingOverlay: View {
-    @StateObject private var speechManager = SpeechRecognitionManager.shared
+    @ObservedObject private var speechManager = SpeechRecognitionManager.shared
     
     var body: some View {
         if speechManager.isRecording {

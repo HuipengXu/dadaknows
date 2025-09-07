@@ -11,6 +11,8 @@ struct ProfileView: View {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var analyticsManager = AnalyticsManager.shared
     @StateObject private var authManager = AuthManager.shared
+    @StateObject private var userService = UserService.shared
+    @StateObject private var offlineManager = OfflineManager.shared
     @State private var showSettings = false
     @State private var showProSubscription = false
     
@@ -29,6 +31,9 @@ struct ProfileView: View {
                     
                     // Pro membership card
                     proMembershipSection
+                    
+                    // 🔄 新增：同步状态部分
+                    syncStatusSection
                     
                     // Features list
                     featuresSection
@@ -247,6 +252,62 @@ struct ProfileView: View {
             )
         }
     }
+    
+    // 🔄 新增：同步状态部分
+    private var syncStatusSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "icloud.and.arrow.up.and.arrow.down")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.vibrantOrange)
+                
+                Text("数据同步")
+                    .font(.headline)
+                    .foregroundColor(.darkGray)
+                
+                Spacer()
+            }
+            
+            // 使用我们创建的OfflineIndicator组件
+            OfflineIndicator()
+            
+            // 简化的同步状态显示
+            VStack(alignment: .leading, spacing: 8) {
+                Text("用户配置")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.darkGray)
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("昵称: 用户")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text("语言: 中文")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text("订阅: 免费版")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                }
+            }
+            .padding()
+            .background(Color.white.opacity(0.5))
+            .cornerRadius(8)
+        }
+        .padding()
+        .background(Color.white.opacity(0.9))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
 }
 
 // MARK: - Supporting Views
@@ -354,9 +415,9 @@ struct FeatureButton: View {
             .background(Color.white.opacity(0.9))
             .cornerRadius(12)
             .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-        }
-        .disabled(isProFeature)
     }
+    .disabled(isProFeature)
+}
 }
 
 // MARK: - Settings View
