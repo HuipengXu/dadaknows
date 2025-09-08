@@ -38,14 +38,23 @@
 		72F855012E6B2D66003C290C /* DadaKnows.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DadaKnows.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		72F8550E2E6B2D68003C290C /* DadaKnowsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DadaKnowsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		72F855182E6B2D68003C290C /* DadaKnowsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DadaKnowsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		72F855F72E6B4002003C290C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		72F855F82E6B4003003C290C /* Exceptions for "DadaKnows" folder in "DadaKnows" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 72F855002E6B2D66003C290C /* DadaKnows */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		72F855032E6B2D66003C290C /* DadaKnows */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				72F855F82E6B4003003C290C /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				72F855F82E6B4003003C290C /* Exceptions for "DadaKnows" folder in "DadaKnows" target */,
 			);
 			path = DadaKnows;
 			sourceTree = "<group>";
@@ -661,16 +670,6 @@
 			productName = Crypto;
 		};
 /* End XCSwiftPackageProductDependency section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		72F855F82E6B4003003C290C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 72F855002E6B2D66003C290C /* DadaKnows */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 	};
 	rootObject = 72F854F92E6B2D66003C290C /* Project object */;
 }
