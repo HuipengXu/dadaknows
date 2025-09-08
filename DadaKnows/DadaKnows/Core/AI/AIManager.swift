@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import Combine
 
 @MainActor
@@ -14,6 +15,8 @@ class AIManager: ObservableObject {
     
     @Published var isLoading = false
     @Published var currentResponse = ""
+    // Chat history used by ChatView
+    @Published var chatHistory: [ChatMessage] = []
     @Published var error: Error?
     
     private let apiClient = APIClient.shared
@@ -130,6 +133,30 @@ class AIManager: ObservableObject {
     func clearCurrentResponse() {
         currentResponse = ""
         error = nil
+    }
+}
+
+// MARK: - Chat Message Support
+
+extension AIManager {
+    /// Simple helper to send a message and append it to the chat history.
+    /// This is a stub implementation to unblock compilation; you can replace it with a real streaming call later.
+    @MainActor
+    func sendMessage(_ text: String) async {
+        // Add the user's question
+        chatHistory.append(ChatMessage(message: text, isFromUser: true))
+
+        // Call askQuestion with default parameters for now
+        do {
+            let stream = askQuestion(question: text, targetAge: 4)
+            var answer = ""
+            for try await chunk in stream {
+                answer += chunk
+            }
+            chatHistory.append(ChatMessage(message: answer, isFromUser: false))
+        } catch {
+            self.error = error
+        }
     }
 }
 

@@ -207,7 +207,7 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
 
 // MARK: - SFSpeechRecognizerDelegate
 
-extension SpeechRecognitionManager: @preconcurrency SFSpeechRecognizerDelegate {
+extension SpeechRecognitionManager: SFSpeechRecognizerDelegate {
     nonisolated func speechRecognizer(_ speechRecognizer: SFSpeechRecognizer, availabilityDidChange available: Bool) {
         Task { @MainActor in
             if !available {

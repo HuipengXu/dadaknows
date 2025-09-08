@@ -172,7 +172,7 @@ struct BounceView<Content: View>: View {
 
 // MARK: - Typing Animation
 
-struct TypingIndicator: View {
+struct DotTypingIndicator: View {
     @State private var animationPhase = 0
     @State private var timer: Timer?
     
@@ -180,7 +180,7 @@ struct TypingIndicator: View {
         HStack(spacing: 4) {
             ForEach(0..<3, id: \.self) { index in
                 Circle()
-                    .fill(Color.lightGray)
+                    .fill(Color.gray)
                     .frame(width: 8, height: 8)
                     .scaleEffect(animationPhase == index ? 1.2 : 0.8)
                     .opacity(animationPhase == index ? 1.0 : 0.5)
@@ -393,7 +393,7 @@ struct CustomLoadingSpinner: View {
                 .frame(width: 50, height: 50)
         }
         
-        TypingIndicator()
+        DotTypingIndicator()
         
         SuccessCheckmark()
         

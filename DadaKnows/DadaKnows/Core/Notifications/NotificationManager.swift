@@ -222,7 +222,7 @@ class NotificationManager: NSObject, ObservableObject {
 
 // MARK: - UNUserNotificationCenterDelegate
 
-extension NotificationManager: @preconcurrency UNUserNotificationCenterDelegate {
+extension NotificationManager: UNUserNotificationCenterDelegate {
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,

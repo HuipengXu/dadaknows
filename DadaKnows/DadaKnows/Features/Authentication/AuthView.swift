@@ -193,10 +193,10 @@ struct AuthView: View {
         .sheet(isPresented: $showForgotPassword) {
             ForgotPasswordView()
         }
-        .onChange(of: authManager.errorMessage) { errorMessage in
+        .onChange(of: authManager.errorMessage) { _, errorMessage in
             showAlert = errorMessage != nil
         }
-        .onChange(of: authManager.isAuthenticated) { isAuthenticated in
+        .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if isAuthenticated {
                 onAuthSuccess()
             }

@@ -2,26 +2,95 @@
   "sourceLanguage" : "zh-Hans",
   "strings" : {
     "" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ""
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ""
+          }
+        }
+      }
     },
-    "%lld" : {
-
-    },
-    "%lld 个问题" : {
-
-    },
-    "%lld/%lld" : {
+    "%@: %@" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      }
+    },
+    "%lld 个问题" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld questions"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个问题"
+          }
+        }
+      }
+    },
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "%1$lld/%2$lld"
           }
         }
       }
     },
     "%lld岁" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld years old"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld岁"
+          }
+        }
+      }
     },
     "app_name" : {
       "extractionState" : "manual",
@@ -107,6 +176,15 @@
           }
         }
       }
+    },
+    "Dada is thinking" : {
+
+    },
+    "Double tap to record your question using voice" : {
+
+    },
+    "Double tap to send your question to Dada" : {
+
     },
     "email" : {
       "extractionState" : "manual",
@@ -202,6 +280,12 @@
     "Pro功能" : {
 
     },
+    "Question input field" : {
+
+    },
+    "Send question" : {
+
+    },
     "sign_in" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -270,6 +354,12 @@
         }
       }
     },
+    "Start voice input" : {
+
+    },
+    "Stop recording" : {
+
+    },
     "try_another_way" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -286,6 +376,9 @@
           }
         }
       }
+    },
+    "Type your question here" : {
+
     },
     "welcome_subtitle" : {
       "extractionState" : "manual",
@@ -321,6 +414,12 @@
         }
       }
     },
+    "You are offline. Some features may not be available." : {
+
+    },
+    "You have %lld questions remaining today. Tap upgrade Pro for unlimited questions." : {
+
+    },
     "为什么选择Pro？" : {
 
     },
@@ -328,6 +427,9 @@
 
     },
     "享受完整功能体验" : {
+
+    },
+    "今天还可以问 %lld 个问题" : {
 
     },
     "停止录音" : {
@@ -345,7 +447,7 @@
     "分析" : {
 
     },
-    "刚刚" : {
+    "升级Pro" : {
 
     },
     "升级到Pro" : {
@@ -402,9 +504,6 @@
     "想问答答什么问题呢？" : {
 
     },
-    "懂啦！" : {
-
-    },
     "成就徽章" : {
 
     },
@@ -415,9 +514,6 @@
 
     },
     "或" : {
-
-    },
-    "换个说法" : {
 
     },
     "数据同步" : {
@@ -465,9 +561,6 @@
     "答答" : {
 
     },
-    "答答回答中..." : {
-
-    },
     "答答正在思考..." : {
 
     },
@@ -510,6 +603,9 @@
     "请在设置中允许DadaKnows访问麦克风和语音识别功能" : {
 
     },
+    "请在设置中允许访问麦克风以使用语音输入功能" : {
+
+    },
     "购买" : {
 
     },
@@ -541,6 +637,9 @@
 
     },
     "需要权限" : {
+
+    },
+    "需要麦克风权限" : {
 
     },
     "首页" : {

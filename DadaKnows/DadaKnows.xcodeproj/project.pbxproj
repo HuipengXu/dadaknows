@@ -14,6 +14,7 @@
 		72F855EE2E6B3748003C290C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855ED2E6B3748003C290C /* Supabase */; };
 		72F855F22E6B4000003C290C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855F12E6B4000003C290C /* GoogleSignIn */; };
 		72F855F42E6B4000003C290C /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855F32E6B4000003C290C /* GoogleSignInSwift */; };
+		72F855F62E6B4001003C290C /* Crypto in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855F52E6B4001003C290C /* Crypto */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,23 +38,14 @@
 		72F855012E6B2D66003C290C /* DadaKnows.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DadaKnows.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		72F8550E2E6B2D68003C290C /* DadaKnowsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DadaKnowsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		72F855182E6B2D68003C290C /* DadaKnowsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DadaKnowsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		72F855F72E6B4002003C290C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		72F858122E6C3816003C290C /* Exceptions for "DadaKnows" folder in "DadaKnows" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 72F855002E6B2D66003C290C /* DadaKnows */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		72F855032E6B2D66003C290C /* DadaKnows */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				72F858122E6C3816003C290C /* Exceptions for "DadaKnows" folder in "DadaKnows" target */,
+				72F855F82E6B4003003C290C /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
 			);
 			path = DadaKnows;
 			sourceTree = "<group>";
@@ -82,6 +74,7 @@
 				72F855E62E6B3748003C290C /* Auth in Frameworks */,
 				72F855F22E6B4000003C290C /* GoogleSignIn in Frameworks */,
 				72F855F42E6B4000003C290C /* GoogleSignInSwift in Frameworks */,
+				72F855F62E6B4001003C290C /* Crypto in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,6 +142,7 @@
 				72F855ED2E6B3748003C290C /* Supabase */,
 				72F855F12E6B4000003C290C /* GoogleSignIn */,
 				72F855F32E6B4000003C290C /* GoogleSignInSwift */,
+				72F855F52E6B4001003C290C /* Crypto */,
 			);
 			productName = DadaKnows;
 			productReference = 72F855012E6B2D66003C290C /* DadaKnows.app */;
@@ -440,7 +434,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A3JV7CHQDT;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DadaKnows/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "DadaKnows需要访问麦克风以支持语音输入功能";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "DadaKnows需要语音识别权限以将您的语音转换为文字";
@@ -471,7 +465,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A3JV7CHQDT;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DadaKnows/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "DadaKnows需要访问麦克风以支持语音输入功能";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "DadaKnows需要语音识别权限以将您的语音转换为文字";
@@ -661,7 +655,22 @@
 			package = 72F855F02E6B4000003C290C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
 		};
+		72F855F52E6B4001003C290C /* Crypto */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Crypto;
+		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		72F855F82E6B4003003C290C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 72F855002E6B2D66003C290C /* DadaKnows */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 	};
 	rootObject = 72F854F92E6B2D66003C290C /* Project object */;
 }

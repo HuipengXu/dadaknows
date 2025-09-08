@@ -147,9 +147,9 @@ class DataManager: ObservableObject {
         return persistentContainer.viewContext
     }
     
-    // 云端同步服务
-    private let chatService = ChatService.shared
-    private let offlineManager = OfflineManager.shared
+    // 云端同步服务 - 使用lazy var避免主actor隔离问题
+    private lazy var chatService = ChatService.shared
+    private lazy var offlineManager = OfflineManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private init() {
