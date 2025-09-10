@@ -104,7 +104,17 @@ struct ChatView: View {
                         
                         // Text input
                         TextField("想问答答什么问题呢？", text: $currentQuestion, axis: .vertical)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color(UIColor.systemBackground))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color(UIColor.systemGray4), lineWidth: 0.5)
+                                    )
+                            )
                             .lineLimit(1...4)
                             .accessibilityIdentifier("questionInput")
                             .accessibilityLabel("Question input field")
@@ -163,6 +173,7 @@ struct ChatView: View {
                 ProSubscriptionView()
             }
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
             // Set initial question and send it automatically
             currentQuestion = question
@@ -221,6 +232,7 @@ struct ChatView: View {
             }
         }
     }
+    
 }
 
 struct ChatBubbleView: View {

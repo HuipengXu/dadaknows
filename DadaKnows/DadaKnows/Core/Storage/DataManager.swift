@@ -9,6 +9,7 @@ import Foundation
 import CoreData
 import Combine
 
+@MainActor
 class DataManager: ObservableObject {
     static let shared = DataManager()
     
@@ -147,15 +148,17 @@ class DataManager: ObservableObject {
         return persistentContainer.viewContext
     }
     
-    // 云端同步服务 - 使用lazy var避免主actor隔离问题
-    private lazy var chatService = ChatService.shared
-    private lazy var offlineManager = OfflineManager.shared
+    // 云端同步服务 - 移除lazy var，直接在需要时获取
+    private var chatService: ChatService {
+        ChatService.shared
+    }
+    private var offlineManager: OfflineManager {
+        OfflineManager.shared
+    }
     private var cancellables = Set<AnyCancellable>()
     
     private init() {
-        Task { @MainActor in
-            setupSyncObservers()
-        }
+        setupSyncObservers()
     }
     
     // MARK: - Core Data Error Handling
@@ -203,7 +206,6 @@ class DataManager: ObservableObject {
     
     // MARK: - Sync Observers
     
-    @MainActor
     private func setupSyncObservers() {
         // 监听认证状态变化
         AuthManager.shared.$isAuthenticated
@@ -219,10 +221,10 @@ class DataManager: ObservableObject {
         // 监听网络状态变化
         offlineManager.$isOnline
             .sink { [weak self] isOnline in
-                Task { @MainActor in
+                Task {
                     guard let self = self else { return }
                     if isOnline {
-                        let shouldSync = await self.offlineManager.shouldAutoSync()
+                        let shouldSync = self.offlineManager.shouldAutoSync()
                         if shouldSync {
                             await self.syncWithCloud()
                         }
@@ -240,17 +242,12 @@ class DataManager: ObservableObject {
         isSyncing = true
         lastSyncError = nil
         
-        do {
-            // 同步聊天记录
-            await chatService.syncChatsFromCloud()
-            await chatService.syncAllChatsToCloud()
-            
-            if Config.isDebug {
-                print("✅ 初始数据同步完成")
-            }
-        } catch {
-            lastSyncError = "初始同步失败: \(error.localizedDescription)"
-            print("初始同步失败: \(error)")
+        // 同步聊天记录
+        await chatService.syncChatsFromCloud()
+        await chatService.syncAllChatsToCloud()
+        
+        if Config.isDebug {
+            print("✅ 初始数据同步完成")
         }
         
         isSyncing = false
@@ -264,16 +261,11 @@ class DataManager: ObservableObject {
         isSyncing = true
         lastSyncError = nil
         
-        do {
-            await chatService.syncAllChatsToCloud()
-            await chatService.syncChatsFromCloud()
-            
-            if Config.isDebug {
-                print("✅ 云端同步完成")
-            }
-        } catch {
-            lastSyncError = "同步失败: \(error.localizedDescription)"
-            print("同步失败: \(error)")
+        await chatService.syncAllChatsToCloud()
+        await chatService.syncChatsFromCloud()
+        
+        if Config.isDebug {
+            print("✅ 云端同步完成")
         }
         
         isSyncing = false

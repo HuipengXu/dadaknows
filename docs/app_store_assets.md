@@ -1,20 +1,20 @@
-# 📱 App Store Assets & Metadata Guide
+# 📱 App Store 资产和元数据指南
 
-## App Store Screenshots
+## App Store 应用截图
 
-### Required Sizes
-| Device | Size | Quantity |
-|--------|------|----------|
-| iPhone 6.7" | 1290 × 2796 px | 3-10 |
-| iPhone 6.5" | 1242 × 2688 px | 3-10 |
-| iPhone 5.5" | 1242 × 2208 px | 3-10 |
+### 必需的尺寸
+| 设备 | 尺寸 | 数量 |
+|------|------|------|
+| iPhone 6.7" | 1290 × 2796 px | 3-10张 |
+| iPhone 6.5" | 1242 × 2688 px | 3-10张 |
+| iPhone 5.5" | 1242 × 2208 px | 3-10张 |
 
-### Screenshot Content Strategy
-1. **Main Chat Interface** - Show AI conversation in action
-2. **Voice Input Feature** - Highlight voice recording UI
-3. **Pro Features** - Display subscription benefits
-4. **Analytics Dashboard** - Show learning progress
-5. **Child-Friendly Design** - Emphasize safety and fun
+### 截图内容策略
+1. **主要聊天界面** - 展示AI对话功能
+2. **语音输入功能** - 突出语音录制界面
+3. **Pro功能** - 展示订阅权益
+4. **分析仪表板** - 显示学习进度
+5. **儿童友好设计** - 强调安全和趣味
 
 ### Screenshot Mockup Text
 ```
