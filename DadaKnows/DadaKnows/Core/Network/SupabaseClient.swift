@@ -196,84 +196,98 @@ class SupabaseClient: ObservableObject {
         return AsyncThrowingStream { continuation in
             Task {
                 do {
-                    // 准备请求参数
-                    let _ = [
+                    // Build parameters dynamically to avoid encoding Optional(nil) which causes JSONSerialization to fail
+                    var parameters: [String: Any] = [
                         "question": question,
                         "age": targetAge,
                         "language": language,
-                        "previousAnswer": (previousAnswer ?? NSNull()) as Any,
                         "apiKey": Config.geminiAPIKey
                     ]
+                    if let previousAnswer = previousAnswer {
+                        parameters["previousAnswer"] = previousAnswer
+                    }
                     
-                    // 调用 Supabase Edge Function - 添加依赖后取消注释
                     // 调用 Supabase Edge Function 进行流式响应
-                    // 临时注释掉有问题的代码，使用模拟响应
-                    /*
-                    let functionResponse = try await supabase.functions.invoke(
-                        "ask-dada",
-                        options: FunctionInvokeOptions(
-                            body: parameters
-                        )
-                    )
-                    */
-                    let functionResponse: (data: Data?, response: URLResponse?) = (nil, nil)
+                    let url = URL(string: "\(Config.supabaseURL)/functions/v1/ask-dada")!
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "POST"
+                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    request.setValue("text/event-stream", forHTTPHeaderField: "Accept") // 请求 SSE
+                    request.setValue(Config.supabaseAnonKey, forHTTPHeaderField: "apikey")
                     
-                    // 处理流式响应
-                    if let responseData = functionResponse.data,
-                       let responseString = String(data: responseData, encoding: .utf8) {
-                        
-                        // 解析Server-Sent Events格式的流式数据
-                        let lines = responseString.components(separatedBy: "\n")
-                        
-                        for line in lines {
-                            if line.hasPrefix("data: ") {
-                                let jsonString = String(line.dropFirst(6)) // 移除 "data: " 前缀
-                                
-                                if let jsonData = jsonString.data(using: .utf8),
-                                   let streamChunk = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
-                                    
-                                    let chunkType = streamChunk["type"] as? String ?? ""
-                                    let chunkData = streamChunk["data"] as? String ?? ""
-                                    let chunkError = streamChunk["error"] as? String
-                                    
-                                    switch chunkType {
-                                    case "chunk":
-                                        if !chunkData.isEmpty {
-                                            continuation.yield(chunkData)
-                                        }
-                                    case "error":
-                                        if let error = chunkError {
-                                            continuation.finish(throwing: NSError(domain: "AIError", code: -1, userInfo: [NSLocalizedDescriptionKey: error]))
-                                        }
-                                        return
-                                    case "complete":
-                                        return
-                                    default:
-                                        continue
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // 如果无法解析流式响应，使用增强的模拟响应作为后备
-                        let enhancedResponse = generateEnhancedMockResponse(
-                            question: question,
-                            age: targetAge,
-                            language: language,
-                            previousAnswer: previousAnswer
-                        )
-                        
-                        let words = enhancedResponse.split(separator: " ")
-                        for (index, word) in words.enumerated() {
-                            try await Task.sleep(nanoseconds: 150_000_000) // 0.15 second delay
-                            let chunk = index == 0 ? String(word) : " " + String(word)
-                            continuation.yield(chunk)
+                    let jsonData = try JSONSerialization.data(withJSONObject: parameters)
+                    request.httpBody = jsonData
+                    
+                    // 使用流式处理真正的Server-Sent Events
+                    let (bytes, response) = try await URLSession.shared.bytes(for: request)
+                    
+                    // 检查HTTP状态码
+                    if let httpResponse = response as? HTTPURLResponse {
+                        guard httpResponse.statusCode == 200 else {
+                            let statusCode = httpResponse.statusCode
+                            continuation.finish(throwing: NSError(domain: "HTTPError", code: statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP \(statusCode)"]))
+                            return
                         }
                     }
                     
+                    // 使用 .lines 来安全地处理流式响应
+                    for try await line in bytes.lines {
+                        if line.hasPrefix("data: ") {
+                            let jsonString = String(line.dropFirst(6))
+                            
+                            // Supabase function may send an empty ping
+                            if jsonString.isEmpty { continue }
+                            
+                            if let jsonData = jsonString.data(using: .utf8),
+                               let streamChunk = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+                                
+                                let chunkType = streamChunk["type"] as? String ?? ""
+                                let chunkData = streamChunk["data"] as? String ?? ""
+                                let chunkError = streamChunk["error"] as? String
+                                
+                                switch chunkType {
+                                case "chunk":
+                                    if !chunkData.isEmpty {
+                                        continuation.yield(chunkData)
+                                    }
+                                case "error":
+                                    if let error = chunkError {
+                                        continuation.finish(throwing: NSError(domain: "AIError", code: -1, userInfo: [NSLocalizedDescriptionKey: error]))
+                                        return
+                                    }
+                                case "complete":
+                                    continuation.finish()
+                                    return
+                                default:
+                                    continue
+                                }
+                            }
+                        }
+                    }
                     continuation.finish()
+                    
                 } catch {
-                    continuation.finish(throwing: error)
+                    // 如果流式处理失败，使用备用方案
+                    if Config.isDebug {
+                        print("⚠️ 流式响应处理失败，使用模拟响应: \(error)")
+                    }
+                    
+                    // 使用增强的模拟响应作为后备
+                    let enhancedResponse = generateEnhancedMockResponse(
+                        question: question,
+                        age: targetAge,
+                        language: language,
+                        previousAnswer: previousAnswer
+                    )
+                    
+                    let words = enhancedResponse.split(separator: " ")
+                    for (index, word) in words.enumerated() {
+                        try await Task.sleep(nanoseconds: 150_000_000) // 0.15 second delay
+                        let chunk = index == 0 ? String(word) : " " + String(word)
+                        continuation.yield(chunk)
+                    }
+                    
+                    continuation.finish()
                 }
             }
         }

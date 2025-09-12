@@ -206,7 +206,7 @@ struct ChatView: View {
         
         // Send to AI
         Task {
-            await aiManager.sendMessage(question)
+            await aiManager.sendMessage(question, targetAge: targetAge)
         }
         
         // Haptic feedback
@@ -251,9 +251,9 @@ struct ChatBubbleView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 18)
-                            .fill(chat.isFromUser ? Color.blue : Color(UIColor.systemGray5))
+                            .fill(chat.isFromUser ? Color.blue : (chat.isError ? Color.red.opacity(0.8) : Color(UIColor.systemGray5)))
                     )
-                    .foregroundColor(chat.isFromUser ? .white : .primary)
+                    .foregroundColor(chat.isFromUser || chat.isError ? .white : .primary)
                     .font(.body)
                     .fixedSize(horizontal: false, vertical: true)
                 

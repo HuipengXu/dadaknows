@@ -142,19 +142,27 @@ extension AIManager {
     /// Simple helper to send a message and append it to the chat history.
     /// This is a stub implementation to unblock compilation; you can replace it with a real streaming call later.
     @MainActor
-    func sendMessage(_ text: String) async {
+    func sendMessage(_ text: String, targetAge: Int) async {
         // Add the user's question
         chatHistory.append(ChatMessage(message: text, isFromUser: true))
 
+        // Add a placeholder for the AI's response
+        let responseId = UUID()
+        chatHistory.append(ChatMessage(id: responseId, message: "", isFromUser: false))
+
         // Call askQuestion with default parameters for now
         do {
-            let stream = askQuestion(question: text, targetAge: 4)
-            var answer = ""
+            let stream = askQuestion(question: text, targetAge: targetAge)
             for try await chunk in stream {
-                answer += chunk
+                if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                    chatHistory[index].message += chunk
+                }
             }
-            chatHistory.append(ChatMessage(message: answer, isFromUser: false))
         } catch {
+            if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                chatHistory[index].message = "抱歉，我好像出错了..."
+                chatHistory[index].isError = true
+            }
             self.error = error
         }
     }

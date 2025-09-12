@@ -19,6 +19,7 @@ class AuthManager: ObservableObject {
     @Published var currentUser: User?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var successMessage: String?
     
     private let supabase = SupabaseClient.shared
     private var cancellables = Set<AnyCancellable>()
@@ -123,6 +124,7 @@ class AuthManager: ObservableObject {
     func signUpWithEmail(email: String, password: String) async throws {
         isLoading = true
         errorMessage = nil
+        successMessage = nil
         
         do {
             let session = try await supabase.supabase.auth.signUp(
@@ -133,11 +135,13 @@ class AuthManager: ObservableObject {
             // 检查是否需要邮箱验证
             let user = session.user
             if user.emailConfirmedAt == nil {
-                // 需要邮箱验证
-                self.errorMessage = "请检查您的邮箱并点击验证链接"
+                // 需要邮箱验证 - 这是成功的情况
+                self.successMessage = "注册成功！请检查您的邮箱并点击验证链接完成注册。"
             } else {
+                // 无需邮箱验证，直接登录
                 self.currentUser = user
                 self.isAuthenticated = true
+                self.successMessage = "注册成功！欢迎使用DadaKnows！"
                 AppState.shared.signIn()
             }
             
@@ -315,7 +319,7 @@ class AuthManager: ObservableObject {
             case .userNotFound:
                 return "用户不存在"
             case .weakPassword:
-                return "密码强度不够"
+                return "密码强度不够，需要包含大写字母、小写字母、数字和符号，且至少8位"
             case .emailAlreadyRegistered:
                 return "该邮箱已被注册"
             case .notAuthenticated:
@@ -327,6 +331,25 @@ class AuthManager: ObservableObject {
             case .noAppleToken:
                 return "Apple登录失败"
             }
+        }
+        
+        // 处理Supabase特定错误
+        let errorDescription = error.localizedDescription.lowercased()
+        
+        if errorDescription.contains("password") && errorDescription.contains("weak") {
+            return "密码强度不够，需要包含大写字母、小写字母、数字和符号，且至少8位"
+        }
+        
+        if errorDescription.contains("email") && errorDescription.contains("already") {
+            return "该邮箱已被注册"
+        }
+        
+        if errorDescription.contains("invalid") && errorDescription.contains("credentials") {
+            return "邮箱或密码错误"
+        }
+        
+        if errorDescription.contains("email") && errorDescription.contains("not") && errorDescription.contains("confirmed") {
+            return "请先验证您的邮箱"
         }
         
         return error.localizedDescription
