@@ -3,7 +3,7 @@
  * 基于 @google/genai 实现流式AI响应
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from 'npm:@google/generative-ai';
 
 export interface GeminiConfig {
   apiKey: string;
@@ -33,6 +33,13 @@ export class GeminiClient {
   }
 
   /**
+   * 增加一个小的延迟，用于改善流式输出的节奏感
+   */
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
    * 流式生成AI回答
    */
   async* generateStreamResponse(prompt: string): AsyncGenerator<StreamResponse, void, unknown> {
@@ -53,14 +60,22 @@ export class GeminiClient {
         const chunkText = chunk.text();
         if (chunkText) {
           fullText += chunkText;
-          yield {
-            text: chunkText,
-            isComplete: false,
-          };
+          
+          // Split the chunk into individual characters for a smoother effect
+          const characters = chunkText.split('');
+
+          for (const char of characters) {
+            yield {
+              text: char,
+              isComplete: false,
+            };
+            // Use a shorter delay for character-by-character streaming
+            await this.delay(20); 
+          }
         }
       }
 
-      // 发送完成信号
+      // Send completion signal
       yield {
         text: '',
         isComplete: true,

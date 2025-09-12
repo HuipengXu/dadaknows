@@ -1,6 +1,6 @@
 {
   "imports": {
-    "@google/generative-ai": "npm:@google/generative-ai@^0.21.0"
+    "@google/generative-ai": "npm:@google/generative-ai@^0.24.1"
   },
   "compilerOptions": {
     "allowJs": true,

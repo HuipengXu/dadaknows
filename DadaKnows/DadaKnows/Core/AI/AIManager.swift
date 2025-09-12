@@ -134,6 +134,10 @@ class AIManager: ObservableObject {
         currentResponse = ""
         error = nil
     }
+
+    func clearChatHistory() {
+        chatHistory.removeAll()
+    }
 }
 
 // MARK: - Chat Message Support
@@ -146,22 +150,32 @@ extension AIManager {
         // Add the user's question
         chatHistory.append(ChatMessage(message: text, isFromUser: true))
 
-        // Add a placeholder for the AI's response
         let responseId = UUID()
-        chatHistory.append(ChatMessage(id: responseId, message: "", isFromUser: false))
+        var isFirstChunk = true
 
-        // Call askQuestion with default parameters for now
+        // Call askQuestion
         do {
             let stream = askQuestion(question: text, targetAge: targetAge)
             for try await chunk in stream {
-                if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
-                    chatHistory[index].message += chunk
+                if isFirstChunk {
+                    // On the first chunk, create the AI message
+                    chatHistory.append(ChatMessage(id: responseId, message: chunk, isFromUser: false))
+                    isFirstChunk = false
+                } else {
+                    // For subsequent chunks, append to the existing message
+                    if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                        chatHistory[index].message += chunk
+                    }
                 }
             }
         } catch {
+            // If an error occurs, show an error message.
+            // Check if we already have a bubble to update, otherwise create a new one.
             if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
                 chatHistory[index].message = "抱歉，我好像出错了..."
                 chatHistory[index].isError = true
+            } else {
+                chatHistory.append(ChatMessage(id: responseId, message: "抱歉，我好像出错了...", isFromUser: false, isError: true))
             }
             self.error = error
         }

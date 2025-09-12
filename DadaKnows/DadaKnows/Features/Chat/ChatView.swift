@@ -175,6 +175,9 @@ struct ChatView: View {
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
+            // Clear previous chat history when starting a new session
+            aiManager.clearChatHistory()
+
             // Set initial question and send it automatically
             currentQuestion = question
             

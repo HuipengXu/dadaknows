@@ -114,16 +114,16 @@ if [ ! -d "supabase" ]; then
     exit 1
 fi
 
-# 7. 链接项目
-log_info "链接 Supabase 项目..."
-cd supabase
-if supabase status &> /dev/null; then
-    log_info "项目已链接"
-else
-    log_info "正在链接项目: $PROJECT_REF"
-    supabase link --project-ref $PROJECT_REF
-    log_success "项目链接成功"
-fi
+# # 7. 链接项目
+# log_info "链接 Supabase 项目..."
+# cd supabase
+# if supabase status &> /dev/null; then
+#     log_info "项目已链接"
+# else
+#     log_info "正在链接项目: $PROJECT_REF"
+#     supabase link --project-ref $PROJECT_REF
+#     log_success "项目链接成功"
+# fi
 
 # 8. 验证Edge Functions结构
 log_info "验证 Edge Functions 结构..."
