@@ -24,6 +24,7 @@ struct ChatView: View {
     @State private var isListening = false
     @State private var showingVoicePermissionAlert = false
     @State private var showingProUpgrade = false
+    @State private var sessionStartTime: Date?
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
@@ -146,6 +147,11 @@ struct ChatView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("关闭") {
+                        // Track session end before dismissing
+                        if let startTime = sessionStartTime {
+                            let sessionDuration = Date().timeIntervalSince(startTime)
+                            analyticsManager.trackSessionEnd(duration: sessionDuration)
+                        }
                         onDismiss()
                     }
                 }
@@ -181,12 +187,20 @@ struct ChatView: View {
             // Set initial question and send it automatically
             currentQuestion = question
             
-            // Track analytics
+            // Track analytics and session start time
+            sessionStartTime = Date()
             analyticsManager.trackSessionStart()
             
             // Automatically send the initial question
             if !question.isEmpty {
                 sendQuestion()
+            }
+        }
+        .onDisappear {
+            // Track session end time when view disappears
+            if let startTime = sessionStartTime {
+                let sessionDuration = Date().timeIntervalSince(startTime)
+                analyticsManager.trackSessionEnd(duration: sessionDuration)
             }
         }
     }

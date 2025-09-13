@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import StoreKit
+import MessageUI
 
 struct ProfileView: View {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
@@ -15,6 +17,9 @@ struct ProfileView: View {
     @StateObject private var offlineManager = OfflineManager.shared
     @State private var showSettings = false
     @State private var showProSubscription = false
+    @State private var showingMailComposer = false
+    @State private var showingMailAlert = false
+    @State private var showingFeedbackOptions = false
     
     var body: some View {
         ZStack {
@@ -33,7 +38,7 @@ struct ProfileView: View {
                     proMembershipSection
                     
                     // 🔄 新增：同步状态部分
-                    syncStatusSection
+                    // syncStatusSection
                     
                     // Features list
                     featuresSection
@@ -49,6 +54,29 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showProSubscription) {
             ProSubscriptionView()
+        }
+        .sheet(isPresented: $showingMailComposer) {
+            MailComposeView()
+        }
+        .actionSheet(isPresented: $showingFeedbackOptions) {
+            ActionSheet(
+                title: Text("选择反馈方式"),
+                message: Text("您的设备未配置邮件账户，请选择其他反馈方式"),
+                buttons: [
+                    .default(Text("复制邮箱地址")) {
+                        UIPasteboard.general.string = Config.feedbackEmail
+                        // 显示复制成功的提示
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.impactOccurred()
+                    },
+                    .default(Text("前往App Store评价")) {
+                        if let url = URL(string: Config.appStoreURL) {
+                            UIApplication.shared.open(url)
+                        }
+                    },
+                    .cancel(Text("取消"))
+                ]
+            )
         }
     }
     
@@ -236,7 +264,7 @@ struct ProfileView: View {
                 description: "您的评价是我们前进的动力",
                 isProFeature: false,
                 action: {
-                    // TODO: Open App Store rating
+                    requestAppStoreReview()
                 }
             )
             
@@ -247,13 +275,14 @@ struct ProfileView: View {
                 description: "告诉我们您的想法和建议",
                 isProFeature: false,
                 action: {
-                    // TODO: Open feedback form
+                    openFeedback()
                 }
             )
         }
     }
     
     // 🔄 新增：同步状态部分
+    /*
     private var syncStatusSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -307,6 +336,23 @@ struct ProfileView: View {
         .background(Color.white.opacity(0.9))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+    */
+    
+    // MARK: - Helper Functions
+    
+    private func requestAppStoreReview() {
+        if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+            SKStoreReviewController.requestReview(in: scene)
+        }
+    }
+    
+    private func openFeedback() {
+        if MFMailComposeViewController.canSendMail() {
+            showingMailComposer = true
+        } else {
+            showingFeedbackOptions = true
+        }
     }
 }
 
@@ -423,6 +469,10 @@ struct FeatureButton: View {
 // MARK: - Settings View
 struct SettingsView: View {
     @Environment(\.presentationMode) var presentationMode
+    @StateObject private var authManager = AuthManager.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @State private var showingLogoutAlert = false
+    @State private var showingDeleteAccountAlert = false
     
     var body: some View {
         NavigationView {
@@ -430,10 +480,116 @@ struct SettingsView: View {
                 Color.creamYellow
                     .ignoresSafeArea()
                 
-                VStack {
-                    Text("设置页面正在开发中...")
-                        .font(.headline)
-                        .foregroundColor(.lightGray)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Account section
+                        settingsSection(title: "账号设置") {
+                            VStack(spacing: 12) {
+                                if authManager.isAuthenticated {
+                                    SettingsRow(
+                                        icon: "person.circle",
+                                        title: "账号信息",
+                                        subtitle: authManager.currentUser?.email ?? "未知",
+                                        action: nil
+                                    )
+                                    
+                                    SettingsRow(
+                                        icon: "arrow.right.square",
+                                        title: "退出登录",
+                                        subtitle: "退出当前账号",
+                                        action: {
+                                            showingLogoutAlert = true
+                                        }
+                                    )
+                                } else {
+                                    SettingsRow(
+                                        icon: "person.badge.plus",
+                                        title: "登录账号",
+                                        subtitle: "登录以同步数据",
+                                        action: {
+                                            // TODO: Navigate to login
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // App settings section
+                        settingsSection(title: "应用设置") {
+                            VStack(spacing: 12) {
+                                SettingsRow(
+                                    icon: "bell",
+                                    title: "通知设置",
+                                    subtitle: "管理推送通知",
+                                    action: {
+                                        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                                            UIApplication.shared.open(settingsUrl)
+                                        }
+                                    }
+                                )
+                                
+                                SettingsRow(
+                                    icon: "globe",
+                                    title: "语言设置",
+                                    subtitle: "中文（简体）",
+                                    action: {
+                                        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                                            UIApplication.shared.open(settingsUrl)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        
+                        // About section
+                        settingsSection(title: "关于") {
+                            VStack(spacing: 12) {
+                                SettingsRow(
+                                    icon: "info.circle",
+                                    title: "版本信息",
+                                    subtitle: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
+                                    action: nil
+                                )
+                                
+                                SettingsRow(
+                                    icon: "doc.text",
+                                    title: "隐私政策",
+                                    subtitle: "查看隐私政策",
+                                    action: {
+                                        // TODO: Open privacy policy
+                                    }
+                                )
+                                
+                                SettingsRow(
+                                    icon: "doc.plaintext",
+                                    title: "服务条款",
+                                    subtitle: "查看服务条款",
+                                    action: {
+                                        // TODO: Open terms of service
+                                    }
+                                )
+                            }
+                        }
+                        
+                        // Danger zone
+                        if authManager.isAuthenticated {
+                            settingsSection(title: "危险操作") {
+                                SettingsRow(
+                                    icon: "trash",
+                                    title: "删除账号",
+                                    subtitle: "永久删除账号和所有数据",
+                                    isDestructive: true,
+                                    action: {
+                                        showingDeleteAccountAlert = true
+                                    }
+                                )
+                            }
+                        }
+                        
+                        Spacer().frame(height: 50)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
                 }
             }
             .navigationTitle("设置")
@@ -446,6 +602,149 @@ struct SettingsView: View {
                     .foregroundColor(.vibrantOrange)
                 }
             }
+            .alert("退出登录", isPresented: $showingLogoutAlert) {
+                Button("取消", role: .cancel) { }
+                Button("退出", role: .destructive) {
+                    Task {
+                        do {
+                            try await authManager.signOut()
+                            presentationMode.wrappedValue.dismiss()
+                        } catch {
+                            // Handle sign out error if needed
+                            print("Sign out error: \(error)")
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                }
+            } message: {
+                Text("确定要退出登录吗？")
+            }
+            .alert("删除账号", isPresented: $showingDeleteAccountAlert) {
+                Button("取消", role: .cancel) { }
+                Button("删除", role: .destructive) {
+                    // TODO: Implement account deletion
+                }
+            } message: {
+                Text("此操作将永久删除您的账号和所有数据，且无法恢复。确定要继续吗？")
+            }
+        }
+    }
+    
+    private func settingsSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.darkGray)
+                .padding(.horizontal, 16)
+            
+            VStack(spacing: 1) {
+                content()
+            }
+            .background(Color.white.opacity(0.9))
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        }
+    }
+}
+
+struct SettingsRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let isDestructive: Bool
+    let action: (() -> Void)?
+    
+    init(icon: String, title: String, subtitle: String, isDestructive: Bool = false, action: (() -> Void)?) {
+        self.icon = icon
+        self.title = title
+        self.subtitle = subtitle
+        self.isDestructive = isDestructive
+        self.action = action
+    }
+    
+    var body: some View {
+        Button(action: action ?? {}) {
+            HStack(spacing: 15) {
+                // Icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isDestructive ? Color.red.opacity(0.2) : Color.vibrantOrange.opacity(0.2))
+                        .frame(width: 35, height: 35)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(isDestructive ? .red : .vibrantOrange)
+                }
+                
+                // Content
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(isDestructive ? .red : .darkGray)
+                    
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(.lightGray)
+                }
+                
+                Spacer()
+                
+                // Arrow (only if action is available)
+                if action != nil {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.lightGray)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .disabled(action == nil)
+    }
+}
+
+// MARK: - Mail Compose View
+struct MailComposeView: UIViewControllerRepresentable {
+    @Environment(\.presentationMode) var presentationMode
+    
+    func makeUIViewController(context: Context) -> MFMailComposeViewController {
+        let composer = MFMailComposeViewController()
+        composer.mailComposeDelegate = context.coordinator
+        composer.setSubject("DadaKnows 意见反馈")
+        composer.setToRecipients([Config.feedbackEmail])
+        
+        let deviceInfo = """
+        
+        
+        ---
+        设备信息：
+        iOS版本: \(UIDevice.current.systemVersion)
+        设备型号: \(UIDevice.current.model)
+        应用版本: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "未知")
+        """
+        
+        composer.setMessageBody("请在此处输入您的意见和建议：\(deviceInfo)", isHTML: false)
+        
+        return composer
+    }
+    
+    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+        let parent: MailComposeView
+        
+        init(_ parent: MailComposeView) {
+            self.parent = parent
+        }
+        
+        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+            parent.presentationMode.wrappedValue.dismiss()
         }
     }
 }

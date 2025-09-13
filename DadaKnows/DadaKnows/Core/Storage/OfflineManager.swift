@@ -211,7 +211,7 @@ class OfflineManager: ObservableObject {
     }
     
     var shouldShowOfflineIndicator: Bool {
-        return !isOnline || hasPendingSync
+        return !isOnline
     }
     
     // MARK: - Cleanup

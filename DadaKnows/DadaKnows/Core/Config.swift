@@ -16,6 +16,10 @@ struct Config {
     // MARK: - AI Configuration
     static let geminiAPIKey = "AIzaSyD-YSyKmhc4d23ybooPBbJJaskhZshOV20"
     
+    // MARK: - App Configuration
+    static let feedbackEmail = "support@dada.llamafactory.cn"
+    static let appStoreURL = "https://apps.apple.com/app/dadaknows" // 待更新为实际的App Store链接
+    
     // MARK: - Environment
     static let isDebug: Bool = {
         #if DEBUG

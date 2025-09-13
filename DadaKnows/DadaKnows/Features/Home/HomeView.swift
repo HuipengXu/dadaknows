@@ -157,36 +157,35 @@ struct HomeView: View {
                 .font(.headline)
                 .foregroundColor(.darkGray)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 15) {
-                    ForEach(ageRanges, id: \.0) { age, ageText in
-                        Button(action: {
-                            selectedAge = age
-                        }) {
-                            VStack(spacing: 8) {
-                                // Avatar circle
-                                ZStack {
-                                    Circle()
-                                        .fill(selectedAge == age ? Color.vibrantOrange : Color.skyBlue.opacity(0.6))
-                                        .frame(width: 50, height: 50)
-                                    
-                                    Text("\(age)")
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                }
+            HStack(spacing: 20) {
+                ForEach(ageRanges, id: \.0) { age, ageText in
+                    Button(action: {
+                        selectedAge = age
+                    }) {
+                        VStack(spacing: 8) {
+                            // Avatar circle
+                            ZStack {
+                                Circle()
+                                    .fill(selectedAge == age ? Color.vibrantOrange : Color.skyBlue.opacity(0.6))
+                                    .frame(width: 50, height: 50)
                                 
-                                Text(ageText)
-                                    .font(.caption)
-                                    .foregroundColor(selectedAge == age ? .vibrantOrange : .lightGray)
+                                Text("\(age)")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
                             }
+                            
+                            Text(ageText)
+                                .font(.caption)
+                                .foregroundColor(selectedAge == age ? .vibrantOrange : .lightGray)
                         }
-                        .scaleEffect(selectedAge == age ? 1.1 : 1.0)
-                        .animation(.easeInOut(duration: 0.2), value: selectedAge)
+                        .padding(.vertical, 5)
                     }
+                    .scaleEffect(selectedAge == age ? 1.1 : 1.0)
+                    .animation(.easeInOut(duration: 0.2), value: selectedAge)
                 }
-                .padding(.horizontal, 25)
             }
+            .padding(.horizontal, 25)
         }
     }
     

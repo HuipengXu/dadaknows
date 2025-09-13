@@ -56,7 +56,7 @@ struct MainTabView: View {
             // Customize tab bar appearance
             let appearance = UITabBarAppearance()
             appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(Color.white.opacity(0.95))
+            appearance.backgroundColor = UIColor(Color.creamYellow)
             
             // Normal state
             appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color.lightGray)
