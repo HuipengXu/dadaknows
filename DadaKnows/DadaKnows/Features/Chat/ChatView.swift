@@ -41,7 +41,7 @@ struct ChatView: View {
                                     .accessibilityLabel("\(chat.isFromUser ? "You asked" : "Dada answered"): \(chat.message)")
                             }
                             
-                            if aiManager.isLoading {
+                            if aiManager.isLoading && (aiManager.chatHistory.last?.isFromUser ?? true) {
                                 TypingIndicator()
                                     .accessibilityLabel("Dada is thinking")
                             }
