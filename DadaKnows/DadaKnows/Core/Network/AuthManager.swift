@@ -18,6 +18,9 @@ class AuthManager: ObservableObject {
     @Published var isAuthenticated = false
     @Published var currentUser: User?
     @Published var isLoading = false
+    @Published var isEmailLoading = false
+    @Published var isGoogleLoading = false
+    @Published var isAppleLoading = false
     @Published var errorMessage: String?
     @Published var successMessage: String?
     
@@ -100,8 +103,12 @@ class AuthManager: ObservableObject {
     // MARK: - Email Authentication
     
     func signInWithEmail(email: String, password: String) async throws {
-        isLoading = true
+        isEmailLoading = true
         errorMessage = nil
+        
+        defer {
+            isEmailLoading = false
+        }
         
         do {
             let session = try await supabase.supabase.auth.signIn(
@@ -117,14 +124,16 @@ class AuthManager: ObservableObject {
             self.errorMessage = handleAuthError(error)
             throw error
         }
-        
-        isLoading = false
     }
     
     func signUpWithEmail(email: String, password: String) async throws {
-        isLoading = true
+        isEmailLoading = true
         errorMessage = nil
         successMessage = nil
+        
+        defer {
+            isEmailLoading = false
+        }
         
         do {
             let session = try await supabase.supabase.auth.signUp(
@@ -149,13 +158,15 @@ class AuthManager: ObservableObject {
             self.errorMessage = handleAuthError(error)
             throw error
         }
-        
-        isLoading = false
     }
     
     func resetPassword(email: String) async throws {
-        isLoading = true
+        isEmailLoading = true
         errorMessage = nil
+        
+        defer {
+            isEmailLoading = false
+        }
         
         do {
             try await supabase.supabase.auth.resetPasswordForEmail(email)
@@ -164,15 +175,17 @@ class AuthManager: ObservableObject {
             self.errorMessage = handleAuthError(error)
             throw error
         }
-        
-        isLoading = false
     }
     
     // MARK: - Social Authentication
     
     func signInWithGoogle() async throws {
-        isLoading = true
+        isGoogleLoading = true
         errorMessage = nil
+        
+        defer {
+            isGoogleLoading = false
+        }
         
         do {
             // 配置Google Sign-In
@@ -203,13 +216,15 @@ class AuthManager: ObservableObject {
             self.errorMessage = handleAuthError(error)
             throw error
         }
-        
-        isLoading = false
     }
     
     func signInWithApple() async throws {
-        isLoading = true
+        isAppleLoading = true
         errorMessage = nil
+        
+        defer {
+            isAppleLoading = false
+        }
         
         do {
             let appleIDProvider = ASAuthorizationAppleIDProvider()
@@ -249,14 +264,16 @@ class AuthManager: ObservableObject {
             self.errorMessage = handleAuthError(error)
             throw error
         }
-        
-        isLoading = false
     }
     
     // MARK: - Sign Out
     
     func signOut() async throws {
         isLoading = true
+        
+        defer {
+            isLoading = false
+        }
         
         do {
             try await supabase.supabase.auth.signOut()
@@ -269,8 +286,6 @@ class AuthManager: ObservableObject {
             self.errorMessage = handleAuthError(error)
             throw error
         }
-        
-        isLoading = false
     }
     
     // MARK: - User Profile
@@ -281,6 +296,10 @@ class AuthManager: ObservableObject {
         }
         
         isLoading = true
+        
+        defer {
+            isLoading = false
+        }
         
         do {
             var updates: [String: AnyJSON] = [:]
@@ -303,8 +322,6 @@ class AuthManager: ObservableObject {
             self.errorMessage = handleAuthError(error)
             throw error
         }
-        
-        isLoading = false
     }
     
     // MARK: - Error Handling

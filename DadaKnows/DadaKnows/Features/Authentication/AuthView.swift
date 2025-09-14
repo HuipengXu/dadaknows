@@ -128,7 +128,7 @@ struct AuthView: View {
                         // Submit button
                         Button(action: handleAuth) {
                             HStack {
-                                if authManager.isLoading {
+                                if authManager.isEmailLoading {
                                     ProgressView()
                                         .scaleEffect(0.8)
                                         .foregroundColor(.white)
@@ -142,7 +142,7 @@ struct AuthView: View {
                             .background(Color.vibrantOrange)
                             .cornerRadius(25)
                         }
-                        .disabled(authManager.isLoading || !isFormValid)
+                        .disabled(authManager.isEmailLoading || !isFormValid)
                         .opacity(isFormValid ? 1.0 : 0.6)
                     }
                     .padding(.horizontal, 25)
@@ -170,7 +170,7 @@ struct AuthView: View {
                             icon: "globe",
                             backgroundColor: .white,
                             textColor: .darkGray,
-                            isLoading: authManager.isLoading
+                            isLoading: authManager.isGoogleLoading
                         ) {
                             handleGoogleSignIn()
                         }
@@ -180,7 +180,7 @@ struct AuthView: View {
                             icon: "applelogo",
                             backgroundColor: .black,
                             textColor: .white,
-                            isLoading: authManager.isLoading
+                            isLoading: authManager.isAppleLoading
                         ) {
                             handleAppleSignIn()
                         }

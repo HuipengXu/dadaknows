@@ -107,10 +107,10 @@ struct HomeView: View {
     }
     
     private var mainContentSection: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: 10) {
             // Question input section
             SlideInView(from: .bottom, delay: 0.3) {
-                VStack(spacing: 20) {
+                VStack(spacing: 8) {
                     Text("想问答答什么问题呢？")
                         .font(.title3)
                         .fontWeight(.semibold)
@@ -118,27 +118,25 @@ struct HomeView: View {
                         .multilineTextAlignment(.center)
                     
                     // Question input field with voice support
-                    VStack(spacing: 0) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.white.opacity(0.9))
-                                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 2)
-                            
-                            HStack {
-                                TextField("ask_question_placeholder", text: $question, axis: .vertical)
-                                    .lineLimit(3...6)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.darkGray)
-                                
-                                VoiceInputButton(text: $question)
-                                    .padding(.trailing, 15)
-                            }
-                        }
-                        .frame(minHeight: 60)
-                        .padding(.horizontal, 25)
+                    ZStack(alignment: .bottomTrailing) {
+                        TextField("ask_question_placeholder", text: $question, axis: .vertical)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .padding(.trailing, 60) // Extra padding to avoid overlapping with the button
+                            .lineLimit(6...8)
+                            .font(.system(size: 16))
+                            .foregroundColor(.darkGray)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color.white.opacity(0.9))
+                                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 2)
+                            )
+                        
+                        VoiceInputButton(text: $question)
+                            .padding(.trailing, 12)
+                            .padding(.bottom, 8)
                     }
+                    .padding(.horizontal, 25)
                 }
             }
             
@@ -148,11 +146,11 @@ struct HomeView: View {
             // Ask button
             askButton
         }
-        .padding(.top, 30)
+        .padding(.top, 10)
     }
     
     private var ageSelector: some View {
-        VStack(spacing: 15) {
+        VStack(spacing: 10) {
             Text("为几岁的小朋友回答？")
                 .font(.headline)
                 .foregroundColor(.darkGray)
@@ -185,7 +183,7 @@ struct HomeView: View {
                     .animation(.easeInOut(duration: 0.2), value: selectedAge)
                 }
             }
-            .padding(.horizontal, 25)
+            .padding(.horizontal, 15)
         }
     }
     
@@ -216,7 +214,8 @@ struct HomeView: View {
         }
         .disabled(!isFormValid || isAsking)
         .padding(.horizontal, 25)
-        .padding(.top, 10)
+        .padding(.top, 40)
+        .padding(.bottom, 10)
     }
     
     private var isFormValid: Bool {

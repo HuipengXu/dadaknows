@@ -66,8 +66,8 @@ struct ChatView: View {
                 
                 // Input Area
                 VStack(spacing: 12) {
-                    // Usage limit indicator for free users
-                    if !subscriptionManager.isProMember {
+                    // Usage limit indicator for free users (only show if not using on-device model)
+                    if !subscriptionManager.isProMember && !aiManager.isUsingOnDeviceModel {
                         if let remaining = subscriptionManager.getRemainingQuestions() {
                             HStack {
                                 Image(systemName: "questionmark.circle")
@@ -76,11 +76,13 @@ struct ChatView: View {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 Spacer()
-                                Button("升级Pro") {
-                                    showingProUpgrade = true
+                                if remaining <= 5 {
+                                    Button("升级Pro") {
+                                        showingProUpgrade = true
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
                                 }
-                                .font(.caption)
-                                .foregroundColor(.blue)
                             }
                             .padding(.horizontal)
                             .accessibilityElement(children: .combine)
@@ -101,7 +103,6 @@ struct ChatView: View {
                         .accessibilityIdentifier("voiceInputButton")
                         .accessibilityLabel(isListening ? "Stop recording" : "Start voice input")
                         .accessibilityHint("Double tap to record your question using voice")
-                        .disabled(!subscriptionManager.canUseFeature(.voiceInput) && !subscriptionManager.isProMember)
                         
                         // Text input
                         TextField("想问答答什么问题呢？", text: $currentQuestion, axis: .vertical)
@@ -218,7 +219,6 @@ struct ChatView: View {
         currentQuestion = ""
         
         // Track usage
-        subscriptionManager.incrementQuestionCount()
         analyticsManager.trackQuestionAsked(question: question, category: "general", targetAge: targetAge)
         
         // Send to AI
@@ -232,11 +232,6 @@ struct ChatView: View {
     }
     
     private func handleVoiceInput() {
-        guard subscriptionManager.canUseFeature(.voiceInput) || subscriptionManager.isProMember else {
-            showingProUpgrade = true
-            return
-        }
-        
         if isListening {
             speechManager.stopRecording()
         } else {

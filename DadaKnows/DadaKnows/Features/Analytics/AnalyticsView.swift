@@ -20,11 +20,7 @@ struct AnalyticsView: View {
                 Color.creamYellow
                     .ignoresSafeArea()
                 
-                if subscriptionManager.canUseFeature(.advancedAnalytics) {
-                    analyticsContent
-                } else {
-                    proUpgradePrompt
-                }
+                analyticsContent
             }
             .navigationTitle("学习分析")
             .navigationBarTitleDisplayMode(.large)

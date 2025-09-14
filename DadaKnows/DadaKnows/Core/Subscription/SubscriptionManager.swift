@@ -197,36 +197,10 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Pro Features
     
-    func canUseFeature(_ feature: ProFeature) -> Bool {
-        switch feature {
-        case .unlimitedQuestions:
-            return isProMember
-        case .voiceInput:
-            return isProMember
-        case .offlineMode:
-            return isProMember
-        case .customization:
-            return isProMember
-        case .prioritySupport:
-            return isProMember
-        case .advancedAnalytics:
-            return isProMember
-        }
+    func canUseFeature() -> Bool {
+        return true
     }
-    
-    func getUsageLimit(for feature: ProFeature) -> Int? {
-        if isProMember {
-            return nil // 无限制
-        }
-        
-        switch feature {
-        case .unlimitedQuestions:
-            return 10 // 免费用户每天10个问题
-        default:
-            return 0 // 其他功能需要Pro
-        }
-    }
-    
+
     // MARK: - Usage Tracking
     
     private var dailyQuestionCount: Int {
@@ -253,7 +227,12 @@ class SubscriptionManager: ObservableObject {
             return true
         }
         
-        return dailyQuestionCount < 10
+        // 如果正在使用端侧模型，则不限制使用次数
+        if AIManager.shared.isUsingOnDeviceModel {
+            return true
+        }
+        
+        return dailyQuestionCount < 20
     }
     
     func incrementQuestionCount() {
@@ -267,7 +246,8 @@ class SubscriptionManager: ObservableObject {
             return nil // 无限制
         }
         
-        return max(0, 10 - dailyQuestionCount)
+        let limit = 20
+        return max(0, limit - dailyQuestionCount)
     }
 }
 
@@ -279,49 +259,6 @@ enum SubscriptionStatus: String, CaseIterable {
     case inactive = "inactive"
     case expired = "expired"
     case inGracePeriod = "inGracePeriod"
-}
-
-enum ProFeature: CaseIterable {
-    case unlimitedQuestions
-    case voiceInput
-    case offlineMode
-    case customization
-    case prioritySupport
-    case advancedAnalytics
-    
-    var title: String {
-        switch self {
-        case .unlimitedQuestions:
-            return "无限提问"
-        case .voiceInput:
-            return "语音输入"
-        case .offlineMode:
-            return "离线模式"
-        case .customization:
-            return "个性化定制"
-        case .prioritySupport:
-            return "优先客服"
-        case .advancedAnalytics:
-            return "学习分析"
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .unlimitedQuestions:
-            return "每天可以问无限个问题"
-        case .voiceInput:
-            return "支持语音输入问题"
-        case .offlineMode:
-            return "离线也能使用部分功能"
-        case .customization:
-            return "自定义答答的回答风格"
-        case .prioritySupport:
-            return "享受优先客服支持"
-        case .advancedAnalytics:
-            return "查看详细的学习统计"
-        }
-    }
 }
 
 enum SubscriptionError: Error, LocalizedError {

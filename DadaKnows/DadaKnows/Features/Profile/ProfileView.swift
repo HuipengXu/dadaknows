@@ -15,11 +15,13 @@ struct ProfileView: View {
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var userService = UserService.shared
     @StateObject private var offlineManager = OfflineManager.shared
+    @StateObject private var aiManager = AIManager.shared
     @State private var showSettings = false
     @State private var showProSubscription = false
     @State private var showingMailComposer = false
     @State private var showingMailAlert = false
     @State private var showingFeedbackOptions = false
+    @State private var showAnalytics = false
     
     var body: some View {
         ZStack {
@@ -57,6 +59,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showingMailComposer) {
             MailComposeView()
+        }
+        .sheet(isPresented: $showAnalytics) {
+            AnalyticsView()
         }
         .actionSheet(isPresented: $showingFeedbackOptions) {
             ActionSheet(
@@ -168,7 +173,7 @@ struct ProfileView: View {
                                         .fontWeight(.bold)
                                         .foregroundColor(.darkGray)
                                     
-                                    Text("解锁全部功能，享受完整体验")
+                                    Text("无限次提问，支持我们持续改进")
                                         .font(.subheadline)
                                         .foregroundColor(.darkGray.opacity(0.8))
                                 }
@@ -180,12 +185,11 @@ struct ProfileView: View {
                                     .foregroundColor(.vibrantOrange)
                             }
                             
-                            // Pro features
+                            // Pro benefits
                             VStack(alignment: .leading, spacing: 8) {
                                 ProFeatureRow(icon: "infinity", text: "无限次提问")
-                                ProFeatureRow(icon: "rectangle.slash", text: "纯净无广告体验")
-                                ProFeatureRow(icon: "book.fill", text: "好奇心日志")
-                                ProFeatureRow(icon: "rectangle.portrait.and.arrow.right", text: "知识卡片")
+                                ProFeatureRow(icon: "heart.fill", text: "支持开发团队")
+                                ProFeatureRow(icon: "sparkles", text: "优先获得新功能")
                             }
                         }
                         .padding(20)
@@ -239,12 +243,45 @@ struct ProfileView: View {
             FeatureButton(
                 icon: "book.fill",
                 title: "好奇心日志",
-                description: subscriptionManager.isProMember ? "查看所有问答记录" : "Pro功能 - 升级后可用",
-                isProFeature: !subscriptionManager.isProMember,
+                description: "查看所有问答记录",
+                isProFeature: false,
                 action: {
-                    // TODO: Navigate to curiosity log
+                    showAnalytics = true
                 }
             )
+            
+            // On-device model toggle
+            HStack {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.vibrantOrange.opacity(0.2))
+                        .frame(width: 45, height: 45)
+                    
+                    Image(systemName: "cpu")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.vibrantOrange)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("端侧模型")
+                        .font(.headline)
+                        .foregroundColor(.darkGray)
+                    
+                    Text(aiManager.isUsingOnDeviceModel ? "已启用 - 无使用限制" : "使用云端模型")
+                        .font(.subheadline)
+                        .foregroundColor(.lightGray)
+                }
+                
+                Spacer()
+                
+                Toggle("", isOn: $aiManager.isUsingOnDeviceModel)
+                    .toggleStyle(SwitchToggleStyle(tint: .vibrantOrange))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.white.opacity(0.9))
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
             
             // Settings
             FeatureButton(

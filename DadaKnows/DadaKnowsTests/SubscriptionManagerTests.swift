@@ -43,36 +43,12 @@ final class SubscriptionManagerTests: XCTestCase {
         // Test free user
         subscriptionManager.isProMember = false
         
-        XCTAssertFalse(subscriptionManager.canUseFeature(.unlimitedQuestions))
-        XCTAssertFalse(subscriptionManager.canUseFeature(.voiceInput))
-        XCTAssertFalse(subscriptionManager.canUseFeature(.offlineMode))
-        XCTAssertFalse(subscriptionManager.canUseFeature(.customization))
-        XCTAssertFalse(subscriptionManager.canUseFeature(.prioritySupport))
-        XCTAssertFalse(subscriptionManager.canUseFeature(.advancedAnalytics))
+        XCTAssertTrue(subscriptionManager.canUseFeature())
         
         // Test pro user
         subscriptionManager.isProMember = true
         
-        XCTAssertTrue(subscriptionManager.canUseFeature(.unlimitedQuestions))
-        XCTAssertTrue(subscriptionManager.canUseFeature(.voiceInput))
-        XCTAssertTrue(subscriptionManager.canUseFeature(.offlineMode))
-        XCTAssertTrue(subscriptionManager.canUseFeature(.customization))
-        XCTAssertTrue(subscriptionManager.canUseFeature(.prioritySupport))
-        XCTAssertTrue(subscriptionManager.canUseFeature(.advancedAnalytics))
-    }
-    
-    func testUsageLimits() {
-        // Test free user limits
-        subscriptionManager.isProMember = false
-        
-        XCTAssertEqual(subscriptionManager.getUsageLimit(for: .unlimitedQuestions), 10)
-        XCTAssertEqual(subscriptionManager.getUsageLimit(for: .voiceInput), 0)
-        
-        // Test pro user limits
-        subscriptionManager.isProMember = true
-        
-        XCTAssertNil(subscriptionManager.getUsageLimit(for: .unlimitedQuestions))
-        XCTAssertNil(subscriptionManager.getUsageLimit(for: .voiceInput))
+        XCTAssertTrue(subscriptionManager.canUseFeature())
     }
     
     func testQuestionCounting() {
@@ -80,13 +56,13 @@ final class SubscriptionManagerTests: XCTestCase {
         
         // Initial state - should be able to ask questions
         XCTAssertTrue(subscriptionManager.canAskQuestion())
-        XCTAssertEqual(subscriptionManager.getRemainingQuestions(), 10)
+        XCTAssertEqual(subscriptionManager.getRemainingQuestions(), 20)
         
         // Increment question count
-        for i in 1...9 {
+        for i in 1...19 {
             subscriptionManager.incrementQuestionCount()
             XCTAssertTrue(subscriptionManager.canAskQuestion())
-            XCTAssertEqual(subscriptionManager.getRemainingQuestions(), 10 - i)
+            XCTAssertEqual(subscriptionManager.getRemainingQuestions(), 20 - i)
         }
         
         // Reach limit
@@ -113,7 +89,7 @@ final class SubscriptionManagerTests: XCTestCase {
         subscriptionManager.isProMember = false
         
         // Set question count to limit
-        for _ in 1...10 {
+        for _ in 1...20 {
             subscriptionManager.incrementQuestionCount()
         }
         XCTAssertFalse(subscriptionManager.canAskQuestion())
@@ -124,7 +100,7 @@ final class SubscriptionManagerTests: XCTestCase {
         
         // Should reset and allow questions again
         XCTAssertTrue(subscriptionManager.canAskQuestion())
-        XCTAssertEqual(subscriptionManager.getRemainingQuestions(), 10)
+        XCTAssertEqual(subscriptionManager.getRemainingQuestions(), 20)
     }
     
     func testSubscriptionStatusPersistence() {
@@ -141,15 +117,6 @@ final class SubscriptionManagerTests: XCTestCase {
         
         XCTAssertTrue(newManager.isProMember)
         XCTAssertEqual(newManager.subscriptionStatus, .active)
-    }
-    
-    func testProFeatureTitlesAndDescriptions() {
-        let features = ProFeature.allCases
-        
-        for feature in features {
-            XCTAssertFalse(feature.title.isEmpty, "Feature \(feature) should have a title")
-            XCTAssertFalse(feature.description.isEmpty, "Feature \(feature) should have a description")
-        }
     }
     
     func testSubscriptionStatusCases() {

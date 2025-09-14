@@ -19,9 +19,13 @@ class AIManager: ObservableObject {
     @Published var chatHistory: [ChatMessage] = []
     @Published var error: Error?
     
+    // 标记是否正在使用端侧模型
+    @Published var isUsingOnDeviceModel = false
+    
     private let apiClient = APIClient.shared
     private let supabaseClient = SupabaseClient.shared
     private let offlineManager = OfflineManager.shared
+    private let subscriptionManager = SubscriptionManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private init() {}
@@ -35,6 +39,11 @@ class AIManager: ObservableObject {
     ) -> AsyncThrowingStream<String, Error> {
         return AsyncThrowingStream { continuation in
             Task {
+                // 如果不是端侧模型，则增加使用次数计数
+                if !self.isUsingOnDeviceModel {
+                    self.subscriptionManager.incrementQuestionCount()
+                }
+                
                 do {
                     await MainActor.run {
                         self.isLoading = true
