@@ -95,66 +95,24 @@ struct ChatView: View {
                         }
                         
                         // Input field and buttons
-                        HStack(spacing: 12) {
-                            // Text input
-                            TextField("输入你的问题...", text: $currentQuestion, axis: .vertical)
-                                .textFieldStyle(.roundedBorder)
-                                .lineLimit(1...4)
-                                .onSubmit {
-                                    sendQuestion()
-                                }
-                            
-                            // Send button
-                            Button(action: sendQuestion) {
-                                Image(systemName: "arrow.up.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(canSendQuestion ? .appPrimary : .textTertiary)
-                            }
-                            .buttonStyle(.plain)
-                            .disabled(!canSendQuestion)
-                            .opacity(canSendQuestion ? 1.0 : 0.5)
-                        }
+                        InputAreaView(
+                            currentQuestion: $currentQuestion,
+                            isListening: isListening,
+                            canSendQuestion: canSendQuestion,
+                            onVoiceInput: handleVoiceInput,
+                            onSendQuestion: sendQuestion
+                        )
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         .background(Color.backgroundPrimary)
                     }
                 }
                 
-                // Floating voice button in bottom right corner
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Button(action: handleVoiceInput) {
-                            ZStack {
-                                Circle()
-                                    .fill(isListening ? Color.statusError : Color.appPrimary)
-                                    .frame(width: 50, height: 50)
-                                    .scaleEffect(isListening ? 1.2 : 1.0)
-                                    .animation(.easeInOut(duration: 0.2), value: isListening)
-                                
-                                Image(systemName: isListening ? "stop.fill" : "mic.fill")
-                                    .font(.system(size: 20, weight: .medium))
-                                    .foregroundColor(.white)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        .overlay(
-                            // Recording ripple effect
-                            Group {
-                                if isListening {
-                                    Circle()
-                                        .stroke(Color.statusError.opacity(0.3), lineWidth: 2)
-                                        .frame(width: 70, height: 70)
-                                        .scaleEffect(isListening ? 1.5 : 1.0)
-                                        .opacity(isListening ? 0.0 : 1.0)
-                                        .animation(.easeOut(duration: 1.0).repeatForever(autoreverses: false), value: isListening)
-                                }
-                            }
-                        )
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 100) // Above input area
-                    }
+                // Voice recording overlay for better visual feedback
+                if isListening {
+                    Color.black.opacity(0.1)
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
                 }
             }
             .navigationTitle(historicalSession != nil ? "继续对话" : "对话")
@@ -282,7 +240,7 @@ struct ChatBubbleView: View {
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
     
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             if chat.isFromUser {
                 Spacer(minLength: 60)
             } else {
@@ -295,6 +253,7 @@ struct ChatBubbleView: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.appPrimary)
                     )
+                    .padding(.top, 4) // Align with text top
             }
             
             VStack(alignment: chat.isFromUser ? .trailing : .leading, spacing: 4) {
@@ -326,6 +285,7 @@ struct ChatBubbleView: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.white)
                     )
+                    .padding(.top, 4) // Align with text top
             }
         }
     }
@@ -335,7 +295,7 @@ struct TypingIndicator: View {
     @State private var animationPhase = 0
     
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             // AI avatar
             Circle()
                 .fill(Color.appPrimary.opacity(0.1))
@@ -345,6 +305,7 @@ struct TypingIndicator: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.appPrimary)
                 )
+                .padding(.top, 4) // Align with text top
             
             HStack(spacing: 4) {
                 ForEach(0..<3) { index in
@@ -384,7 +345,7 @@ struct HistoricalChatBubbleView: View {
     let chat: Chat
     
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             if chat.question != nil {
                 Spacer(minLength: 60)
             } else {
@@ -397,6 +358,7 @@ struct HistoricalChatBubbleView: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.appPrimary)
                     )
+                    .padding(.top, 4) // Align with text top
             }
             
             VStack(alignment: chat.question != nil ? .trailing : .leading, spacing: 4) {
@@ -429,9 +391,92 @@ struct HistoricalChatBubbleView: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.white)
                     )
+                    .padding(.top, 4) // Align with text top
             }
         }
         .opacity(0.8) // Slightly faded to distinguish from new messages
+    }
+}
+
+// MARK: - Input Area View
+struct InputAreaView: View {
+    @Binding var currentQuestion: String
+    let isListening: Bool
+    let canSendQuestion: Bool
+    let onVoiceInput: () -> Void
+    let onSendQuestion: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Custom text input with voice button inside
+            HStack(spacing: 8) {
+                // Voice button inside input field
+                VoiceButtonView(isListening: isListening, onVoiceInput: onVoiceInput)
+                
+                // Text input
+                TextField("输入你的问题...", text: $currentQuestion, axis: .vertical)
+                    .lineLimit(1...4)
+                    .onSubmit {
+                        onSendQuestion()
+                    }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.backgroundSecondary)
+                    .stroke(Color.separator, lineWidth: 1)
+            )
+            
+            // Send button
+            Button(action: onSendQuestion) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(canSendQuestion ? .appPrimary : .textTertiary)
+            }
+            .buttonStyle(.plain)
+            .disabled(!canSendQuestion)
+            .opacity(canSendQuestion ? 1.0 : 0.5)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.backgroundPrimary)
+    }
+}
+
+// MARK: - Voice Button View
+struct VoiceButtonView: View {
+    let isListening: Bool
+    let onVoiceInput: () -> Void
+    
+    var body: some View {
+        Button(action: onVoiceInput) {
+            ZStack {
+                Circle()
+                    .fill(isListening ? Color.statusError : Color.appPrimary)
+                    .frame(width: 32, height: 32)
+                    .scaleEffect(isListening ? 1.1 : 1.0)
+                    .animation(.easeInOut(duration: 0.2), value: isListening)
+                
+                Image(systemName: isListening ? "stop.fill" : "mic.fill")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+            }
+        }
+        .buttonStyle(.plain)
+        .overlay(
+            // Recording ripple effect
+            Group {
+                if isListening {
+                    Circle()
+                        .stroke(Color.statusError.opacity(0.3), lineWidth: 1)
+                        .frame(width: 44, height: 44)
+                        .scaleEffect(isListening ? 1.3 : 1.0)
+                        .opacity(isListening ? 0.0 : 1.0)
+                        .animation(.easeOut(duration: 1.0).repeatForever(autoreverses: false), value: isListening)
+                }
+            }
+        )
     }
 }
 
