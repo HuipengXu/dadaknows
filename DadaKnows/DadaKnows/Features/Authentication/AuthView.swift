@@ -22,7 +22,7 @@ struct AuthView: View {
     
     var body: some View {
         ZStack {
-            Color.creamYellow
+            Color.backgroundPrimary
                 .ignoresSafeArea()
             
             ScrollView {
@@ -34,56 +34,32 @@ struct AuthView: View {
                         // Logo
                         ZStack {
                             Circle()
-                                .fill(Color.tenderYellow)
+                                .fill(Color.appPrimary.opacity(0.1))
                                 .frame(width: 80, height: 80)
                             
                             Image(systemName: "bubble.left.and.bubble.right")
                                 .font(.system(size: 30, weight: .medium))
-                                .foregroundColor(.vibrantOrange)
+                                .foregroundColor(.appPrimary)
                         }
                         
                         Text("welcome_title")
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundColor(.darkGray)
+                            .foregroundColor(.textPrimary)
                         
                         Text("welcome_subtitle")
                             .font(.subheadline)
-                            .foregroundColor(.lightGray)
+                            .foregroundColor(.textSecondary)
                     }
                     
                     // Auth form
                     VStack(spacing: 20) {
-                        // Mode selector
-                        HStack(spacing: 0) {
-                            Button(action: { isSignIn = true }) {
-                                Text("sign_in")
-                                    .font(.headline)
-                                    .foregroundColor(isSignIn ? .white : .lightGray)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 15)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 25)
-                                            .fill(isSignIn ? Color.vibrantOrange : Color.clear)
-                                    )
-                            }
-                            
-                            Button(action: { isSignIn = false }) {
-                                Text("sign_up")
-                                    .font(.headline)
-                                    .foregroundColor(!isSignIn ? .white : .lightGray)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 15)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 25)
-                                            .fill(!isSignIn ? Color.vibrantOrange : Color.clear)
-                                    )
-                            }
+                        // Mode selector - iOS native segmented control style
+                        Picker("认证模式", selection: $isSignIn) {
+                            Text("登录").tag(true)
+                            Text("注册").tag(false)
                         }
-                        .background(
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.white.opacity(0.3))
-                        )
+                        .pickerStyle(.segmented)
                         .animation(.easeInOut(duration: 0.3), value: isSignIn)
                         
                         // Email field
@@ -121,44 +97,48 @@ struct AuthView: View {
                                     showForgotPassword = true
                                 }
                                 .font(.subheadline)
-                                .foregroundColor(.vibrantOrange)
+                                .foregroundColor(.appPrimary)
                             }
                         }
                         
-                        // Submit button
+                        // Submit button - iOS native style
                         Button(action: handleAuth) {
                             HStack {
                                 if authManager.isEmailLoading {
                                     ProgressView()
                                         .scaleEffect(0.8)
-                                        .foregroundColor(.white)
+                                        .tint(.white)
                                 }
                                 Text(isSignIn ? "sign_in" : "sign_up")
                                     .fontWeight(.semibold)
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(isFormValid ? .white : .textSecondary)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(Color.vibrantOrange)
-                            .cornerRadius(25)
+                            .frame(height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(isFormValid ? Color.appPrimary : Color.fillSecondary)
+                                    .stroke(isFormValid ? Color.clear : Color.separator.opacity(0.5), lineWidth: 0.5)
+                            )
                         }
                         .disabled(authManager.isEmailLoading || !isFormValid)
-                        .opacity(isFormValid ? 1.0 : 0.6)
+                        .buttonStyle(.plain)
+                        .opacity(isFormValid ? 1.0 : 0.8)
                     }
                     .padding(.horizontal, 25)
                     
                     // Divider
                     HStack {
                         Rectangle()
-                            .fill(Color.lightGray.opacity(0.3))
+                            .fill(Color.separator)
                             .frame(height: 1)
                         
                         Text("或")
-                            .foregroundColor(.lightGray)
+                            .foregroundColor(.textSecondary)
                             .padding(.horizontal, 15)
                         
                         Rectangle()
-                            .fill(Color.lightGray.opacity(0.3))
+                            .fill(Color.separator)
                             .frame(height: 1)
                     }
                     .padding(.horizontal, 25)
@@ -168,8 +148,8 @@ struct AuthView: View {
                         SocialLoginButton(
                             title: "sign_in_with_google",
                             icon: "globe",
-                            backgroundColor: .white,
-                            textColor: .darkGray,
+                            backgroundColor: .cardBackground,
+                            textColor: .textPrimary,
                             isLoading: authManager.isGoogleLoading
                         ) {
                             handleGoogleSignIn()
@@ -178,8 +158,8 @@ struct AuthView: View {
                         SocialLoginButton(
                             title: "sign_in_with_apple",
                             icon: "applelogo",
-                            backgroundColor: .black,
-                            textColor: .white,
+                            backgroundColor: .textPrimary,
+                            textColor: .backgroundPrimary,
                             isLoading: authManager.isAppleLoading
                         ) {
                             handleAppleSignIn()
@@ -306,18 +286,17 @@ struct CustomTextField: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.subheadline)
-                .foregroundColor(.darkGray)
+                .foregroundColor(.textPrimary)
             
             TextField("", text: $text)
                 .keyboardType(keyboardType)
                 .autocapitalization(.none)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
-                .background(Color.white.opacity(0.8))
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.lightGray.opacity(0.3), lineWidth: 1)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.fillSecondary)
+                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
                 )
         }
     }
@@ -332,7 +311,7 @@ struct CustomSecureField: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.subheadline)
-                .foregroundColor(.darkGray)
+                .foregroundColor(.textPrimary)
             
             HStack {
                 Group {
@@ -350,16 +329,14 @@ struct CustomSecureField: View {
                 }) {
                     Image(systemName: isSecure ? "eye.slash" : "eye")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.lightGray)
-                        .padding(.trailing, 16)
-                        .padding(.vertical, 14)
+                        .foregroundColor(.textSecondary)
                 }
+                .padding(.trailing, 16)
             }
-            .background(Color.white.opacity(0.8))
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.lightGray.opacity(0.3), lineWidth: 1)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.fillSecondary)
+                    .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
             )
         }
     }
@@ -390,12 +367,11 @@ struct SocialLoginButton: View {
             }
             .foregroundColor(textColor)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(backgroundColor)
-            .cornerRadius(12)
-            .overlay(
+            .frame(height: 50)
+            .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.lightGray.opacity(0.2), lineWidth: 1)
+                    .fill(backgroundColor)
+                    .stroke(Color.separator, lineWidth: 0.5)
             )
         }
         .disabled(isLoading)

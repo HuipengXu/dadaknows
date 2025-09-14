@@ -2,72 +2,130 @@
 //  Colors.swift
 //  DadaKnows
 //
-//  应用颜色系统 - 根据设计文档定义
+//  iOS原生颜色系统 - 符合Apple设计规范
 //
 
 import SwiftUI
 
 extension Color {
+    // MARK: - iOS Native System Colors
+    
     // MARK: - Primary Colors
-    /// 奶油黄 (#FFF8E1) - 主要背景色
-    static let creamYellow = Color(hex: "#FFF8E1")
+    /// 主色调 - iOS系统蓝色
+    static let appPrimary = Color.blue
     
-    /// 活力橙 (#FFB347) - 主交互色，按钮/高亮
-    static let vibrantOrange = Color(hex: "#FFB347")
+    /// 次要色调 - iOS系统绿色
+    static let appSecondary = Color.green
     
-    // MARK: - Secondary Colors
-    /// 嫩黄色 (#FFEB3B) - 答答主体颜色
-    static let tenderYellow = Color(hex: "#FFEB3B")
-    
-    /// 天空蓝 (#B3E5FC) - 年龄选择器头像、插画点缀
-    static let skyBlue = Color(hex: "#B3E5FC")
-    
-    /// 珊瑚粉 (#FFAB91) - 年龄选择器头像、插画点缀
-    static let coralPink = Color(hex: "#FFAB91")
-    
-    // MARK: - Premium Colors
-    /// 浅金色渐变起始色 (#FFD700)
-    static let lightGoldStart = Color(hex: "#FFD700")
-    
-    /// 浅金色渐变结束色 (#FFEB99)
-    static let lightGoldEnd = Color(hex: "#FFEB99")
-    
-    /// 深蓝色渐变起始色 (#1976D2)
-    static let deepBlueStart = Color(hex: "#1976D2")
-    
-    /// 深蓝色渐变结束色 (#2196F3)
-    static let deepBlueEnd = Color(hex: "#2196F3")
-    
-    // MARK: - Text Colors
-    /// 深灰色 (#333333) - 主要文本/图标色
-    static let darkGray = Color(hex: "#333333")
-    
-    /// 浅灰色 (#999999) - 次要文本/提示色
-    static let lightGray = Color(hex: "#999999")
+    /// 强调色 - iOS系统橙色
+    static let appAccent = Color.orange
     
     // MARK: - Background Colors
-    /// 主背景色
-    static let backgroundPrimary = Color.creamYellow
+    /// 主背景色 - 系统背景
+    static let backgroundPrimary = Color(UIColor.systemBackground)
     
-    /// 次要背景色
-    static let backgroundSecondary = Color.white.opacity(0.9)
+    /// 次要背景色 - 系统分组背景
+    static let backgroundSecondary = Color(UIColor.systemGroupedBackground)
     
-    // MARK: - Semantic Colors
-    /// 主要文本色
-    static let primaryText = Color.darkGray
+    /// 第三级背景色 - 系统分组背景（次要）
+    static let backgroundTertiary = Color(UIColor.secondarySystemGroupedBackground)
     
-    /// 次要文本色
-    static let secondaryText = Color.lightGray
+    /// 卡片背景色
+    static let cardBackground = Color(UIColor.tertiarySystemGroupedBackground)
     
-    // MARK: - Gradient Definitions
+    // MARK: - Text Colors
+    /// 主要文本色 - 系统标签色
+    static let textPrimary = Color(UIColor.label)
+    
+    /// 次要文本色 - 系统次要标签色
+    static let textSecondary = Color(UIColor.secondaryLabel)
+    
+    /// 第三级文本色 - 系统第三级标签色
+    static let textTertiary = Color(UIColor.tertiaryLabel)
+    
+    /// 占位符文本色 - 系统占位符文本色
+    static let textPlaceholder = Color(UIColor.placeholderText)
+    
+    // MARK: - Separator Colors
+    /// 分割线颜色 - 系统分割线
+    static let separator = Color(UIColor.separator)
+    
+    /// 不透明分割线颜色
+    static let separatorOpaque = Color(UIColor.opaqueSeparator)
+    
+    // MARK: - Fill Colors
+    /// 填充色 - 系统填充色
+    static let fillPrimary = Color(UIColor.systemFill)
+    
+    /// 次要填充色
+    static let fillSecondary = Color(UIColor.secondarySystemFill)
+    
+    /// 第三级填充色
+    static let fillTertiary = Color(UIColor.tertiarySystemFill)
+    
+    /// 第四级填充色
+    static let fillQuaternary = Color(UIColor.quaternarySystemFill)
+    
+    // MARK: - Status Colors
+    /// 成功色
+    static let statusSuccess = Color.green
+    
+    /// 警告色
+    static let statusWarning = Color.orange
+    
+    /// 错误色
+    static let statusError = Color.red
+    
+    /// 信息色
+    static let statusInfo = Color.blue
+    
+    // MARK: - Semantic Colors for App Features
+    /// 用户消息气泡颜色
+    static let userMessageBackground = Color.blue
+    
+    /// AI消息气泡颜色
+    static let aiMessageBackground = Color(UIColor.systemGray5)
+    
+    /// Pro会员颜色
+    static let proMemberColor = Color.blue
+    
+    // MARK: - Backward Compatibility (临时保留，逐步替换)
+    @available(*, deprecated, message: "Use iOS native colors instead")
+    static let creamYellow = Color(UIColor.systemBackground)
+    
+    @available(*, deprecated, message: "Use Color.appPrimary instead")
+    static let vibrantOrange = Color.orange
+    
+    @available(*, deprecated, message: "Use iOS native colors instead")
+    static let tenderYellow = Color.yellow
+    
+    @available(*, deprecated, message: "Use iOS native colors instead")
+    static let skyBlue = Color.blue.opacity(0.3)
+    
+    @available(*, deprecated, message: "Use iOS native colors instead")
+    static let coralPink = Color.pink.opacity(0.3)
+    
+    @available(*, deprecated, message: "Use Color.textPrimary instead")
+    static let darkGray = Color(UIColor.label)
+    
+    @available(*, deprecated, message: "Use Color.textSecondary instead")
+    static let lightGray = Color(UIColor.secondaryLabel)
+    
+    @available(*, deprecated, message: "Use Color.textPrimary instead")
+    static let primaryText = Color(UIColor.label)
+    
+    @available(*, deprecated, message: "Use Color.textSecondary instead")
+    static let secondaryText = Color(UIColor.secondaryLabel)
+    
+    // MARK: - Gradient Definitions (Updated for iOS native)
     static let proFreeGradient = LinearGradient(
-        gradient: Gradient(colors: [lightGoldStart, lightGoldEnd]),
+        gradient: Gradient(colors: [Color.orange, Color.yellow]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
     
     static let proActiveGradient = LinearGradient(
-        gradient: Gradient(colors: [deepBlueStart, deepBlueEnd]),
+        gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )

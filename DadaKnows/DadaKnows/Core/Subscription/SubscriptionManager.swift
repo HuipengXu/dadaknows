@@ -31,7 +31,7 @@ class SubscriptionManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     private init() {
-        updateListenerTask = listenForTransactions()
+        // 延迟启动交易监听，避免模拟器或未登录账号时报错
         loadStoredSubscriptionStatus()
     }
     
@@ -50,6 +50,12 @@ class SubscriptionManager: ObservableObject {
             self.availableProducts = products.sorted { $0.price < $1.price }
             
             await checkSubscriptionStatus()
+            // 在成功加载产品后启动交易监听（仅一次；模拟器跳过）
+            #if !targetEnvironment(simulator)
+            if updateListenerTask == nil {
+                updateListenerTask = listenForTransactions()
+            }
+            #endif
         } catch {
             self.errorMessage = "加载产品失败: \(error.localizedDescription)"
         }
@@ -109,6 +115,15 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Subscription Status
     
     private func checkSubscriptionStatus() async {
+        #if targetEnvironment(simulator)
+        // 模拟器环境没有 App Store 账户，跳过交易枚举以避免 ASDErrorDomain 509 噪音
+        self.purchasedProducts = []
+        self.isProMember = false
+        self.subscriptionStatus = .inactive
+        saveSubscriptionStatus()
+        return
+        #endif
+        
         var hasActiveSubscription = false
         var currentProducts: [Product] = []
         
@@ -166,9 +181,10 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Transaction Listener
     
     private func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached {
+        return Task.detached { [weak self] in
             for await result in Transaction.updates {
                 do {
+                    guard let self = self else { return }
                     let transaction = try await self.checkVerified(result)
                     await self.updateSubscriptionStatus(for: transaction)
                     await transaction.finish()
@@ -232,7 +248,7 @@ class SubscriptionManager: ObservableObject {
             return true
         }
         
-        return dailyQuestionCount < 20
+        return dailyQuestionCount < Config.dailyFreeQuestionLimit
     }
     
     func incrementQuestionCount() {
@@ -246,7 +262,7 @@ class SubscriptionManager: ObservableObject {
             return nil // 无限制
         }
         
-        let limit = 20
+        let limit = Config.dailyFreeQuestionLimit
         return max(0, limit - dailyQuestionCount)
     }
 }

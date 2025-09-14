@@ -67,7 +67,7 @@ class SupabaseClient: ObservableObject {
     }
     
     // MARK: - Chat Operations
-    func saveChatToDatabase(question: String, answer: String, targetAge: Int, language: String) async throws {
+    func saveChatToDatabase(question: String, answer: String, targetAge: Int, language: String, sessionId: Int? = nil) async throws {
         let currentUser = await MainActor.run { getCurrentUser() }
         guard let currentUser = currentUser else {
             throw SupabaseError.userNotAuthenticated
@@ -77,6 +77,7 @@ class SupabaseClient: ObservableObject {
             uuid: UUID().uuidString,
             userId: currentUser.id.uuidString,
             parentChatId: nil,
+            sessionId: sessionId,
             questionText: question,
             answerText: answer,
             targetAge: targetAge,
@@ -84,7 +85,10 @@ class SupabaseClient: ObservableObject {
             userFeedback: "none"
         )
         
-        try await supabase.from("chats").insert(chatData).execute()
+        try await supabase
+            .from("chats")
+            .upsert(chatData, onConflict: "uuid")
+            .execute()
         
         if Config.isDebug {
             print("✅ 聊天记录已保存到云端: \(question)")
@@ -117,6 +121,28 @@ class SupabaseClient: ObservableObject {
             )
         }
     }
+
+    // MARK: - Chat Session Operations
+    func createChatSession(title: String?) async throws -> Int {
+        let currentUser = await MainActor.run { getCurrentUser() }
+        guard let currentUser = currentUser else {
+            throw SupabaseError.userNotAuthenticated
+        }
+        let sessionRequest = ChatSessionRequest(
+            userId: currentUser.id.uuidString,
+            title: title
+        )
+        let inserted: [ChatSessionResponse] = try await supabase
+            .from("chat_sessions")
+            .insert(sessionRequest)
+            .select("*")
+            .execute()
+            .value
+        guard let session = inserted.first else {
+            throw SupabaseError.invalidData
+        }
+        return session.id
+    }
     
     // MARK: - User Profile Operations
     func createUserProfile(nickname: String?, avatarUrl: String?, preferredLanguage: String, subscriptionStatus: String) async throws {
@@ -133,7 +159,10 @@ class SupabaseClient: ObservableObject {
             subscriptionStatus: subscriptionStatus
         )
         
-        try await supabase.from("users").insert(userProfile).execute()
+        try await supabase
+            .from("users")
+            .upsert(userProfile, onConflict: "id")
+            .execute()
         
         if Config.isDebug {
             print("✅ 用户配置已创建")
@@ -192,7 +221,7 @@ class SupabaseClient: ObservableObject {
     }
     
     // MARK: - Edge Functions
-    func callAskDadaFunction(question: String, targetAge: Int, language: String, previousAnswer: String? = nil) -> AsyncThrowingStream<String, Error> {
+    func callAskDadaFunction(question: String, targetAge: Int, language: String, previousAnswer: String? = nil, conversationHistory: [ChatMessage]? = nil) -> AsyncThrowingStream<String, Error> {
         return AsyncThrowingStream { continuation in
             Task {
                 do {
@@ -207,12 +236,25 @@ class SupabaseClient: ObservableObject {
                         parameters["previousAnswer"] = previousAnswer
                     }
                     
+                    // 添加对话历史
+                    if let conversationHistory = conversationHistory, !conversationHistory.isEmpty {
+                        let historyData = conversationHistory.map { message in
+                            [
+                                "message": message.message,
+                                "isFromUser": message.isFromUser,
+                                "timestamp": ISO8601DateFormatter().string(from: message.timestamp)
+                            ]
+                        }
+                        parameters["conversationHistory"] = historyData
+                    }
+                    
                     // 调用 Supabase Edge Function 进行流式响应
                     let url = URL(string: "\(Config.supabaseURL)/functions/v1/ask-dada")!
                     var request = URLRequest(url: url)
                     request.httpMethod = "POST"
                     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                     request.setValue("text/event-stream", forHTTPHeaderField: "Accept") // 请求 SSE
+                    request.setValue("Bearer \(Config.supabaseAnonKey)", forHTTPHeaderField: "Authorization")
                     request.setValue(Config.supabaseAnonKey, forHTTPHeaderField: "apikey")
                     
                     let jsonData = try JSONSerialization.data(withJSONObject: parameters)
@@ -408,6 +450,7 @@ struct ChatResponse: Codable {
     let uuid: String
     let userId: String
     let parentChatId: Int?
+    let sessionId: Int?
     let questionText: String
     let answerText: String?
     let targetAge: Int
@@ -420,6 +463,7 @@ struct ChatResponse: Codable {
         case uuid
         case userId = "user_id"
         case parentChatId = "parent_chat_id"
+        case sessionId = "session_id"
         case questionText = "question_text"
         case answerText = "answer_text"
         case targetAge = "target_age"
@@ -433,6 +477,7 @@ struct ChatRequest: Codable {
     let uuid: String
     let userId: String
     let parentChatId: Int?
+    let sessionId: Int?
     let questionText: String
     let answerText: String?
     let targetAge: Int
@@ -443,10 +488,40 @@ struct ChatRequest: Codable {
         case uuid
         case userId = "user_id"
         case parentChatId = "parent_chat_id"
+        case sessionId = "session_id"
         case questionText = "question_text"
         case answerText = "answer_text"
         case targetAge = "target_age"
         case language
         case userFeedback = "user_feedback"
+    }
+}
+
+// MARK: - Chat Session Models
+struct ChatSessionResponse: Codable {
+    let id: Int
+    let uuid: String
+    let userId: String
+    let title: String?
+    let startedAt: String
+    let endedAt: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case uuid
+        case userId = "user_id"
+        case title
+        case startedAt = "started_at"
+        case endedAt = "ended_at"
+    }
+}
+
+struct ChatSessionRequest: Codable {
+    let userId: String
+    let title: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case title
     }
 }

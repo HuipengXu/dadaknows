@@ -18,6 +18,11 @@ interface RequestBody {
   age: number;
   language: string;
   previousAnswer?: string;
+  conversationHistory?: Array<{
+    message: string;
+    isFromUser: boolean;
+    timestamp: string;
+  }>;
   apiKey?: string;
 }
 
@@ -60,6 +65,7 @@ function validateRequest(body: any): { isValid: boolean; error?: string; data?: 
       age: Math.round(body.age),
       language: body.language,
       previousAnswer: body.previousAnswer?.trim(),
+      conversationHistory: body.conversationHistory,
       apiKey: body.apiKey
     }
   };
@@ -124,7 +130,7 @@ serve(async (req) => {
       );
     }
     
-    const { question, age, language, previousAnswer, apiKey } = validation.data!;
+    const { question, age, language, previousAnswer, conversationHistory, apiKey } = validation.data!;
     
     // 验证问题安全性
     const safetyCheck = validateQuestionSafety(question, language);
@@ -160,6 +166,7 @@ serve(async (req) => {
           age,
           language,
           previousAnswer,
+          conversationHistory,
           isRegenerate: !!previousAnswer
         };
         

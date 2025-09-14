@@ -8,7 +8,7 @@ set -e
 echo "🚀 开始iOS构建验证..."
 
 # 进入iOS项目目录
-cd "$(dirname "$0")/DadaKnows"
+cd "$(dirname "$0")/../DadaKnows"
 
 # 清理构建缓存（可选，如果构建失败时使用）
 if [ "$1" = "clean" ]; then

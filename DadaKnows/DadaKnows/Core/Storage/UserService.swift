@@ -17,6 +17,10 @@ class UserService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
+    var currentUsername: String {
+        return userProfile?.nickname ?? "用户"
+    }
+    
     private let supabase = SupabaseClient.shared
     // Use lazy initialization to break potential circular dependency between UserService and DataManager during their singleton initialization.
     private lazy var dataManager = DataManager.shared
@@ -141,6 +145,19 @@ class UserService: ObservableObject {
         isLoading = false
     }
     
+    func updateUsername(_ newUsername: String) {
+        guard let currentProfile = userProfile else { return }
+        
+        Task {
+            await updateUserProfile(
+                nickname: newUsername.isEmpty ? nil : newUsername,
+                avatarUrl: currentProfile.avatarUrl,
+                preferredLanguage: currentProfile.preferredLanguage,
+                subscriptionStatus: currentProfile.subscriptionStatus
+            )
+        }
+    }
+    
     private func clearUserProfile() {
         userProfile = nil
         errorMessage = nil
@@ -180,7 +197,7 @@ class UserService: ObservableObject {
         
         try await supabase.supabase
             .from("users")
-            .insert(userRequest)
+            .upsert(userRequest, onConflict: "id")
             .execute()
     }
     

@@ -17,7 +17,7 @@ struct ProSubscriptionView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.creamYellow
+                Color.backgroundPrimary
                     .ignoresSafeArea()
                 
                 ScrollView {
@@ -45,7 +45,7 @@ struct ProSubscriptionView: View {
                     Button("关闭") {
                         dismiss()
                     }
-                    .foregroundColor(.vibrantOrange)
+                    .foregroundColor(.appPrimary)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -55,7 +55,7 @@ struct ProSubscriptionView: View {
                         }
                     }
                     .font(.subheadline)
-                    .foregroundColor(.vibrantOrange)
+                    .foregroundColor(.appPrimary)
                     .disabled(subscriptionManager.isLoading)
                 }
             }
@@ -81,7 +81,7 @@ struct ProSubscriptionView: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [.vibrantOrange, .tenderYellow],
+                            colors: [.appPrimary, .appPrimary.opacity(0.8)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -99,17 +99,17 @@ struct ProSubscriptionView: View {
                         .foregroundColor(.white)
                 }
             }
-            .shadow(color: Color.vibrantOrange.opacity(0.3), radius: 10, x: 0, y: 5)
+            .shadow(color: Color.appPrimary.opacity(0.3), radius: 10, x: 0, y: 5)
             
             VStack(spacing: 8) {
                 Text("升级到Pro，无限次提问")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.darkGray)
+                    .foregroundColor(.textPrimary)
                 
                 Text("移除每日使用限制，尽情探索知识")
                     .font(.subheadline)
-                    .foregroundColor(.lightGray)
+                    .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
             }
         }
@@ -120,7 +120,7 @@ struct ProSubscriptionView: View {
             Text("选择订阅计划")
                 .font(.headline)
                 .fontWeight(.bold)
-                .foregroundColor(.darkGray)
+                .foregroundColor(.textPrimary)
             
             VStack(spacing: 12) {
                 ForEach(subscriptionManager.availableProducts, id: \.id) { product in
@@ -146,7 +146,7 @@ struct ProSubscriptionView: View {
             Text("为什么选择Pro？")
                 .font(.headline)
                 .fontWeight(.bold)
-                .foregroundColor(.darkGray)
+                .foregroundColor(.textPrimary)
             
             VStack(spacing: 12) {
                 BenefitRow(
@@ -183,7 +183,7 @@ struct SubscriptionPlanCard: View {
                         Text(planTitle)
                             .font(.headline)
                             .fontWeight(.bold)
-                            .foregroundColor(.darkGray)
+                            .foregroundColor(.textPrimary)
                         
                         if isPopular {
                             Text("最受欢迎")
@@ -192,7 +192,7 @@ struct SubscriptionPlanCard: View {
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.vibrantOrange)
+                                .background(Color.appPrimary)
                                 .cornerRadius(8)
                         }
                         
@@ -202,7 +202,7 @@ struct SubscriptionPlanCard: View {
                     Text(product.displayPrice)
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(.vibrantOrange)
+                        .foregroundColor(.appPrimary)
                     
                     if let savings = savingsText {
                         Text(savings)
@@ -226,18 +226,18 @@ struct SubscriptionPlanCard: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
-                        .background(Color.vibrantOrange)
+                        .background(Color.appPrimary)
                         .cornerRadius(20)
                     }
                     .disabled(subscriptionManager.isLoading)
                 }
             }
             .padding()
-            .background(Color.white.opacity(0.9))
+            .background(Color.cardBackground)
             .cornerRadius(16)
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? Color.vibrantOrange : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color.appPrimary : Color.separator, lineWidth: isSelected ? 2 : 0.5)
             )
             .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
         }
@@ -278,23 +278,23 @@ struct BenefitRow: View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.vibrantOrange.opacity(0.1))
+                    .fill(Color.appPrimary.opacity(0.1))
                     .frame(width: 40, height: 40)
                 
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.vibrantOrange)
+                    .foregroundColor(.appPrimary)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.darkGray)
+                    .foregroundColor(.textPrimary)
                 
                 Text(description)
                     .font(.caption)
-                    .foregroundColor(.lightGray)
+                    .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.leading)
             }
             

@@ -24,6 +24,9 @@ class ChatService: ObservableObject {
     private lazy var dataManager = DataManager.shared
     private var cancellables = Set<AnyCancellable>()
     
+    // 当前会话ID（来自 chat_sessions.id）
+    @Published var currentSessionId: Int?
+    
     // 离线队列 - 存储待同步的聊天记录
     private var pendingSyncChats: [PendingSyncChat] = []
     
@@ -63,6 +66,24 @@ class ChatService: ObservableObject {
         return localChat
     }
     
+    // MARK: - Session Management
+    func startNewSessionIfNeeded(title: String?) async {
+        // 如果已存在会话，不重复创建
+        if currentSessionId != nil { return }
+        guard AuthManager.shared.isAuthenticated else { return }
+        do {
+            let sessionId = try await supabase.createChatSession(title: title)
+            currentSessionId = sessionId
+        } catch {
+            // 忽略错误：未登录或网络错误时允许无会话继续，本地数据仍能保存
+            print("创建会话失败: \(error)")
+        }
+    }
+    
+    func endCurrentSession() {
+        currentSessionId = nil
+    }
+    
     func syncChatToCloud(_ chat: Chat) async {
         guard AuthManager.shared.isAuthenticated,
               let currentUser = AuthManager.shared.currentUser,
@@ -78,10 +99,26 @@ class ChatService: ObservableObject {
         }
         
         do {
+            // 确保用户配置存在于云端（解决RLS策略问题）
+            try await ensureUserProfileExists()
+            
+            // 如果没有当前会话ID，为旧聊天记录创建一个临时会话
+            var sessionIdToUse = currentSessionId
+            if sessionIdToUse == nil {
+                do {
+                    sessionIdToUse = try await supabase.createChatSession(title: String(question.prefix(80)))
+                } catch {
+                    print("为旧聊天记录创建会话失败: \(error)")
+                    // 如果创建会话失败，跳过同步这条记录
+                    return
+                }
+            }
+            
             let chatRequest = ChatRequest(
                 uuid: chatId.uuidString,
                 userId: currentUser.id.uuidString,
                 parentChatId: nil, // 暂时不支持父聊天
+                sessionId: sessionIdToUse,
                 questionText: question,
                 answerText: answer,
                 targetAge: Int(chat.targetAge),
@@ -91,7 +128,7 @@ class ChatService: ObservableObject {
             
             try await supabase.supabase
                 .from("chats")
-                .insert(chatRequest)
+                .upsert(chatRequest, onConflict: "uuid")
                 .execute()
             
             // 标记为已同步
@@ -153,17 +190,27 @@ class ChatService: ObservableObject {
         
         syncStatus = .syncing
         
-        // 获取所有本地聊天记录
-        let localChats = dataManager.fetchChats()
-        
-        for chat in localChats {
-            await syncChatToCloud(chat)
+        do {
+            // 确保用户配置存在于云端（解决RLS策略问题）
+            try await ensureUserProfileExists()
+            
+            // 获取所有本地聊天记录
+            let localChats = dataManager.fetchChats()
+            
+            for chat in localChats {
+                await syncChatToCloud(chat)
+            }
+            
+            // 同步待同步队列中的聊天记录
+            await syncPendingChats()
+            
+            syncStatus = .completed
+            print("✅ 初始数据同步完成")
+            
+        } catch {
+            print("同步所有聊天记录失败: \(error)")
+            syncStatus = .failed
         }
-        
-        // 同步待同步队列中的聊天记录
-        await syncPendingChats()
-        
-        syncStatus = .completed
     }
     
     func syncChatsFromCloud() async {
@@ -199,7 +246,8 @@ class ChatService: ObservableObject {
             targetAge: Int(chat.targetAge),
             language: language,
             userFeedback: chat.userFeedback ?? "none",
-            createdAt: createdAt
+            createdAt: createdAt,
+            sessionId: currentSessionId // 可能为nil，这是正常的，会在同步时处理
         )
         
         pendingSyncChats.append(pendingChat)
@@ -212,14 +260,35 @@ class ChatService: ObservableObject {
             return
         }
         
+        // 确保用户配置存在于云端（解决RLS策略问题）
+        do {
+            try await ensureUserProfileExists()
+        } catch {
+            print("确保用户配置存在失败: \(error)")
+            return
+        }
+        
         var syncedChats: [String] = []
         
         for pendingChat in pendingSyncChats {
             do {
+                // 如果待同步的聊天记录没有会话ID，创建一个临时会话
+                var sessionIdToUse = pendingChat.sessionId
+                if sessionIdToUse == nil {
+                    do {
+                        sessionIdToUse = try await supabase.createChatSession(title: String(pendingChat.question.prefix(80)))
+                    } catch {
+                        print("为待同步聊天记录创建会话失败: \(error)")
+                        // 如果创建会话失败，跳过这条记录
+                        continue
+                    }
+                }
+                
                 let chatRequest = ChatRequest(
                     uuid: pendingChat.localId,
                     userId: currentUser.id.uuidString,
                     parentChatId: nil,
+                    sessionId: sessionIdToUse,
                     questionText: pendingChat.question,
                     answerText: pendingChat.answer,
                     targetAge: pendingChat.targetAge,
@@ -229,7 +298,7 @@ class ChatService: ObservableObject {
                 
                 try await supabase.supabase
                     .from("chats")
-                    .insert(chatRequest)
+                    .upsert(chatRequest, onConflict: "uuid")
                     .execute()
                 
                 syncedChats.append(pendingChat.localId)
@@ -293,6 +362,42 @@ class ChatService: ObservableObject {
             UserDefaults.standard.set(data, forKey: "PendingSyncChats")
         }
     }
+    
+    // MARK: - Helper Methods
+    
+    /// 确保用户配置存在于云端，解决RLS策略问题
+    private func ensureUserProfileExists() async throws {
+        guard let currentUser = AuthManager.shared.currentUser else {
+            throw SupabaseError.userNotAuthenticated
+        }
+        // 定义一个轻量级的结构体，仅用于存在性检查，避免解码缺少字段错误
+        struct UserIdOnly: Codable { let id: String }
+        // 仅查询 id 字段
+        let existingProfile: [UserIdOnly] = try await supabase.supabase
+            .from("users")
+            .select("id")
+            .eq("id", value: currentUser.id.uuidString)
+            .execute()
+            .value
+
+        // 如果用户配置不存在，创建一个
+        if existingProfile.isEmpty {
+            let userProfile = UserProfileRequest(
+                id: currentUser.id.uuidString,
+                nickname: nil,
+                avatarUrl: nil,
+                preferredLanguage: "zh-CN",
+                subscriptionStatus: "free"
+            )
+            
+            try await supabase.supabase
+                .from("users")
+                .upsert(userProfile, onConflict: "id")
+                .execute()
+            
+            print("✅ 用户配置已自动创建")
+        }
+    }
 }
 
 // MARK: - Data Models
@@ -325,5 +430,6 @@ struct PendingSyncChat: Codable {
     let language: String
     let userFeedback: String
     let createdAt: Date
+    let sessionId: Int?
 }
 

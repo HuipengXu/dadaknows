@@ -8,6 +8,11 @@ export interface PromptConfig {
   age: number;
   language: string;
   previousAnswer?: string;
+  conversationHistory?: Array<{
+    message: string;
+    isFromUser: boolean;
+    timestamp: string;
+  }>;
   isRegenerate?: boolean;
 }
 
@@ -158,8 +163,25 @@ export function generatePrompt(config: PromptConfig): string {
   
   let fullPrompt = `${template.systemPrompt}\n\n**用户问题**: ${template.userPrompt}`;
   
-  // 如果有之前的回答，添加上下文
-  if (config.previousAnswer) {
+  // 如果有对话历史，添加完整上下文
+  if (config.conversationHistory && config.conversationHistory.length > 0) {
+    const contextNote = config.language.startsWith('zh') 
+      ? '\n\n**对话历史**: (请根据之前的对话内容来回答新问题)\n'
+      : '\n\n**Conversation History**: (Please answer the new question based on previous conversation)\n';
+    
+    fullPrompt += contextNote;
+    
+    // 添加对话历史，限制最近的5轮对话以避免prompt过长
+    const recentHistory = config.conversationHistory.slice(-10); // 最近5轮对话(用户+AI各5条)
+    for (const message of recentHistory) {
+      const speaker = message.isFromUser 
+        ? (config.language.startsWith('zh') ? '孩子' : 'Child')
+        : (config.language.startsWith('zh') ? '答答' : 'Dada');
+      fullPrompt += `\n${speaker}: ${message.message}`;
+    }
+    fullPrompt += '\n';
+  } else if (config.previousAnswer) {
+    // 兼容旧的previousAnswer方式
     const contextNote = config.language.startsWith('zh') 
       ? '\n\n**上次回答**: (请确保新回答与此不同)\n'
       : '\n\n**Previous Answer**: (Please ensure the new answer is different)\n';

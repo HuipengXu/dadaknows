@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import CoreData
 
 @MainActor
 class AnalyticsManager: ObservableObject {
@@ -22,6 +23,7 @@ class AnalyticsManager: ObservableObject {
     
     private init() {
         loadStoredData()
+        reconcileWithChatHistory()
         generateWeeklyProgress()
         updateTopCategories()
         checkAchievements()
@@ -122,36 +124,40 @@ class AnalyticsManager: ObservableObject {
         learningStats.longestStreak = max(learningStats.longestStreak, learningStats.currentStreak)
     }
     
-    // MARK: - Weekly Progress
-    
+    // MARK: - Weekly Progress（基于聊天记录）
     private func generateWeeklyProgress() {
-        let today = Date()
+        let today = calendar.startOfDay(for: Date())
         var progress: [DailyProgress] = []
-        
-        for i in 0..<7 {
-            let date = calendar.date(byAdding: .day, value: -i, to: today) ?? today
-            let dayProgress = getDailyProgress(for: date)
-            progress.insert(dayProgress, at: 0)
+        let context = DataManager.shared.context
+        let request: NSFetchRequest<Chat> = Chat.fetchRequest()
+        let sevenDaysAgo = calendar.date(byAdding: .day, value: -6, to: today) ?? today
+        request.predicate = NSPredicate(format: "createdAt >= %@ AND createdAt < %@",
+                                        sevenDaysAgo as NSDate,
+                                        calendar.date(byAdding: .day, value: 1, to: today)! as NSDate)
+        do {
+            let chats = try context.fetch(request)
+            for offset in stride(from: 6, through: 0, by: -1) {
+                let date = calendar.date(byAdding: .day, value: -offset, to: today) ?? today
+                let start = calendar.startOfDay(for: date)
+                let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start
+                let count = chats.filter { chat in
+                    let created = chat.createdAt ?? .distantPast
+                    return created >= start && created < end
+                }.count
+                let daily = DailyProgress(date: start,
+                                          questionCount: count,
+                                          learningTime: Double(count) * 120,
+                                          categories: [])
+                progress.append(daily)
+            }
+        } catch {
+            // 失败时回退为空数据
+            progress = (0..<7).map { i in
+                let date = calendar.date(byAdding: .day, value: -i, to: today) ?? today
+                return DailyProgress(date: date, questionCount: 0, learningTime: 0, categories: [])
+            }.reversed()
         }
-        
         weeklyProgress = progress
-    }
-    
-    private func getDailyProgress(for date: Date) -> DailyProgress {
-        let events = getEvents(for: date)
-        let questionCount = events.filter { $0.type == .questionAsked }.count
-        
-        return DailyProgress(
-            date: date,
-            questionCount: questionCount,
-            learningTime: calculateLearningTime(for: events),
-            categories: extractCategories(from: events)
-        )
-    }
-    
-    private func calculateLearningTime(for events: [LearningEvent]) -> TimeInterval {
-        // 简化计算：假设每个问答对话需要2分钟
-        return Double(events.filter { $0.type == .questionAsked }.count) * 120
     }
     
     private func extractCategories(from events: [LearningEvent]) -> Set<String> {
@@ -288,6 +294,70 @@ class AnalyticsManager: ObservableObject {
         
         // 重置今日问题计数（如果是新的一天）
         resetDailyCountIfNeeded()
+    }
+
+    // MARK: - Reconcile with Core Data Chat History
+    private func reconcileWithChatHistory() {
+        let context = DataManager.shared.context
+        let request: NSFetchRequest<Chat> = Chat.fetchRequest()
+        do {
+            let chats = try context.fetch(request)
+            let chatCount = chats.count
+            learningStats.totalQuestions = chatCount
+            
+            // 今日计数
+            let startOfToday = calendar.startOfDay(for: Date())
+            let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday) ?? startOfToday
+            let todayCount = chats.filter { chat in
+                let created = chat.createdAt ?? .distantPast
+                return created >= startOfToday && created < endOfToday
+            }.count
+            learningStats.questionsToday = todayCount
+            
+            // 以聊天记录重算连续天数和最长连击
+            let activeDays: Set<Date> = Set(chats.compactMap { chat in
+                guard let created = chat.createdAt else { return nil }
+                return calendar.startOfDay(for: created)
+            })
+            learningStats.currentStreak = computeCurrentStreak(from: activeDays)
+            learningStats.longestStreak = computeLongestStreak(from: activeDays)
+            learningStats.lastLearningDate = activeDays.max()
+            
+            // 每次对齐后也刷新周统计
+            generateWeeklyProgress()
+            saveStats()
+        } catch {
+            // Ignore reconciliation errors silently
+        }
+    }
+
+    private func computeCurrentStreak(from activeDays: Set<Date>) -> Int {
+        var streak = 0
+        var day = calendar.startOfDay(for: Date())
+        while activeDays.contains(day) {
+            streak += 1
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+            day = previous
+        }
+        return max(streak, streak > 0 ? streak : 0)
+    }
+    
+    private func computeLongestStreak(from activeDays: Set<Date>) -> Int {
+        // 扫描最近90天
+        var longest = 0
+        var current = 0
+        var day = calendar.startOfDay(for: Date())
+        for _ in 0..<90 {
+            if activeDays.contains(day) {
+                current += 1
+                longest = max(longest, current)
+            } else {
+                current = 0
+            }
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+            day = previous
+        }
+        return longest
     }
     
     private func saveStats() {

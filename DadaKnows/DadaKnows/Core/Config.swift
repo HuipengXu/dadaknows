@@ -20,6 +20,10 @@ struct Config {
     static let feedbackEmail = "support@dada.llamafactory.cn"
     static let appStoreURL = "https://apps.apple.com/app/dadaknows" // 待更新为实际的App Store链接
     
+    // MARK: - Usage Limits
+    /// 普通用户每日免费使用次数限制
+    static let dailyFreeQuestionLimit = 100
+    
     // MARK: - Environment
     static let isDebug: Bool = {
         #if DEBUG

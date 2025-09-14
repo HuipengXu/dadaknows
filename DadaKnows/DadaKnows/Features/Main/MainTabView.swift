@@ -2,7 +2,7 @@
 //  MainTabView.swift
 //  DadaKnows
 //
-//  主要的Tab导航界面
+//  iOS原生风格的Tab导航界面
 //
 
 import SwiftUI
@@ -12,66 +12,37 @@ struct MainTabView: View {
     @StateObject private var offlineManager = OfflineManager.shared
     
     var body: some View {
-        ZStack {
-            TabView(selection: $selectedTab) {
-            // Home Tab
+        TabView(selection: $selectedTab) {
+            // Home Tab - 提问界面
             HomeView()
                 .tabItem {
-                    Image(systemName: selectedTab == 0 ? "house.fill" : "house")
-                        .font(.system(size: 20))
+                    Image(systemName: "house")
                     Text("首页")
-                        .font(.caption)
                 }
                 .tag(0)
             
-            // Analytics Tab
-            AnalyticsView()
+            // History Tab - 对话历史
+            QAHistoryView()
                 .tabItem {
-                    Image(systemName: selectedTab == 1 ? "chart.bar.fill" : "chart.bar")
-                        .font(.system(size: 20))
-                    Text("分析")
-                        .font(.caption)
+                    Image(systemName: "clock")
+                    Text("历史")
                 }
                 .tag(1)
             
-            // Profile Tab
+            // Settings Tab - 设置
             ProfileView()
                 .tabItem {
-                    Image(systemName: selectedTab == 2 ? "person.fill" : "person")
-                        .font(.system(size: 20))
-                    Text("我")
-                        .font(.caption)
+                    Image(systemName: "gearshape")
+                    Text("设置")
                 }
                 .tag(2)
-            }
-            .accentColor(.vibrantOrange)
-            
-            // 🔄 新增：全局网络状态横幅
-            VStack {
-                NetworkStatusBanner()
-                Spacer()
-            }
         }
-        .onAppear {
-            // Customize tab bar appearance
-            let appearance = UITabBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(Color.creamYellow)
-            
-            // Normal state
-            appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color.lightGray)
-            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-                .foregroundColor: UIColor(Color.lightGray)
-            ]
-            
-            // Selected state
-            appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color.vibrantOrange)
-            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-                .foregroundColor: UIColor(Color.vibrantOrange)
-            ]
-            
-            UITabBar.appearance().standardAppearance = appearance
-            UITabBar.appearance().scrollEdgeAppearance = appearance
+        .tint(.appPrimary) // 使用iOS原生的tint颜色
+        .overlay(alignment: .top) {
+            // 网络状态指示器
+            if !offlineManager.isOnline {
+                NetworkStatusBanner()
+            }
         }
     }
 }

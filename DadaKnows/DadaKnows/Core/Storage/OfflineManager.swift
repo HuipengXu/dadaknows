@@ -41,7 +41,7 @@ class OfflineManager: ObservableObject {
                 
                 // 如果从离线变为在线，触发同步
                 if !wasOnline && path.status == .satisfied {
-                    Task {
+                    Task { [weak self] in
                         await self?.handleNetworkReconnection()
                     }
                 }

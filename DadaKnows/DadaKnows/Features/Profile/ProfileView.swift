@@ -16,43 +16,52 @@ struct ProfileView: View {
     @StateObject private var userService = UserService.shared
     @StateObject private var offlineManager = OfflineManager.shared
     @StateObject private var aiManager = AIManager.shared
-    @State private var showSettings = false
     @State private var showProSubscription = false
     @State private var showingMailComposer = false
     @State private var showingMailAlert = false
     @State private var showingFeedbackOptions = false
-    @State private var showAnalytics = false
+    @State private var showQAHistory = false
+    @State private var showingEditProfile = false
+    @State private var editingUsername = ""
+    @State private var showingPrivacyPolicy = false
+    @State private var showingTermsOfService = false
+    @State private var showingLogoutAlert = false
     
     var body: some View {
-        ZStack {
-            Color.creamYellow
-                .ignoresSafeArea()
-            
-            ScrollView {
-                VStack(spacing: 25) {
-                    // Header section
-                    headerSection
+        NavigationStack {
+            List {
+                // User profile section with email
+                userProfileSection
+                
+                // Pro membership section
+                proMembershipSection
                     
-                    // Growth statistics
-                    growthStatsSection
-                    
-                    // Pro membership card
-                    proMembershipSection
-                    
-                    // 🔄 新增：同步状态部分
-                    // syncStatusSection
-                    
-                    // Features list
-                    featuresSection
-                    
-                    Spacer().frame(height: 50)
+                // App settings section
+                appSettingsSection
+                
+                // Privacy & Legal section
+                privacyLegalSection
+                
+                // About section
+                aboutSection
+                
+                // Support section
+                supportSection
+                
+                // Logout section (if authenticated)
+                if authManager.isAuthenticated {
+                    logoutSection
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
             }
+            .listStyle(.insetGrouped)
+            .navigationTitle("设置")
+            .navigationBarTitleDisplayMode(.large)
         }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
+        .sheet(isPresented: $showingPrivacyPolicy) {
+            PrivacyPolicyView()
+        }
+        .sheet(isPresented: $showingTermsOfService) {
+            TermsOfServiceView()
         }
         .sheet(isPresented: $showProSubscription) {
             ProSubscriptionView()
@@ -60,261 +69,345 @@ struct ProfileView: View {
         .sheet(isPresented: $showingMailComposer) {
             MailComposeView()
         }
-        .sheet(isPresented: $showAnalytics) {
-            AnalyticsView()
-        }
-        .actionSheet(isPresented: $showingFeedbackOptions) {
-            ActionSheet(
-                title: Text("选择反馈方式"),
-                message: Text("您的设备未配置邮件账户，请选择其他反馈方式"),
-                buttons: [
-                    .default(Text("复制邮箱地址")) {
-                        UIPasteboard.general.string = Config.feedbackEmail
-                        // 显示复制成功的提示
-                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                        impactFeedback.impactOccurred()
-                    },
-                    .default(Text("前往App Store评价")) {
-                        if let url = URL(string: Config.appStoreURL) {
-                            UIApplication.shared.open(url)
-                        }
-                    },
-                    .cancel(Text("取消"))
-                ]
-            )
+        .confirmationDialog("选择反馈方式", isPresented: $showingFeedbackOptions, titleVisibility: .visible) {
+            Button("复制邮箱地址") {
+                UIPasteboard.general.string = Config.feedbackEmail
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+            }
+            Button("前往App Store评价") {
+                if let url = URL(string: Config.appStoreURL) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("您的设备未配置邮件账户，请选择其他反馈方式")
         }
     }
     
-    private var headerSection: some View {
-        VStack(spacing: 20) {
-            // User avatar and info
-            VStack(spacing: 15) {
-                // Avatar
-                ZStack {
+    // MARK: - User Profile Section
+    private var userProfileSection: some View {
+        Section {
+            // User info with edit button
+            Button(action: { 
+                editingUsername = userService.currentUsername
+                showingEditProfile = true 
+            }) {
+                HStack(spacing: 16) {
+                    // Avatar
                     Circle()
-                        .fill(Color.white.opacity(0.9))
-                        .frame(width: 80, height: 80)
-                        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 2)
+                        .fill(Color.appPrimary.opacity(0.1))
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(.appPrimary)
+                        )
                     
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 35))
-                        .foregroundColor(.vibrantOrange)
-                }
-                
-                VStack(spacing: 5) {
-                    Text("用户昵称")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.darkGray)
-                    
-                    Text(subscriptionManager.isProMember ? "Pro会员" : "免费用户")
-                        .font(.subheadline)
-                        .foregroundColor(subscriptionManager.isProMember ? .vibrantOrange : .lightGray)
-                }
-            }
-        }
-    }
-    
-    private var growthStatsSection: some View {
-        VStack(spacing: 15) {
-            Text("成长统计")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.darkGray)
-            
-            HStack(spacing: 15) {
-                // Questions count
-                ProfileStatCard(
-                    title: "已提问题数",
-                    value: "\(analyticsManager.learningStats.totalQuestions)个",
-                    icon: "bubble.left.and.bubble.right.fill",
-                    color: .vibrantOrange
-                )
-                
-                // Time spent
-                ProfileStatCard(
-                    title: "陪伴时长",
-                    value: formatLearningTime(analyticsManager.learningStats.totalLearningTime),
-                    icon: "clock.fill",
-                    color: .skyBlue
-                )
-            }
-        }
-    }
-    
-    private func formatLearningTime(_ timeInterval: TimeInterval) -> String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
-        
-        if hours > 0 {
-            return "\(hours)小时\(minutes)分"
-        } else {
-            return "\(minutes)分钟"
-        }
-    }
-    
-    private var proMembershipSection: some View {
-        VStack(spacing: 0) {
-            if !subscriptionManager.isProMember {
-                // Free user - upgrade card
-                Button(action: {
-                    showProSubscription = true
-                }) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.proFreeGradient)
-                            .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 5)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(userService.currentUsername.isEmpty ? "用户" : userService.currentUsername)
+                            .font(.headline)
+                            .foregroundColor(.textPrimary)
                         
-                        VStack(spacing: 15) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("升级到Pro会员")
-                                        .font(.title3)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.darkGray)
-                                    
-                                    Text("无限次提问，支持我们持续改进")
-                                        .font(.subheadline)
-                                        .foregroundColor(.darkGray.opacity(0.8))
+                        Text(subscriptionManager.isProMember ? "Pro会员" : "免费用户")
+                            .font(.subheadline)
+                            .foregroundColor(.textSecondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "pencil")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.textTertiary)
+                }
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
+            
+            // Login email (if authenticated)
+            if authManager.isAuthenticated {
+                HStack {
+                    Image(systemName: "envelope")
+                        .foregroundColor(.appPrimary)
+                        .frame(width: 24)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("登录邮箱")
+                            .foregroundColor(.textPrimary)
+                        
+                        Text(authManager.currentUser?.email ?? "未知")
+                            .font(.caption)
+                            .foregroundColor(.textSecondary)
+                    }
+                    
+                    Spacer()
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditProfile) {
+            EditProfileView(username: $editingUsername) { newUsername in
+                userService.updateUsername(newUsername)
+            }
+        }
+    }
+    
+    
+    // MARK: - Pro Membership Section
+    private var proMembershipSection: some View {
+        Section {
+            if !subscriptionManager.isProMember {
+                Button(action: { showProSubscription = true }) {
+                    HStack {
+                        Image(systemName: "crown")
+                            .foregroundColor(.appAccent)
+                            .frame(width: 24)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("升级到Pro")
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .foregroundColor(.textPrimary)
+                            
+                            Text("无限次提问，更多功能")
+                                .font(.caption)
+                                .foregroundColor(.textSecondary)
                                 }
                                 
                                 Spacer()
                                 
-                                Image(systemName: "crown.fill")
-                                    .font(.system(size: 30))
-                                    .foregroundColor(.vibrantOrange)
-                            }
-                            
-                            // Pro benefits
-                            VStack(alignment: .leading, spacing: 8) {
-                                ProFeatureRow(icon: "infinity", text: "无限次提问")
-                                ProFeatureRow(icon: "heart.fill", text: "支持开发团队")
-                                ProFeatureRow(icon: "sparkles", text: "优先获得新功能")
-                            }
-                        }
-                        .padding(20)
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.textTertiary)
                     }
                 }
-                .frame(maxWidth: .infinity)
+                .buttonStyle(.plain)
             } else {
-                // Pro user - status card
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.proActiveGradient)
-                        .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 5)
+                HStack {
+                    Image(systemName: "crown.fill")
+                        .foregroundColor(.appAccent)
+                        .frame(width: 24)
                     
-                    VStack(spacing: 15) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
                                 Text("Pro会员")
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.textPrimary)
                                 
                                 Text("享受完整功能体验")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white.opacity(0.8))
+                            .font(.caption)
+                            .foregroundColor(.textSecondary)
                             }
                             
                             Spacer()
                             
-                            Image(systemName: "crown.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.white)
-                        }
-                        
-                        HStack {
-                            Text("有效期至：2024年12月31日")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.9))
-                            
-                            Spacer()
-                        }
-                    }
-                    .padding(20)
+                    Text("已激活")
+                        .font(.caption)
+                        .foregroundColor(.statusSuccess)
                 }
             }
         }
     }
     
-    private var featuresSection: some View {
-        VStack(spacing: 15) {
-            // Curiosity log
-            FeatureButton(
-                icon: "book.fill",
-                title: "好奇心日志",
-                description: "查看所有问答记录",
-                isProFeature: false,
-                action: {
-                    showAnalytics = true
-                }
-            )
-            
+    // MARK: - App Settings Section
+    private var appSettingsSection: some View {
+        Section("应用设置") {
             // On-device model toggle
             HStack {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.vibrantOrange.opacity(0.2))
-                        .frame(width: 45, height: 45)
-                    
-                    Image(systemName: "cpu")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.vibrantOrange)
-                }
+                Image(systemName: "cpu")
+                    .foregroundColor(.appPrimary)
+                    .frame(width: 24)
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("端侧模型")
-                        .font(.headline)
-                        .foregroundColor(.darkGray)
+                        .font(.body)
+                        .foregroundColor(.textPrimary)
                     
                     Text(aiManager.isUsingOnDeviceModel ? "已启用 - 无使用限制" : "使用云端模型")
-                        .font(.subheadline)
-                        .foregroundColor(.lightGray)
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
                 }
                 
                 Spacer()
                 
                 Toggle("", isOn: $aiManager.isUsingOnDeviceModel)
-                    .toggleStyle(SwitchToggleStyle(tint: .vibrantOrange))
+                    .tint(.appPrimary)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color.white.opacity(0.9))
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
             
-            // Settings
-            FeatureButton(
-                icon: "gearshape.fill",
-                title: "设置",
-                description: "语言、通知、账号安全",
-                isProFeature: false,
-                action: {
-                    showSettings = true
+            // Notifications
+            Button(action: {
+                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsUrl)
                 }
-            )
+            }) {
+                HStack {
+                    Image(systemName: "bell")
+                        .foregroundColor(.appAccent)
+                        .frame(width: 24)
+                    
+                    Text("通知设置")
+                        .foregroundColor(.textPrimary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
             
-            // Rate app
-            FeatureButton(
-                icon: "star.fill",
-                title: "给我们评分",
-                description: "您的评价是我们前进的动力",
-                isProFeature: false,
-                action: {
-                    requestAppStoreReview()
+            // Language
+            HStack {
+                Image(systemName: "globe")
+                    .foregroundColor(.appSecondary)
+                    .frame(width: 24)
+                
+                Text("语言设置")
+                    .foregroundColor(.textPrimary)
+                
+                Spacer()
+                
+                Text("中文（简体）")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+            }
+        }
+    }
+    
+    // MARK: - Privacy & Legal Section
+    private var privacyLegalSection: some View {
+        Section("隐私与法律") {
+            Button(action: { showingPrivacyPolicy = true }) {
+                HStack {
+                    Image(systemName: "doc.text")
+                        .foregroundColor(.appSecondary)
+                        .frame(width: 24)
+                    
+                    Text("隐私政策")
+                        .foregroundColor(.textPrimary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
                 }
-            )
+            }
+            .buttonStyle(.plain)
             
-            // Feedback
-            FeatureButton(
-                icon: "envelope.fill",
-                title: "意见反馈",
-                description: "告诉我们您的想法和建议",
-                isProFeature: false,
-                action: {
-                    openFeedback()
+            Button(action: { showingTermsOfService = true }) {
+                HStack {
+                    Image(systemName: "doc.plaintext")
+                        .foregroundColor(.appSecondary)
+                        .frame(width: 24)
+                    
+                    Text("服务条款")
+                        .foregroundColor(.textPrimary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
                 }
-            )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    // MARK: - About Section
+    private var aboutSection: some View {
+        Section("关于") {
+            // Version info
+            HStack {
+                Image(systemName: "info.circle")
+                    .foregroundColor(.appPrimary)
+                    .frame(width: 24)
+                
+                Text("版本信息")
+                    .foregroundColor(.textPrimary)
+                
+                Spacer()
+                
+                Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+            }
+        }
+    }
+    
+    // MARK: - Support Section
+    private var supportSection: some View {
+        Section("支持") {
+            Button(action: { requestAppStoreReview() }) {
+                HStack {
+                    Image(systemName: "star")
+                        .foregroundColor(.appAccent)
+                        .frame(width: 24)
+                    
+                    Text("给我们评分")
+                        .foregroundColor(.textPrimary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+            
+            Button(action: { openFeedback() }) {
+                HStack {
+                    Image(systemName: "envelope")
+                        .foregroundColor(.appPrimary)
+                        .frame(width: 24)
+                    
+                    Text("意见反馈")
+                        .foregroundColor(.textPrimary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    // MARK: - Logout Section
+    private var logoutSection: some View {
+        Section {
+            Button(action: { showingLogoutAlert = true }) {
+                HStack {
+                    Image(systemName: "arrow.right.square")
+                        .foregroundColor(.statusError)
+                        .frame(width: 24)
+                    
+                    Text("退出登录")
+                        .foregroundColor(.statusError)
+                    
+                    Spacer()
+                }
+            }
+            .buttonStyle(.plain)
+        }
+        .alert("退出登录", isPresented: $showingLogoutAlert) {
+            Button("取消", role: .cancel) { }
+            Button("退出", role: .destructive) {
+                Task {
+                    do {
+                        try await authManager.signOut()
+                    } catch {
+                        print("Sign out error: \(error)")
+                    }
+                }
+            }
+        } message: {
+            Text("确定要退出登录吗？")
         }
     }
     
@@ -325,11 +418,11 @@ struct ProfileView: View {
             HStack {
                 Image(systemName: "icloud.and.arrow.up.and.arrow.down")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(.vibrantOrange)
+                    .foregroundColor(.appPrimary)
                 
                 Text("数据同步")
                     .font(.headline)
-                    .foregroundColor(.darkGray)
+                    .foregroundColor(.textPrimary)
                 
                 Spacer()
             }
@@ -342,7 +435,7 @@ struct ProfileView: View {
                 Text("用户配置")
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundColor(.darkGray)
+                    .foregroundColor(.textPrimary)
                 
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
@@ -410,11 +503,11 @@ struct ProfileStatCard: View {
                 Text(value)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.darkGray)
+                    .foregroundColor(.textPrimary)
                 
                 Text(title)
                     .font(.caption)
-                    .foregroundColor(.lightGray)
+                    .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
             }
         }
@@ -434,11 +527,11 @@ struct ProFeatureRow: View {
         HStack(spacing: 10) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.darkGray.opacity(0.8))
+                .foregroundColor(.textPrimary.opacity(0.8))
             
             Text(text)
                 .font(.subheadline)
-                .foregroundColor(.darkGray.opacity(0.8))
+                .foregroundColor(.textPrimary.opacity(0.8))
             
             Spacer()
         }
@@ -458,12 +551,12 @@ struct FeatureButton: View {
                 // Icon
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(isProFeature ? Color.lightGray.opacity(0.3) : Color.vibrantOrange.opacity(0.2))
+                        .fill(isProFeature ? Color.textSecondary.opacity(0.3) : Color.appPrimary.opacity(0.2))
                         .frame(width: 45, height: 45)
                     
                     Image(systemName: icon)
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(isProFeature ? .lightGray : .vibrantOrange)
+                        .foregroundColor(isProFeature ? .textSecondary : .appPrimary)
                 }
                 
                 // Content
@@ -471,18 +564,18 @@ struct FeatureButton: View {
                     HStack {
                         Text(title)
                             .font(.headline)
-                            .foregroundColor(isProFeature ? .lightGray : .darkGray)
+                            .foregroundColor(isProFeature ? .textSecondary : .textPrimary)
                         
                         if isProFeature {
                             Image(systemName: "crown.fill")
                                 .font(.system(size: 12))
-                                .foregroundColor(.vibrantOrange)
+                                .foregroundColor(.appPrimary)
                         }
                     }
                     
                     Text(description)
                         .font(.subheadline)
-                        .foregroundColor(.lightGray)
+                        .foregroundColor(.textSecondary)
                         .multilineTextAlignment(.leading)
                 }
                 
@@ -491,7 +584,7 @@ struct FeatureButton: View {
                 // Arrow
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.lightGray)
+                    .foregroundColor(.textSecondary)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -503,187 +596,6 @@ struct FeatureButton: View {
 }
 }
 
-// MARK: - Settings View
-struct SettingsView: View {
-    @Environment(\.presentationMode) var presentationMode
-    @StateObject private var authManager = AuthManager.shared
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @State private var showingLogoutAlert = false
-    @State private var showingDeleteAccountAlert = false
-    
-    var body: some View {
-        NavigationView {
-            ZStack {
-                Color.creamYellow
-                    .ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Account section
-                        settingsSection(title: "账号设置") {
-                            VStack(spacing: 12) {
-                                if authManager.isAuthenticated {
-                                    SettingsRow(
-                                        icon: "person.circle",
-                                        title: "账号信息",
-                                        subtitle: authManager.currentUser?.email ?? "未知",
-                                        action: nil
-                                    )
-                                    
-                                    SettingsRow(
-                                        icon: "arrow.right.square",
-                                        title: "退出登录",
-                                        subtitle: "退出当前账号",
-                                        action: {
-                                            showingLogoutAlert = true
-                                        }
-                                    )
-                                } else {
-                                    SettingsRow(
-                                        icon: "person.badge.plus",
-                                        title: "登录账号",
-                                        subtitle: "登录以同步数据",
-                                        action: {
-                                            // TODO: Navigate to login
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        
-                        // App settings section
-                        settingsSection(title: "应用设置") {
-                            VStack(spacing: 12) {
-                                SettingsRow(
-                                    icon: "bell",
-                                    title: "通知设置",
-                                    subtitle: "管理推送通知",
-                                    action: {
-                                        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                                            UIApplication.shared.open(settingsUrl)
-                                        }
-                                    }
-                                )
-                                
-                                SettingsRow(
-                                    icon: "globe",
-                                    title: "语言设置",
-                                    subtitle: "中文（简体）",
-                                    action: {
-                                        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                                            UIApplication.shared.open(settingsUrl)
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                        
-                        // About section
-                        settingsSection(title: "关于") {
-                            VStack(spacing: 12) {
-                                SettingsRow(
-                                    icon: "info.circle",
-                                    title: "版本信息",
-                                    subtitle: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
-                                    action: nil
-                                )
-                                
-                                SettingsRow(
-                                    icon: "doc.text",
-                                    title: "隐私政策",
-                                    subtitle: "查看隐私政策",
-                                    action: {
-                                        // TODO: Open privacy policy
-                                    }
-                                )
-                                
-                                SettingsRow(
-                                    icon: "doc.plaintext",
-                                    title: "服务条款",
-                                    subtitle: "查看服务条款",
-                                    action: {
-                                        // TODO: Open terms of service
-                                    }
-                                )
-                            }
-                        }
-                        
-                        // Danger zone
-                        if authManager.isAuthenticated {
-                            settingsSection(title: "危险操作") {
-                                SettingsRow(
-                                    icon: "trash",
-                                    title: "删除账号",
-                                    subtitle: "永久删除账号和所有数据",
-                                    isDestructive: true,
-                                    action: {
-                                        showingDeleteAccountAlert = true
-                                    }
-                                )
-                            }
-                        }
-                        
-                        Spacer().frame(height: 50)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                }
-            }
-            .navigationTitle("设置")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                    .foregroundColor(.vibrantOrange)
-                }
-            }
-            .alert("退出登录", isPresented: $showingLogoutAlert) {
-                Button("取消", role: .cancel) { }
-                Button("退出", role: .destructive) {
-                    Task {
-                        do {
-                            try await authManager.signOut()
-                            presentationMode.wrappedValue.dismiss()
-                        } catch {
-                            // Handle sign out error if needed
-                            print("Sign out error: \(error)")
-                            presentationMode.wrappedValue.dismiss()
-                        }
-                    }
-                }
-            } message: {
-                Text("确定要退出登录吗？")
-            }
-            .alert("删除账号", isPresented: $showingDeleteAccountAlert) {
-                Button("取消", role: .cancel) { }
-                Button("删除", role: .destructive) {
-                    // TODO: Implement account deletion
-                }
-            } message: {
-                Text("此操作将永久删除您的账号和所有数据，且无法恢复。确定要继续吗？")
-            }
-        }
-    }
-    
-    private func settingsSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.darkGray)
-                .padding(.horizontal, 16)
-            
-            VStack(spacing: 1) {
-                content()
-            }
-            .background(Color.white.opacity(0.9))
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-        }
-    }
-}
 
 struct SettingsRow: View {
     let icon: String
@@ -706,12 +618,12 @@ struct SettingsRow: View {
                 // Icon
                 ZStack {
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isDestructive ? Color.red.opacity(0.2) : Color.vibrantOrange.opacity(0.2))
+                        .fill(isDestructive ? Color.red.opacity(0.2) : Color.appPrimary.opacity(0.2))
                         .frame(width: 35, height: 35)
                     
                     Image(systemName: icon)
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(isDestructive ? .red : .vibrantOrange)
+                        .foregroundColor(isDestructive ? .red : .appPrimary)
                 }
                 
                 // Content
@@ -719,11 +631,11 @@ struct SettingsRow: View {
                     Text(title)
                         .font(.body)
                         .fontWeight(.medium)
-                        .foregroundColor(isDestructive ? .red : .darkGray)
+                        .foregroundColor(isDestructive ? .red : .textPrimary)
                     
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundColor(.lightGray)
+                        .foregroundColor(.textSecondary)
                 }
                 
                 Spacer()
@@ -732,7 +644,7 @@ struct SettingsRow: View {
                 if action != nil {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.lightGray)
+                        .foregroundColor(.textSecondary)
                 }
             }
             .padding(.horizontal, 16)
@@ -744,7 +656,7 @@ struct SettingsRow: View {
 
 // MARK: - Mail Compose View
 struct MailComposeView: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     func makeUIViewController(context: Context) -> MFMailComposeViewController {
         let composer = MFMailComposeViewController()
@@ -781,7 +693,78 @@ struct MailComposeView: UIViewControllerRepresentable {
         }
         
         func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-            parent.presentationMode.wrappedValue.dismiss()
+            parent.dismiss()
+        }
+    }
+}
+
+// MARK: - Edit Profile View
+struct EditProfileView: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var username: String
+    let onSave: (String) -> Void
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                // Avatar section
+                VStack(spacing: 16) {
+                    Circle()
+                        .fill(Color.appPrimary.opacity(0.1))
+                        .frame(width: 80, height: 80)
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 32, weight: .medium))
+                                .foregroundColor(.appPrimary)
+                        )
+                    
+                    Text("编辑个人信息")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.textPrimary)
+                }
+                .padding(.top, 20)
+                
+                // Username input
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("用户名")
+                        .font(.subheadline)
+                        .foregroundColor(.textPrimary)
+                    
+                    TextField("请输入用户名", text: $username)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.fillSecondary)
+                                .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+                        )
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer()
+            }
+            .background(Color.backgroundPrimary)
+            .navigationTitle("编辑资料")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") {
+                        dismiss()
+                    }
+                    .foregroundColor(.textSecondary)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("保存") {
+                        onSave(username)
+                        dismiss()
+                    }
+                    .foregroundColor(.appPrimary)
+                    .fontWeight(.semibold)
+                    .disabled(username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
         }
     }
 }

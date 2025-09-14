@@ -148,10 +148,8 @@ class DataManager: ObservableObject {
         return persistentContainer.viewContext
     }
     
-    // 云端同步服务 - 移除lazy var，直接在需要时获取
-    private var chatService: ChatService {
-        ChatService.shared
-    }
+    // 云端同步服务 - 使用lazy var避免循环依赖
+    private lazy var chatService = ChatService.shared
     private var offlineManager: OfflineManager {
         OfflineManager.shared
     }
@@ -235,8 +233,8 @@ class DataManager: ObservableObject {
     }
     
     private func performInitialSync() async {
-        let isAuthenticated = await AuthManager.shared.isAuthenticated
-        let isOnline = await offlineManager.isOnline
+        let isAuthenticated = AuthManager.shared.isAuthenticated
+        let isOnline = offlineManager.isOnline
         guard isAuthenticated && isOnline else { return }
         
         isSyncing = true
@@ -254,8 +252,8 @@ class DataManager: ObservableObject {
     }
     
     func syncWithCloud() async {
-        let isAuthenticated = await AuthManager.shared.isAuthenticated
-        let isOnline = await offlineManager.isOnline
+        let isAuthenticated = AuthManager.shared.isAuthenticated
+        let isOnline = offlineManager.isOnline
         guard isAuthenticated && isOnline else { return }
         
         isSyncing = true
@@ -300,23 +298,16 @@ class DataManager: ObservableObject {
         
         save()
         
-        // 异步同步到云端
-        Task {
-            await chatService.syncChatToCloud(chat)
-        }
-        
         return chat
     }
     
-    func createChatWithSync(question: String, answer: String, targetAge: Int, language: String) async -> Chat {
-        // 创建本地聊天记录并立即同步到云端
-        return await chatService.createAndSyncChat(
-            question: question,
-            answer: answer,
-            targetAge: targetAge,
-            language: language
-        )
+    // 分离的同步方法，避免在createChat中直接调用ChatService
+    func syncChatToCloudAsync(_ chat: Chat) {
+        Task {
+            await chatService.syncChatToCloud(chat)
+        }
     }
+    
     
     func fetchChats() -> [Chat] {
         let request: NSFetchRequest<Chat> = Chat.fetchRequest()

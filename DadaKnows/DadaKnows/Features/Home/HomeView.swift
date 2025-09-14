@@ -2,7 +2,7 @@
 //  HomeView.swift
 //  DadaKnows
 //
-//  首页 - 核心提问界面
+//  iOS原生风格的首页 - 核心提问界面
 //
 
 import SwiftUI
@@ -23,29 +23,33 @@ struct HomeView: View {
     ]
     
     var body: some View {
-        ZStack {
-            Color.creamYellow
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Header area with IP character
-                headerSection
-                
-                // Main content area
-                mainContentSection
-                
-                Spacer()
+        NavigationStack {
+            ZStack {
+                VStack(spacing: 0) {
+                    // Main content in scroll view
+                    ScrollView {
+                        VStack(spacing: 32) {
+                            // Welcome section
+                            welcomeSection
+                            
+                            // Question input section
+                            questionInputSection
+                            
+                            // Age selector section
+                            ageSelectionSection
+                            
+                            // Ask button
+                            askButtonSection
+                            
+                            Spacer(minLength: 100)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                    }
+                }
+                .background(Color.backgroundPrimary)
             }
         }
-        .overlay(
-            // Voice recording overlay
-            VoiceRecordingOverlay()
-        )
-        .overlay(
-            // Network status banner
-            NetworkStatusBanner(),
-            alignment: .top
-        )
         .fullScreenCover(isPresented: $showChat) {
             ChatView(
                 question: question,
@@ -53,169 +57,120 @@ struct HomeView: View {
                 onDismiss: {
                     showChat = false
                     question = ""
-                }
+                },
+                historicalSession: nil
             )
         }
     }
     
-    private var headerSection: some View {
-        VStack(spacing: 20) {
-            // IP Character area - 答答形象
+    // MARK: - Welcome Section
+    private var welcomeSection: some View {
+        VStack(spacing: 16) {
+            // App icon or character
             ZStack {
-                // Background circle
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            gradient: Gradient(colors: [
-                                Color.tenderYellow.opacity(0.3),
-                                Color.tenderYellow.opacity(0.1)
-                            ]),
-                            center: .center,
-                            startRadius: 20,
-                            endRadius: 80
-                        )
-                    )
-                    .frame(width: 160, height: 160)
+                    .fill(Color.appPrimary.opacity(0.1))
+                    .frame(width: 100, height: 100)
                 
-                // IP Character placeholder
-                FloatingView(amplitude: 8, frequency: 3.0) {
-                    VStack(spacing: 8) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.tenderYellow)
-                                .frame(width: 80, height: 80)
-                            
-                            BounceView(trigger: isAsking) {
-                                Image(systemName: "face.smiling")
-                                    .font(.system(size: 35))
-                                    .foregroundColor(.vibrantOrange)
-                            }
-                        }
-                        
-                        Text("答答")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.darkGray)
-                        
-                        // 离线状态指示器
-                        OfflineIndicator()
-                    }
-                }
-            }
-            .padding(.top, 40)
-        }
-    }
-    
-    private var mainContentSection: some View {
-        VStack(spacing: 10) {
-            // Question input section
-            SlideInView(from: .bottom, delay: 0.3) {
-                VStack(spacing: 8) {
-                    Text("想问答答什么问题呢？")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.darkGray)
-                        .multilineTextAlignment(.center)
-                    
-                    // Question input field with voice support
-                    ZStack(alignment: .bottomTrailing) {
-                        TextField("ask_question_placeholder", text: $question, axis: .vertical)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
-                            .padding(.trailing, 60) // Extra padding to avoid overlapping with the button
-                            .lineLimit(6...8)
-                            .font(.system(size: 16))
-                            .foregroundColor(.darkGray)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.white.opacity(0.9))
-                                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 2)
-                            )
-                        
-                        VoiceInputButton(text: $question)
-                            .padding(.trailing, 12)
-                            .padding(.bottom, 8)
-                    }
-                    .padding(.horizontal, 25)
-                }
+                Image(systemName: "brain.head.profile")
+                    .font(.system(size: 40, weight: .medium))
+                    .foregroundColor(.appPrimary)
             }
             
-            // Age selector
-            ageSelector
-            
-            // Ask button
-            askButton
+            VStack(spacing: 8) {
+                Text("你好，我是答答")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.textPrimary)
+                
+                Text("有什么想问的吗？")
+                    .font(.body)
+                    .foregroundColor(.textSecondary)
+            }
         }
-        .padding(.top, 10)
+        .padding(.top, 20)
     }
     
-    private var ageSelector: some View {
-        VStack(spacing: 10) {
-            Text("为几岁的小朋友回答？")
+    // MARK: - Question Input Section
+    private var questionInputSection: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .bottom, spacing: 12) {
+                TextField("输入你的问题...", text: $question, axis: .vertical)
+                    .font(.body)
+                    .lineLimit(5...8)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 16)
+                
+                // Voice input button in the bottom right of text field
+                VStack {
+                    Spacer()
+                    VoiceInputButton(text: $question)
+                        .padding(.trailing, 10)
+                        .padding(.bottom, 10)
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.fillSecondary)
+                    .stroke(Color.separator.opacity(0.5), lineWidth: 0.5)
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        }
+        .padding(20)
+        .background(Color.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+    }
+    
+    // MARK: - Age Selection Section
+    private var ageSelectionSection: some View {
+        VStack(spacing: 16) {
+            Text("宝贝多大啦")
                 .font(.headline)
-                .foregroundColor(.darkGray)
+                .foregroundColor(.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             
-            HStack(spacing: 20) {
+            // iOS native picker style
+            Picker("选择年龄", selection: $selectedAge) {
                 ForEach(ageRanges, id: \.0) { age, ageText in
-                    Button(action: {
-                        selectedAge = age
-                    }) {
-                        VStack(spacing: 8) {
-                            // Avatar circle
-                            ZStack {
-                                Circle()
-                                    .fill(selectedAge == age ? Color.vibrantOrange : Color.skyBlue.opacity(0.6))
-                                    .frame(width: 50, height: 50)
-                                
-                                Text("\(age)")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                            }
-                            
-                            Text(ageText)
-                                .font(.caption)
-                                .foregroundColor(selectedAge == age ? .vibrantOrange : .lightGray)
-                        }
-                        .padding(.vertical, 5)
-                    }
-                    .scaleEffect(selectedAge == age ? 1.1 : 1.0)
-                    .animation(.easeInOut(duration: 0.2), value: selectedAge)
+                    Text(ageText).tag(age)
                 }
             }
-            .padding(.horizontal, 15)
+            .pickerStyle(.segmented)
         }
+        .padding(20)
+        .background(Color.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
     
-    private var askButton: some View {
+    // MARK: - Ask Button Section
+    private var askButtonSection: some View {
         Button(action: askQuestion) {
-            HStack(spacing: 10) {
+            HStack(spacing: 12) {
                 if isAsking {
                     ProgressView()
-                        .scaleEffect(0.9)
-                        .foregroundColor(.white)
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(0.8)
                 }
                 
-                Text(isAsking ? "答答正在思考..." : "问问答答")
+                Text(isAsking ? "正在思考..." : "问问答答")
                     .font(.headline)
                     .fontWeight(.semibold)
             }
-            .foregroundColor(.white)
+            .foregroundColor(isFormValid ? .white : .textSecondary)
             .frame(maxWidth: .infinity)
-            .frame(height: 55)
+            .frame(height: 50)
             .background(
-                RoundedRectangle(cornerRadius: 27.5)
-                    .fill(
-                        isFormValid ? Color.vibrantOrange : Color.lightGray.opacity(0.5)
-                    )
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isFormValid ? Color.appPrimary : Color.fillSecondary)
+                    .stroke(isFormValid ? Color.clear : Color.separator.opacity(0.5), lineWidth: 0.5)
             )
-            .scaleEffect(isAsking ? 0.95 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: isAsking)
         }
         .disabled(!isFormValid || isAsking)
-        .padding(.horizontal, 25)
-        .padding(.top, 40)
-        .padding(.bottom, 10)
+        .buttonStyle(.plain)
+        .opacity(isFormValid ? 1.0 : 0.8)
+        .animation(.easeInOut(duration: 0.2), value: isAsking)
     }
     
     private var isFormValid: Bool {

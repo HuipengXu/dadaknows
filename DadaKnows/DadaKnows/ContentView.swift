@@ -10,28 +10,31 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var appState = AppState.shared
+    
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "questionmark.bubble.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.vibrantOrange)
-            
-            Text("问问答答")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.primaryText)
-            
-            Text("陪娃有你，解答有我")
-                .font(.headline)
-                .foregroundColor(.secondaryText)
-                .multilineTextAlignment(.center)
+        ZStack {
+            if appState.isLoading {
+                SplashView {
+                    appState.isLoading = false
+                }
+            } else if !appState.isAuthenticated {
+                AuthView {
+                    appState.signIn()
+                }
+            } else {
+                MainTabView()
+            }
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.backgroundPrimary)
+        .animation(.easeInOut, value: appState.isLoading)
+        .animation(.easeInOut, value: appState.isAuthenticated)
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(AIManager.shared)
+        .environmentObject(SubscriptionManager.shared)
+        .environmentObject(OfflineManager.shared)
+        .environment(\.managedObjectContext, DataManager.shared.persistentContainer.viewContext)
 }

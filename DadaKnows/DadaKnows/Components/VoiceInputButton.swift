@@ -16,7 +16,7 @@ struct VoiceInputButton: View {
         Button(action: handleVoiceInput) {
             ZStack {
                 Circle()
-                    .fill(speechManager.isRecording ? Color.red : Color.vibrantOrange)
+                    .fill(speechManager.isRecording ? Color.statusError : Color.appPrimary)
                     .frame(width: 50, height: 50)
                     .scaleEffect(speechManager.isRecording ? 1.2 : 1.0)
                     .animation(.easeInOut(duration: 0.2), value: speechManager.isRecording)
@@ -33,7 +33,7 @@ struct VoiceInputButton: View {
             Group {
                 if speechManager.isRecording {
                     Circle()
-                        .stroke(Color.red.opacity(0.3), lineWidth: 2)
+                        .stroke(Color.statusError.opacity(0.3), lineWidth: 2)
                         .frame(width: 70, height: 70)
                         .scaleEffect(speechManager.isRecording ? 1.5 : 1.0)
                         .opacity(speechManager.isRecording ? 0.0 : 1.0)
@@ -88,18 +88,13 @@ struct VoiceInputField: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.subheadline)
-                .foregroundColor(.darkGray)
+                .foregroundColor(.textPrimary)
             
             HStack {
                 TextField(placeholder, text: $text, axis: .vertical)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(Color.white.opacity(0.8))
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.lightGray.opacity(0.3), lineWidth: 1)
-                    )
+                    .textFieldStyle(.roundedBorder)
                 
                 VoiceInputButton(text: $text)
                     .padding(.leading, 8)
@@ -123,13 +118,13 @@ struct VoiceRecordingOverlay: View {
                     // 录音动画
                     ZStack {
                         Circle()
-                            .fill(Color.red.opacity(0.2))
+                            .fill(Color.statusError.opacity(0.2))
                             .frame(width: 120, height: 120)
                             .scaleEffect(speechManager.isRecording ? 1.2 : 1.0)
                             .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: speechManager.isRecording)
                         
                         Circle()
-                            .fill(Color.red)
+                            .fill(Color.statusError)
                             .frame(width: 80, height: 80)
                         
                         Image(systemName: "mic.fill")
@@ -157,7 +152,7 @@ struct VoiceRecordingOverlay: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
-                    .background(Color.red)
+                    .background(Color.statusError)
                     .cornerRadius(20)
                 }
                 .padding()
