@@ -10,6 +10,7 @@ import Supabase
 import AuthenticationServices
 import GoogleSignIn
 import Combine
+import ObjectiveC
 
 @MainActor
 class AuthManager: ObservableObject {
@@ -233,13 +234,24 @@ class AuthManager: ObservableObject {
             
             let authorizationController = ASAuthorizationController(authorizationRequests: [request])
             
-            // 使用async/await包装Apple Sign In
+            // 使用async/await包装Apple Sign In，确保正确处理continuation
             let result = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>) in
                 let delegate = AppleSignInDelegate { result in
-                    continuation.resume(with: result)
+                    switch result {
+                    case .success(let credential):
+                        continuation.resume(returning: credential)
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
                 }
+                
+                // 保持对delegate的强引用直到授权完成
                 authorizationController.delegate = delegate
                 authorizationController.presentationContextProvider = delegate
+                
+                // 将delegate存储在controller中以保持引用
+                objc_setAssociatedObject(authorizationController, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                
                 authorizationController.performRequests()
             }
             
@@ -347,6 +359,16 @@ class AuthManager: ObservableObject {
                 return "Google登录失败"
             case .noAppleToken:
                 return "Apple登录失败"
+            case .userCanceled:
+                return "用户取消了登录"
+            case .authorizationFailed:
+                return "Apple登录授权失败"
+            case .invalidResponse:
+                return "Apple登录响应无效"
+            case .notHandled:
+                return "Apple登录请求未处理"
+            case .unknownError:
+                return "Apple登录发生未知错误"
             }
         }
         
@@ -385,18 +407,28 @@ enum AuthError: Error {
     case noViewController
     case noGoogleToken
     case noAppleToken
+    case userCanceled
+    case authorizationFailed
+    case invalidResponse
+    case notHandled
+    case unknownError
 }
 
 // MARK: - Apple Sign In Delegate
 
 class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     private let completion: (Result<ASAuthorizationAppleIDCredential, Error>) -> Void
+    private var hasCompleted = false
     
     init(completion: @escaping (Result<ASAuthorizationAppleIDCredential, Error>) -> Void) {
         self.completion = completion
+        super.init()
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        guard !hasCompleted else { return }
+        hasCompleted = true
+        
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
             completion(.success(appleIDCredential))
         } else {
@@ -405,13 +437,41 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        completion(.failure(error))
+        guard !hasCompleted else { return }
+        hasCompleted = true
+        
+        // 检查用户是否取消了授权
+        if let authError = error as? ASAuthorizationError {
+            switch authError.code {
+            case .canceled:
+                completion(.failure(AuthError.userCanceled))
+            case .failed:
+                completion(.failure(AuthError.authorizationFailed))
+            case .invalidResponse:
+                completion(.failure(AuthError.invalidResponse))
+            case .notHandled:
+                completion(.failure(AuthError.notHandled))
+            case .unknown:
+                completion(.failure(AuthError.unknownError))
+            @unknown default:
+                completion(.failure(error))
+            }
+        } else {
+            completion(.failure(error))
+        }
     }
     
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            return windowScene.windows.first { $0.isKeyWindow } ?? UIWindow()
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+            // 如果无法找到key window，尝试获取第一个window
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                return window
+            }
+            // 最后的备选方案
+            return UIWindow()
         }
-        return UIWindow()
+        return window
     }
 }
