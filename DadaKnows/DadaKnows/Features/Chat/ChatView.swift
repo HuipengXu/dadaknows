@@ -74,14 +74,14 @@ struct ChatView: View {
                                         .foregroundColor(.textSecondary)
                                         .font(.caption)
                                     
-                                    Text("今天还可以问 \(remaining) 个问题")
+                                    Text(String(format: NSLocalizedString("今天还可以问 %lld 个问题", comment: ""), remaining))
                                         .font(.caption)
                                         .foregroundColor(.textSecondary)
                                     
                                     Spacer()
                                     
                                     if remaining <= 5 {
-                                        Button("升级Pro") {
+                                        Button(NSLocalizedString("升级Pro", comment: "")) {
                                             showingProUpgrade = true
                                         }
                                         .font(.caption)
@@ -115,12 +115,12 @@ struct ChatView: View {
                         .allowsHitTesting(false)
                 }
             }
-            .navigationTitle(historicalSession != nil ? "继续对话" : "对话")
+            .navigationTitle(historicalSession != nil ? NSLocalizedString("继续对话", comment: "") : NSLocalizedString("对话", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("完成") {
+                    Button(NSLocalizedString("完成", comment: "")) {
                         // Track session end before dismissing
                         if let startTime = sessionStartTime {
                             let sessionDuration = Date().timeIntervalSince(startTime)
@@ -141,15 +141,15 @@ struct ChatView: View {
             .onReceive(speechManager.$isRecording) { recording in
                 isListening = recording
             }
-            .alert("需要麦克风权限", isPresented: $showingVoicePermissionAlert) {
-                Button("设置") {
+            .alert(NSLocalizedString("需要麦克风权限", comment: ""), isPresented: $showingVoicePermissionAlert) {
+                Button(NSLocalizedString("设置", comment: "")) {
                     if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(settingsUrl)
                     }
                 }
-                Button("取消", role: .cancel) { }
+                Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
             } message: {
-                Text("请在设置中允许访问麦克风以使用语音输入功能")
+                Text(NSLocalizedString("请在设置中允许访问麦克风以使用语音输入功能", comment: ""))
             }
             .sheet(isPresented: $showingProUpgrade) {
                 ProSubscriptionView()
@@ -175,7 +175,7 @@ struct ChatView: View {
             Task {
                 if let session = historicalSession, let firstChat = session.chats.first {
                     // For historical sessions, use the first question as title
-                    await chatService.startNewSessionIfNeeded(title: String((firstChat.question ?? "继续对话").prefix(80)))
+                    await chatService.startNewSessionIfNeeded(title: String((firstChat.question ?? NSLocalizedString("继续对话", comment: "")).prefix(80)))
                 } else {
                     // For new sessions, use the current question
                     await chatService.startNewSessionIfNeeded(title: String(question.prefix(80)))
@@ -414,7 +414,7 @@ struct InputAreaView: View {
                 VoiceButtonView(isListening: isListening, onVoiceInput: onVoiceInput)
                 
                 // Text input
-                TextField("输入你的问题...", text: $currentQuestion, axis: .vertical)
+                TextField(NSLocalizedString("输入你的问题...", comment: ""), text: $currentQuestion, axis: .vertical)
                     .lineLimit(1...4)
                     .onSubmit {
                         onSendQuestion()

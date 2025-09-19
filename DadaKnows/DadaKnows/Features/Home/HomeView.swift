@@ -15,11 +15,11 @@ struct HomeView: View {
     @State private var showChat = false
     
     let ageRanges = [
-        (2, "2-3岁"),
-        (4, "4-5岁"),
-        (6, "6-7岁"),
-        (8, "8-9岁"),
-        (10, "10-12岁")
+        (2, NSLocalizedString("2-3岁", comment: "")),
+        (4, NSLocalizedString("4-5岁", comment: "")),
+        (6, NSLocalizedString("6-7岁", comment: "")),
+        (8, NSLocalizedString("8-9岁", comment: "")),
+        (10, NSLocalizedString("10-12岁", comment: ""))
     ]
     
     var body: some View {
@@ -78,12 +78,12 @@ struct HomeView: View {
             }
             
             VStack(spacing: 8) {
-                Text("你好，我是答答")
+                Text(NSLocalizedString("你好，我是答答", comment: ""))
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.textPrimary)
                 
-                Text("有什么想问的吗？")
+                Text(NSLocalizedString("有什么想问的吗？", comment: ""))
                     .font(.body)
                     .foregroundColor(.textSecondary)
             }
@@ -95,7 +95,7 @@ struct HomeView: View {
     private var questionInputSection: some View {
         VStack(spacing: 0) {
             HStack(alignment: .bottom, spacing: 12) {
-                TextField("输入你的问题...", text: $question, axis: .vertical)
+                TextField(NSLocalizedString("输入你的问题...", comment: ""), text: $question, axis: .vertical)
                     .font(.body)
                     .lineLimit(5...8)
                     .padding(.horizontal, 16)
@@ -125,13 +125,13 @@ struct HomeView: View {
     // MARK: - Age Selection Section
     private var ageSelectionSection: some View {
         VStack(spacing: 16) {
-            Text("宝贝多大啦")
+            Text(NSLocalizedString("宝贝多大啦", comment: ""))
                 .font(.headline)
                 .foregroundColor(.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             // iOS native picker style
-            Picker("选择年龄", selection: $selectedAge) {
+            Picker(NSLocalizedString("选择年龄", comment: ""), selection: $selectedAge) {
                 ForEach(ageRanges, id: \.0) { age, ageText in
                     Text(ageText).tag(age)
                 }
@@ -154,7 +154,7 @@ struct HomeView: View {
                         .scaleEffect(0.8)
                 }
                 
-                Text(isAsking ? "正在思考..." : "问问答答")
+                Text(isAsking ? NSLocalizedString("正在思考...", comment: "") : NSLocalizedString("ask_button", comment: ""))
                     .font(.headline)
                     .fontWeight(.semibold)
             }

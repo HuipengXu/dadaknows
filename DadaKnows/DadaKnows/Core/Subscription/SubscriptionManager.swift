@@ -20,11 +20,11 @@ class SubscriptionManager: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    // 产品ID
+    // 产品ID - 与App Store Connect配置保持一致
     private let productIDs = [
-        "com.dadaknows.pro.monthly",
-        "com.dadaknows.pro.yearly",
-        "com.dadaknows.pro.lifetime"
+        "com.dadaknows.DadaKnows.monthly",    // 高级会员-月付
+        "com.dadaknows.DadaKnows.biannual",   // 高级会员-半年付
+        "com.dadaknows.DadaKnows.annual"      // 高级会员-年付
     ]
     
     private var updateListenerTask: Task<Void, Error>?
@@ -47,7 +47,14 @@ class SubscriptionManager: ObservableObject {
         
         do {
             let products = try await Product.products(for: productIDs)
-            self.availableProducts = products.sorted { $0.price < $1.price }
+            // 按推荐优先级排序：年付 -> 半年付 -> 月付
+            self.availableProducts = products.sorted { product1, product2 in
+                if product1.id.contains("annual") { return true }
+                if product2.id.contains("annual") { return false }
+                if product1.id.contains("biannual") { return true }
+                if product2.id.contains("biannual") { return false }
+                return product1.price > product2.price
+            }
             
             await checkSubscriptionStatus()
             // 在成功加载产品后启动交易监听（仅一次；模拟器跳过）
@@ -58,6 +65,7 @@ class SubscriptionManager: ObservableObject {
             #endif
         } catch {
             self.errorMessage = "加载产品失败: \(error.localizedDescription)"
+            print("❌ StoreKit 产品加载失败: \(error)")
         }
         
         isLoading = false
@@ -265,9 +273,103 @@ class SubscriptionManager: ObservableObject {
         let limit = Config.dailyFreeQuestionLimit
         return max(0, limit - dailyQuestionCount)
     }
+    
+    // MARK: - Product Helper Methods
+    
+    /// 获取指定类型的产品
+    func getProduct(for type: SubscriptionType) -> Product? {
+        return availableProducts.first { product in
+            switch type {
+            case .monthly:
+                return product.id.contains("monthly")
+            case .biannual:
+                return product.id.contains("biannual")
+            case .annual:
+                return product.id.contains("annual")
+            }
+        }
+    }
+    
+    /// 获取推荐的订阅产品（年付）
+    var recommendedProduct: Product? {
+        return getProduct(for: .annual) ?? availableProducts.first
+    }
+    
+    /// 获取当前活跃的订阅产品
+    var activeSubscriptionProduct: Product? {
+        return purchasedProducts.first
+    }
+    
+    /// 计算年付相比月付的节省比例
+    func calculateAnnualSavings() -> Double? {
+        guard let monthlyProduct = getProduct(for: .monthly),
+              let annualProduct = getProduct(for: .annual) else {
+            return nil
+        }
+        
+        let monthlyYearCost = monthlyProduct.price * Decimal(12)
+        let annualCost = annualProduct.price
+        
+        if monthlyYearCost == 0 {
+            return nil
+        }
+        
+        let savings = (monthlyYearCost - annualCost) as NSDecimalNumber
+        let total = monthlyYearCost as NSDecimalNumber
+        
+        return savings.doubleValue / total.doubleValue
+    }
+    
+    /// 计算半年付相比月付的节省比例
+    func calculateBiannualSavings() -> Double? {
+        guard let monthlyProduct = getProduct(for: .monthly),
+              let biannualProduct = getProduct(for: .biannual) else {
+            return nil
+        }
+        
+        let monthlySixMonthCost = monthlyProduct.price * Decimal(6)
+        let biannualCost = biannualProduct.price
+        
+        if monthlySixMonthCost == 0 {
+            return nil
+        }
+        
+        let savings = (monthlySixMonthCost - biannualCost) as NSDecimalNumber
+        let total = monthlySixMonthCost as NSDecimalNumber
+        
+        return savings.doubleValue / total.doubleValue
+    }
 }
 
 // MARK: - Supporting Types
+
+enum SubscriptionType: String, CaseIterable {
+    case monthly = "monthly"
+    case biannual = "biannual"
+    case annual = "annual"
+    
+    var displayName: String {
+        switch self {
+        case .monthly:
+            return "高级会员-月付"
+        case .biannual:
+            return "高级会员-半年付"
+        case .annual:
+            return "高级会员-年付"
+        }
+    }
+    
+    var duration: String {
+        switch self {
+        case .monthly:
+            return "月"
+        case .biannual:
+            return "半年"
+        case .annual:
+            return "年"
+        }
+    }
+}
 
 enum SubscriptionStatus: String, CaseIterable {
     case unknown = "unknown"

@@ -34,9 +34,9 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
     // MARK: - Setup
     
     private func setupSpeechRecognizer() {
-        // 优先使用中文识别器，如果不可用则使用系统默认
-        if let chineseRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "zh-CN")) {
-            speechRecognizer = chineseRecognizer
+        // 优先使用英文识别器，如果不可用则使用系统默认
+        if let englishRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")) {
+            speechRecognizer = englishRecognizer
         } else {
             speechRecognizer = SFSpeechRecognizer()
         }

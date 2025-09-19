@@ -30,12 +30,12 @@ struct ForgotPasswordView: View {
                             .font(.system(size: 50, weight: .light))
                             .foregroundColor(.vibrantOrange)
                         
-                        Text("重置密码")
+                        Text(NSLocalizedString("重置密码", comment: ""))
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.darkGray)
                         
-                        Text("输入您的邮箱地址，我们将发送重置密码的链接")
+                        Text(NSLocalizedString("输入您的邮箱地址，我们将发送重置密码的链接", comment: ""))
                             .font(.subheadline)
                             .foregroundColor(.lightGray)
                             .multilineTextAlignment(.center)
@@ -58,7 +58,7 @@ struct ForgotPasswordView: View {
                                         .scaleEffect(0.8)
                                         .foregroundColor(.white)
                                 }
-                                Text("发送重置链接")
+                                Text(NSLocalizedString("发送重置链接", comment: ""))
                                     .fontWeight(.semibold)
                             }
                             .foregroundColor(.white)
@@ -79,21 +79,21 @@ struct ForgotPasswordView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
+                    Button(NSLocalizedString("cancel", comment: "")) {
                         dismiss()
                     }
                     .foregroundColor(.vibrantOrange)
                 }
             }
-            .alert("发送成功", isPresented: $showSuccessAlert) {
-                Button("确定") {
+            .alert(NSLocalizedString("发送成功", comment: ""), isPresented: $showSuccessAlert) {
+                Button(NSLocalizedString("确定", comment: "")) {
                     dismiss()
                 }
             } message: {
-                Text("重置密码的链接已发送到您的邮箱，请查收")
+                Text(NSLocalizedString("重置密码的链接已发送到您的邮箱，请查收", comment: ""))
             }
-            .alert("发送失败", isPresented: $showErrorAlert) {
-                Button("确定") {
+            .alert(NSLocalizedString("发送失败", comment: ""), isPresented: $showErrorAlert) {
+                Button(NSLocalizedString("确定", comment: "")) {
                     authManager.errorMessage = nil
                 }
             } message: {

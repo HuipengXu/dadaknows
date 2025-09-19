@@ -13,6 +13,14 @@ import Supabase
 struct DadaKnowsApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
+    init() {
+        // Set default language to English if not already set
+        if UserDefaults.standard.object(forKey: "AppleLanguages") == nil {
+            UserDefaults.standard.set(["en"], forKey: "AppleLanguages")
+            UserDefaults.standard.synchronize()
+        }
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

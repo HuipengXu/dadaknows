@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     nickname TEXT,
     avatar_url TEXT,
-    preferred_language VARCHAR(5) NOT NULL DEFAULT 'zh-CN',
+    preferred_language VARCHAR(5) NOT NULL DEFAULT 'en',
     subscription_status TEXT NOT NULL DEFAULT 'free' CHECK (subscription_status IN ('free', 'pro_active', 'pro_canceled', 'pro_expired')),
     stripe_customer_id TEXT UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

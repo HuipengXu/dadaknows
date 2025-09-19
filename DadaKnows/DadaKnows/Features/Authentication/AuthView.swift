@@ -55,9 +55,9 @@ struct AuthView: View {
                     // Auth form
                     VStack(spacing: 20) {
                         // Mode selector - iOS native segmented control style
-                        Picker("认证模式", selection: $isSignIn) {
-                            Text("登录").tag(true)
-                            Text("注册").tag(false)
+                        Picker(NSLocalizedString("认证模式", comment: ""), selection: $isSignIn) {
+                            Text(NSLocalizedString("登录", comment: "")).tag(true)
+                            Text(NSLocalizedString("注册", comment: "")).tag(false)
                         }
                         .pickerStyle(.segmented)
                         .animation(.easeInOut(duration: 0.3), value: isSignIn)
@@ -133,7 +133,7 @@ struct AuthView: View {
                             .fill(Color.separator)
                             .frame(height: 1)
                         
-                        Text("或")
+                        Text(NSLocalizedString("或", comment: ""))
                             .foregroundColor(.textSecondary)
                             .padding(.horizontal, 15)
                         
@@ -171,15 +171,15 @@ struct AuthView: View {
                 }
             }
         }
-        .alert("错误", isPresented: $showAlert) {
-            Button("确定") { 
+        .alert(NSLocalizedString("错误", comment: ""), isPresented: $showAlert) {
+            Button(NSLocalizedString("确定", comment: "")) { 
                 authManager.errorMessage = nil
             }
         } message: {
             Text(authManager.errorMessage ?? "")
         }
-        .alert("成功", isPresented: $showSuccessAlert) {
-            Button("确定") { 
+        .alert(NSLocalizedString("成功", comment: ""), isPresented: $showSuccessAlert) {
+            Button(NSLocalizedString("确定", comment: "")) { 
                 authManager.successMessage = nil
             }
         } message: {
@@ -404,23 +404,23 @@ struct PasswordStrengthView: View {
             if !password.isEmpty {
                 VStack(alignment: .leading, spacing: 2) {
                     PasswordRequirement(
-                        text: "至少8位字符",
+                        text: NSLocalizedString("至少8位字符", comment: ""),
                         isMet: password.count >= 8
                     )
                     PasswordRequirement(
-                        text: "包含小写字母 (a-z)",
+                        text: NSLocalizedString("包含小写字母 (a-z)", comment: ""),
                         isMet: password.range(of: "[a-z]", options: .regularExpression) != nil
                     )
                     PasswordRequirement(
-                        text: "包含大写字母 (A-Z)",
+                        text: NSLocalizedString("包含大写字母 (A-Z)", comment: ""),
                         isMet: password.range(of: "[A-Z]", options: .regularExpression) != nil
                     )
                     PasswordRequirement(
-                        text: "包含数字 (0-9)",
+                        text: NSLocalizedString("包含数字 (0-9)", comment: ""),
                         isMet: password.range(of: "[0-9]", options: .regularExpression) != nil
                     )
                     PasswordRequirement(
-                        text: "包含特殊符号 (!@#$%等)",
+                        text: NSLocalizedString("包含特殊符号 (!@#$%等)", comment: ""),
                         isMet: password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil
                     )
                 }
@@ -445,10 +445,10 @@ struct PasswordStrengthView: View {
     private var strengthText: String {
         switch passwordStrength {
         case 0: return ""
-        case 1: return "密码强度：弱"
-        case 2: return "密码强度：一般"
-        case 3: return "密码强度：较强"
-        case 4: return "密码强度：强"
+        case 1: return NSLocalizedString("密码强度：弱", comment: "")
+        case 2: return NSLocalizedString("密码强度：一般", comment: "")
+        case 3: return NSLocalizedString("密码强度：较强", comment: "")
+        case 4: return NSLocalizedString("密码强度：强", comment: "")
         default: return ""
         }
     }

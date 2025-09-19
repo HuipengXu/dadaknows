@@ -376,7 +376,7 @@ class DataManager: ObservableObject {
         
         // Create new settings
         let newSettings = UserSettings(context: context)
-        newSettings.preferredLanguage = "zh-CN"
+        newSettings.preferredLanguage = "en"
         newSettings.subscriptionStatus = "free"
         newSettings.createdAt = Date()
         save()

@@ -26,6 +26,8 @@ struct ProfileView: View {
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
     @State private var showingLogoutAlert = false
+    @State private var showingLanguageSelector = false
+    @State private var showingLanguageChangedAlert = false
     
     var body: some View {
         NavigationStack {
@@ -54,7 +56,7 @@ struct ProfileView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("设置")
+            .navigationTitle(NSLocalizedString("设置", comment: ""))
             .navigationBarTitleDisplayMode(.large)
         }
         .sheet(isPresented: $showingPrivacyPolicy) {
@@ -69,20 +71,30 @@ struct ProfileView: View {
         .sheet(isPresented: $showingMailComposer) {
             MailComposeView()
         }
-        .confirmationDialog("选择反馈方式", isPresented: $showingFeedbackOptions, titleVisibility: .visible) {
-            Button("复制邮箱地址") {
+        .sheet(isPresented: $showingLanguageSelector) {
+            LanguageSelectorView(onLanguageChanged: { language in
+                changeLanguage(to: language)
+            })
+        }
+        .alert(NSLocalizedString("language_changed", comment: ""), isPresented: $showingLanguageChangedAlert) {
+            Button(NSLocalizedString("i_understand", comment: ""), role: .cancel) { }
+        } message: {
+            Text(NSLocalizedString("language_changed_message", comment: ""))
+        }
+        .confirmationDialog(NSLocalizedString("选择反馈方式", comment: ""), isPresented: $showingFeedbackOptions, titleVisibility: .visible) {
+            Button(NSLocalizedString("复制邮箱地址", comment: "")) {
                 UIPasteboard.general.string = Config.feedbackEmail
                 let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                 impactFeedback.impactOccurred()
             }
-            Button("前往App Store评价") {
+            Button(NSLocalizedString("前往App Store评价", comment: "")) {
                 if let url = URL(string: Config.appStoreURL) {
                     UIApplication.shared.open(url)
                 }
             }
-            Button("取消", role: .cancel) {}
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) {}
         } message: {
-            Text("您的设备未配置邮件账户，请选择其他反馈方式")
+            Text(NSLocalizedString("您的设备未配置邮件账户，请选择其他反馈方式", comment: ""))
         }
     }
     
@@ -106,11 +118,11 @@ struct ProfileView: View {
                         )
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(userService.currentUsername.isEmpty ? "用户" : userService.currentUsername)
+                        Text(userService.currentUsername.isEmpty ? NSLocalizedString("用户", comment: "") : userService.currentUsername)
                             .font(.headline)
                             .foregroundColor(.textPrimary)
                         
-                        Text(subscriptionManager.isProMember ? "Pro会员" : "免费用户")
+                        Text(subscriptionManager.isProMember ? NSLocalizedString("Pro会员", comment: "") : NSLocalizedString("免费用户", comment: ""))
                             .font(.subheadline)
                             .foregroundColor(.textSecondary)
                     }
@@ -133,10 +145,10 @@ struct ProfileView: View {
                         .frame(width: 24)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("登录邮箱")
+                        Text(NSLocalizedString("登录邮箱", comment: ""))
                             .foregroundColor(.textPrimary)
                         
-                        Text(authManager.currentUser?.email ?? "未知")
+                        Text(authManager.currentUser?.email ?? NSLocalizedString("未知", comment: ""))
                             .font(.caption)
                             .foregroundColor(.textSecondary)
                     }
@@ -164,12 +176,12 @@ struct ProfileView: View {
                             .frame(width: 24)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("升级到Pro")
+                            Text(NSLocalizedString("升级到Pro", comment: ""))
                                 .font(.body)
                                 .fontWeight(.medium)
                                 .foregroundColor(.textPrimary)
                             
-                            Text("无限次提问，更多功能")
+                            Text(NSLocalizedString("无限次提问，更多功能", comment: ""))
                                 .font(.caption)
                                 .foregroundColor(.textSecondary)
                                 }
@@ -189,19 +201,19 @@ struct ProfileView: View {
                         .frame(width: 24)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                                Text("Pro会员")
+                                Text(NSLocalizedString("Pro会员", comment: ""))
                             .font(.body)
                             .fontWeight(.medium)
                             .foregroundColor(.textPrimary)
                                 
-                                Text("享受完整功能体验")
+                                Text(NSLocalizedString("享受完整功能体验", comment: ""))
                             .font(.caption)
                             .foregroundColor(.textSecondary)
                             }
                             
                             Spacer()
                             
-                    Text("已激活")
+                    Text(NSLocalizedString("已激活", comment: ""))
                         .font(.caption)
                         .foregroundColor(.statusSuccess)
                 }
@@ -211,7 +223,7 @@ struct ProfileView: View {
     
     // MARK: - App Settings Section
     private var appSettingsSection: some View {
-        Section("应用设置") {
+        Section(NSLocalizedString("应用设置", comment: "")) {
             // On-device model toggle
             HStack {
                 Image(systemName: "cpu")
@@ -219,11 +231,11 @@ struct ProfileView: View {
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("端侧模型")
+                    Text(NSLocalizedString("端侧模型", comment: ""))
                         .font(.body)
                         .foregroundColor(.textPrimary)
                     
-                    Text(aiManager.isUsingOnDeviceModel ? "已启用 - 无使用限制" : "使用云端模型")
+                    Text(aiManager.isUsingOnDeviceModel ? NSLocalizedString("已启用 - 无使用限制", comment: "") : NSLocalizedString("使用云端模型", comment: ""))
                         .font(.caption)
                         .foregroundColor(.textSecondary)
                 }
@@ -245,7 +257,7 @@ struct ProfileView: View {
                         .foregroundColor(.appAccent)
                         .frame(width: 24)
                     
-                    Text("通知设置")
+                    Text(NSLocalizedString("通知设置", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -258,33 +270,40 @@ struct ProfileView: View {
             .buttonStyle(.plain)
             
             // Language
-            HStack {
-                Image(systemName: "globe")
-                    .foregroundColor(.appSecondary)
-                    .frame(width: 24)
-                
-                Text("语言设置")
-                    .foregroundColor(.textPrimary)
-                
-                Spacer()
-                
-                Text("中文（简体）")
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
+            Button(action: { showingLanguageSelector = true }) {
+                HStack {
+                    Image(systemName: "globe")
+                        .foregroundColor(.appSecondary)
+                        .frame(width: 24)
+                    
+                    Text(NSLocalizedString("语言设置", comment: ""))
+                        .foregroundColor(.textPrimary)
+                    
+                    Spacer()
+                    
+                    Text(currentLanguageDisplayName())
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
+                }
             }
+            .buttonStyle(.plain)
         }
     }
     
     // MARK: - Privacy & Legal Section
     private var privacyLegalSection: some View {
-        Section("隐私与法律") {
+        Section(NSLocalizedString("隐私与法律", comment: "")) {
             Button(action: { showingPrivacyPolicy = true }) {
                 HStack {
                     Image(systemName: "doc.text")
                         .foregroundColor(.appSecondary)
                         .frame(width: 24)
                     
-                    Text("隐私政策")
+                    Text(NSLocalizedString("隐私政策", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -302,7 +321,7 @@ struct ProfileView: View {
                         .foregroundColor(.appSecondary)
                         .frame(width: 24)
                     
-                    Text("服务条款")
+                    Text(NSLocalizedString("服务条款", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -318,14 +337,14 @@ struct ProfileView: View {
     
     // MARK: - About Section
     private var aboutSection: some View {
-        Section("关于") {
+        Section(NSLocalizedString("关于", comment: "")) {
             // Version info
             HStack {
                 Image(systemName: "info.circle")
                     .foregroundColor(.appPrimary)
                     .frame(width: 24)
                 
-                Text("版本信息")
+                Text(NSLocalizedString("版本信息", comment: ""))
                     .foregroundColor(.textPrimary)
                 
                 Spacer()
@@ -339,14 +358,14 @@ struct ProfileView: View {
     
     // MARK: - Support Section
     private var supportSection: some View {
-        Section("支持") {
+        Section(NSLocalizedString("支持", comment: "")) {
             Button(action: { requestAppStoreReview() }) {
                 HStack {
                     Image(systemName: "star")
                         .foregroundColor(.appAccent)
                         .frame(width: 24)
                     
-                    Text("给我们评分")
+                    Text(NSLocalizedString("给我们评分", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -364,7 +383,7 @@ struct ProfileView: View {
                         .foregroundColor(.appPrimary)
                         .frame(width: 24)
                     
-                    Text("意见反馈")
+                    Text(NSLocalizedString("意见反馈", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -387,7 +406,7 @@ struct ProfileView: View {
                         .foregroundColor(.statusError)
                         .frame(width: 24)
                     
-                    Text("退出登录")
+                    Text(NSLocalizedString("退出登录", comment: ""))
                         .foregroundColor(.statusError)
                     
                     Spacer()
@@ -395,9 +414,9 @@ struct ProfileView: View {
             }
             .buttonStyle(.plain)
         }
-        .alert("退出登录", isPresented: $showingLogoutAlert) {
-            Button("取消", role: .cancel) { }
-            Button("退出", role: .destructive) {
+        .alert(NSLocalizedString("退出登录", comment: ""), isPresented: $showingLogoutAlert) {
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
+            Button(NSLocalizedString("退出", comment: ""), role: .destructive) {
                 Task {
                     do {
                         try await authManager.signOut()
@@ -407,7 +426,7 @@ struct ProfileView: View {
                 }
             }
         } message: {
-            Text("确定要退出登录吗？")
+            Text(NSLocalizedString("确定要退出登录吗？", comment: ""))
         }
     }
     
@@ -420,7 +439,7 @@ struct ProfileView: View {
                     .font(.system(size: 20, weight: .medium))
                     .foregroundColor(.appPrimary)
                 
-                Text("数据同步")
+                Text(NSLocalizedString("数据同步", comment: ""))
                     .font(.headline)
                     .foregroundColor(.textPrimary)
                 
@@ -432,22 +451,22 @@ struct ProfileView: View {
             
             // 简化的同步状态显示
             VStack(alignment: .leading, spacing: 8) {
-                Text("用户配置")
+                Text(NSLocalizedString("用户配置", comment: ""))
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.textPrimary)
                 
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("昵称: 用户")
+                        Text(NSLocalizedString("昵称: 用户", comment: ""))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text("语言: 中文")
+                        Text(NSLocalizedString("语言: 中文", comment: ""))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text("订阅: 免费版")
+                        Text(NSLocalizedString("订阅: 免费版", comment: ""))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -483,6 +502,33 @@ struct ProfileView: View {
         } else {
             showingFeedbackOptions = true
         }
+    }
+    
+    // MARK: - Language Methods
+    private func currentLanguageDisplayName() -> String {
+        let currentLanguages = UserDefaults.standard.stringArray(forKey: "AppleLanguages") ?? ["en"]
+        let currentLanguage = currentLanguages.first ?? "en"
+        switch currentLanguage {
+        case "zh-Hans":
+            return NSLocalizedString("中文（简体）", comment: "")
+        default:
+            return NSLocalizedString("english", comment: "")
+        }
+    }
+    
+    private func changeLanguage(to language: String) {
+        UserDefaults.standard.set([language], forKey: "AppleLanguages")
+        UserDefaults.standard.synchronize()
+        
+        // Update DataManager
+        Task {
+            await DataManager.shared.saveUserSettingsWithSync(
+                language: language,
+                subscriptionStatus: subscriptionManager.isProMember ? "pro" : "free"
+            )
+        }
+        
+        showingLanguageChangedAlert = true
     }
 }
 
@@ -718,7 +764,7 @@ struct EditProfileView: View {
                                 .foregroundColor(.appPrimary)
                         )
                     
-                    Text("编辑个人信息")
+                    Text(NSLocalizedString("编辑个人信息", comment: ""))
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(.textPrimary)
@@ -727,11 +773,11 @@ struct EditProfileView: View {
                 
                 // Username input
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("用户名")
+                    Text(NSLocalizedString("用户名", comment: ""))
                         .font(.subheadline)
                         .foregroundColor(.textPrimary)
                     
-                    TextField("请输入用户名", text: $username)
+                    TextField(NSLocalizedString("请输入用户名", comment: ""), text: $username)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
                         .background(
@@ -745,18 +791,18 @@ struct EditProfileView: View {
                 Spacer()
             }
             .background(Color.backgroundPrimary)
-            .navigationTitle("编辑资料")
+            .navigationTitle(NSLocalizedString("编辑资料", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
+                    Button(NSLocalizedString("cancel", comment: "")) {
                         dismiss()
                     }
                     .foregroundColor(.textSecondary)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("保存") {
+                    Button(NSLocalizedString("保存", comment: "")) {
                         onSave(username)
                         dismiss()
                     }

@@ -12,7 +12,7 @@ class AppState: ObservableObject {
     @Published var isAuthenticated = false
     @Published var isLoading = true
     @Published var hasCompletedOnboarding = false
-    @Published var currentLanguage = "zh-CN"
+    @Published var currentLanguage = "en"
     @Published var subscriptionStatus = "free"
     
     static let shared = AppState()

@@ -40,14 +40,14 @@ struct SplashView: View {
                     .opacity(logoOpacity)
                     
                     // App name - iOS native typography
-                    Text("问问答答")
+                    Text(NSLocalizedString("app_name", comment: ""))
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.textPrimary)
                         .opacity(logoOpacity)
                     
                     // Slogan - iOS native secondary text
-                    Text("陪娃有你，解答有我")
+                    Text(NSLocalizedString("welcome_subtitle", comment: ""))
                         .font(.title3)
                         .fontWeight(.medium)
                         .foregroundColor(.textSecondary)
@@ -65,7 +65,7 @@ struct SplashView: View {
                             .transition(.opacity.combined(with: .scale))
                     }
                     
-                    Text("正在准备...")
+                    Text(NSLocalizedString("正在准备...", comment: ""))
                         .font(.subheadline)
                         .foregroundColor(.textSecondary)
                         .opacity(showProgressView ? 1.0 : 0.0)

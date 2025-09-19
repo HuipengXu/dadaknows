@@ -33,9 +33,9 @@ struct QAHistoryView: View {
                 historyListSection
             }
             .background(Color.backgroundSecondary)
-            .navigationTitle("对话历史")
+            .navigationTitle(NSLocalizedString("对话历史", comment: ""))
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, prompt: "搜索问题或答案")
+            .searchable(text: $searchText, prompt: NSLocalizedString("搜索问题或答案", comment: ""))
             .sheet(item: $selectedSession) { session in
                 let firstAge = Int(session.chats.first?.targetAge ?? 5)
                 ChatView(
@@ -169,11 +169,11 @@ struct QAHistoryView: View {
     private func formatSectionDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         if Calendar.current.isDateInToday(date) {
-            return "今天"
+            return NSLocalizedString("今天", comment: "")
         } else if Calendar.current.isDateInYesterday(date) {
-            return "昨天"
+            return NSLocalizedString("昨天", comment: "")
         } else {
-            formatter.dateFormat = "M月d日"
+            formatter.dateFormat = NSLocalizedString("M月d日", comment: "")
             return formatter.string(from: date)
         }
     }
@@ -212,7 +212,7 @@ struct QASessionRow: View {
         VStack(alignment: .leading, spacing: 8) {
             // 主要问题（第一个问题）
             if let firstChat = session.chats.first {
-                Text(firstChat.question ?? "无问题内容")
+                Text(firstChat.question ?? NSLocalizedString("无问题内容", comment: ""))
                     .font(.body)
                     .fontWeight(.medium)
                     .foregroundColor(.textPrimary)
@@ -225,7 +225,7 @@ struct QASessionRow: View {
                     .font(.caption)
                     .foregroundColor(.textSecondary)
                 
-                Text("\(session.chats.count)个问答")
+                Text(String(format: NSLocalizedString("%lld个问答", comment: ""), session.chats.count))
                     .font(.caption)
                     .foregroundColor(.textSecondary)
                 
@@ -255,7 +255,7 @@ struct QAHistoryCard: View {
                         .font(.system(size: 16))
                         .foregroundColor(.appPrimary)
                     
-                    Text("问题")
+                    Text(NSLocalizedString("问题", comment: ""))
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.appPrimary)
@@ -281,7 +281,7 @@ struct QAHistoryCard: View {
                             .font(.system(size: 16))
                             .foregroundColor(.blue)
                         
-                        Text("答案")
+                        Text(NSLocalizedString("答案", comment: ""))
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(.blue)
@@ -307,7 +307,7 @@ struct QAHistoryCard: View {
                 Button(action: { isExpanded.toggle() }) {
                     HStack(spacing: 4) {
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        Text(isExpanded ? "收起" : "展开")
+                        Text(isExpanded ? NSLocalizedString("收起", comment: "") : NSLocalizedString("展开", comment: ""))
                     }
                     .font(.caption)
                     .foregroundColor(.textSecondary)
@@ -335,10 +335,10 @@ struct EmptyHistoryView: View {
     
     var body: some View {
         ContentUnavailableView {
-            Label(searchText.isEmpty ? "还没有对话记录" : "没有找到相关记录", 
+            Label(searchText.isEmpty ? NSLocalizedString("还没有对话记录", comment: "") : NSLocalizedString("没有找到相关记录", comment: ""), 
                   systemImage: searchText.isEmpty ? "clock" : "magnifyingglass")
         } description: {
-            Text(searchText.isEmpty ? "开始提问来创建你的第一条记录吧！" : "试试其他关键词或调整筛选条件")
+            Text(searchText.isEmpty ? NSLocalizedString("开始提问来创建你的第一条记录吧！", comment: "") : NSLocalizedString("试试其他关键词或调整筛选条件", comment: ""))
         }
         .padding(.vertical, 60)
     }
@@ -367,14 +367,14 @@ struct QASessionCard: View, Identifiable {
             HStack {
                 Image(systemName: "bubble.left.and.bubble.right.fill")
                     .foregroundColor(.appPrimary)
-                Text("本次会话 · \(sessionTimeRange)")
+                Text(String(format: NSLocalizedString("本次会话 · %@", comment: ""), sessionTimeRange))
                     .font(.subheadline)
                     .foregroundColor(.textPrimary)
                 Spacer()
                 Button(action: { isExpanded.toggle() }) {
                     HStack(spacing: 4) {
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        Text(isExpanded ? "收起" : "展开")
+                        Text(isExpanded ? NSLocalizedString("收起", comment: "") : NSLocalizedString("展开", comment: ""))
                     }
                     .font(.caption)
                     .foregroundColor(.textSecondary)
@@ -414,11 +414,11 @@ enum HistoryFilter: CaseIterable {
     
     var title: String {
         switch self {
-        case .all: return "全部"
-        case .today: return "今天"
-        case .thisWeek: return "本周"
-        case .thisMonth: return "本月"
-        case .favorites: return "收藏"
+        case .all: return NSLocalizedString("全部", comment: "")
+        case .today: return NSLocalizedString("今天", comment: "")
+        case .thisWeek: return NSLocalizedString("本周", comment: "")
+        case .thisMonth: return NSLocalizedString("本月", comment: "")
+        case .favorites: return NSLocalizedString("收藏", comment: "")
         }
     }
 }
