@@ -15,6 +15,10 @@ struct ProSubscriptionView: View {
     @State private var selectedProduct: Product?
     @State private var isShowingPurchaseFlow = false
     
+    private var isEnglish: Bool {
+        Locale.current.language.languageCode?.identifier == "en"
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -100,8 +104,8 @@ struct ProSubscriptionView: View {
             .sheet(isPresented: $isShowingPurchaseFlow) {
                 purchaseConfirmationSheet
             }
-            .alert("错误", isPresented: .constant(subscriptionManager.errorMessage != nil)) {
-                Button("确定") {
+            .alert(NSLocalizedString("错误", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil)) {
+                Button(NSLocalizedString("确定", comment: "")) {
                     subscriptionManager.errorMessage = nil
                 }
             } message: {
@@ -290,22 +294,22 @@ struct ProSubscriptionView: View {
                 ModernBenefitRow(
                     icon: "sparkles",
                     iconColor: .yellow,
-                    title: "Unlock Your Child's Potential",
-                    description: "Let children freely explore the ocean of knowledge and develop lifelong learning habits"
+                    title: isEnglish ? "Unlock Your Child's Potential" : "释放孩子的潜能",
+                    description: isEnglish ? "Let children freely explore the ocean of knowledge and develop lifelong learning habits" : "让孩子自由探索知识的海洋，培养终身学习的习惯"
                 )
                 
                 ModernBenefitRow(
                     icon: "globe.asia.australia.fill",
                     iconColor: .blue,
-                    title: "Global Quality Content",
-                    description: "Access the most advanced AI models for accurate and interesting answers"
+                    title: isEnglish ? "Global Quality Content" : "全球优质内容",
+                    description: isEnglish ? "Access the most advanced AI models for accurate and interesting answers" : "访问最先进的AI模型，获得准确有趣的回答"
                 )
                 
                 ModernBenefitRow(
                     icon: "shield.checkered",
                     iconColor: .green,
-                    title: "Safe and Reliable",
-                    description: "Strict content filtering provides a safe learning environment for children"
+                    title: isEnglish ? "Safe and Reliable" : "安全可靠",
+                    description: isEnglish ? "Strict content filtering provides a safe learning environment for children" : "严格的内容过滤为孩子提供安全的学习环境"
                 )
             }
         }
@@ -329,13 +333,13 @@ struct ProSubscriptionView: View {
             .multilineTextAlignment(.leading)
             
             HStack(spacing: 20) {
-                Button("Terms of Service") {
+                Button(NSLocalizedString("Terms of Service", comment: "")) {
                     // 打开服务条款
                 }
                 .font(.caption)
                 .foregroundColor(.appPrimary)
                 
-                Button("Privacy Policy") {
+                Button(NSLocalizedString("Privacy Policy", comment: "")) {
                     // 打开隐私政策
                 }
                 .font(.caption)

@@ -10,18 +10,22 @@ import SwiftUI
 struct TermsOfServiceView: View {
     @Environment(\.dismiss) var dismiss
     
+    private var isEnglish: Bool {
+        Locale.current.language.languageCode?.identifier == "en"
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("服务条款")
+                        Text(NSLocalizedString("Terms of Service", comment: ""))
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.textPrimary)
                         
-                        Text("最后更新：2024年1月")
+                        Text(NSLocalizedString("最后更新：2024年1月", comment: ""))
                             .font(.caption)
                             .foregroundColor(.textSecondary)
                     }
@@ -30,8 +34,12 @@ struct TermsOfServiceView: View {
                     
                     // Content sections
                     termsSection(
-                        title: "服务说明",
-                        content: """
+                        title: isEnglish ? "Service Description" : "服务说明",
+                        content: isEnglish ? """
+                        DadaKnows is an AI educational app designed specifically for children, aimed at providing safe, accurate, and age-appropriate knowledge Q&A services for children aged 2-12.
+                        
+                        By using this app, you agree to comply with all provisions of these Terms of Service.
+                        """ : """
                         DadaKnows（"答答"）是一款专为儿童设计的AI教育应用，旨在为2-12岁的儿童提供安全、准确、年龄适宜的知识问答服务。
                         
                         通过使用本应用，您同意遵守本服务条款的所有规定。
@@ -39,8 +47,18 @@ struct TermsOfServiceView: View {
                     )
                     
                     termsSection(
-                        title: "使用规则",
-                        content: """
+                        title: isEnglish ? "Usage Rules" : "使用规则",
+                        content: isEnglish ? """
+                        When using this app, you agree to:
+                        
+                        • Use the app only for educational purposes
+                        • Not submit inappropriate, harmful, or illegal content
+                        • Not attempt to bypass security measures or content filtering
+                        • Not abuse or overuse the service
+                        • Comply with local laws and regulations
+                        
+                        We reserve the right to suspend or terminate service upon discovering violations.
+                        """ : """
                         使用本应用时，您同意：
                         
                         • 仅将应用用于教育目的
@@ -54,8 +72,17 @@ struct TermsOfServiceView: View {
                     )
                     
                     termsSection(
-                        title: "内容准确性",
-                        content: """
+                        title: isEnglish ? "Content Accuracy" : "内容准确性",
+                        content: isEnglish ? """
+                        We strive to provide accurate and useful information, but please note:
+                        
+                        • AI-generated answers are for reference only
+                        • Should not replace professional medical, legal, or other professional advice
+                        • Parents should supervise and guide children's use
+                        • We do not assume responsibility for complete content accuracy
+                        
+                        If you find inappropriate content, please report it promptly through the feedback feature.
+                        """ : """
                         我们努力提供准确、有用的信息，但请注意：
                         
                         • AI生成的回答仅供参考
@@ -68,8 +95,21 @@ struct TermsOfServiceView: View {
                     )
                     
                     termsSection(
-                        title: "Pro订阅服务",
-                        content: """
+                        title: isEnglish ? "Pro Subscription Service" : "Pro订阅服务",
+                        content: isEnglish ? """
+                        Pro subscription includes the following features:
+                        
+                        • Unlimited questions
+                        • Priority customer support
+                        • Advanced feature access
+                        • Ad-free experience
+                        
+                        Subscription fees:
+                        • Monthly subscription: $1.99/month
+                        • Annual subscription: $19.99/year
+                        
+                        Subscriptions will auto-renew, you can cancel anytime in App Store settings.
+                        """ : """
                         Pro订阅包含以下特性：
                         
                         • 无限制提问次数
@@ -86,8 +126,17 @@ struct TermsOfServiceView: View {
                     )
                     
                     termsSection(
-                        title: "退款政策",
-                        content: """
+                        title: isEnglish ? "Refund Policy" : "退款政策",
+                        content: isEnglish ? """
+                        Refund policy follows App Store standards:
+                        
+                        • Refunds can be requested within 24 hours of subscription start
+                        • Service interruptions due to technical issues may qualify for refunds
+                        • Refund requests must be processed through App Store
+                        • We reserve the right to review refund requests
+                        
+                        For refunds, please contact Apple customer service or apply through App Store.
+                        """ : """
                         退款政策遵循App Store标准：
                         
                         • 订阅开始后24小时内可申请退款
@@ -100,8 +149,17 @@ struct TermsOfServiceView: View {
                     )
                     
                     termsSection(
-                        title: "知识产权",
-                        content: """
+                        title: isEnglish ? "Intellectual Property" : "知识产权",
+                        content: isEnglish ? """
+                        This app and its content are protected by intellectual property law:
+                        
+                        • App design and code belong to us
+                        • User-generated questions belong to users
+                        • AI-generated answers are available for user use
+                        • Unauthorized copying or distribution of app content is prohibited
+                        
+                        We respect others' intellectual property and expect users to do the same.
+                        """ : """
                         本应用及其内容受知识产权法保护：
                         
                         • 应用设计、代码归我们所有
@@ -114,8 +172,17 @@ struct TermsOfServiceView: View {
                     )
                     
                     termsSection(
-                        title: "免责声明",
-                        content: """
+                        title: isEnglish ? "Disclaimer" : "免责声明",
+                        content: isEnglish ? """
+                        To the maximum extent permitted by law:
+                        
+                        • Service is provided "as is" without any express or implied warranties
+                        • We are not responsible for service interruptions, data loss, or other damages
+                        • Users assume the risk of using the service
+                        • Our liability is limited to the subscription fees you have paid
+                        
+                        Some jurisdictions do not allow the exclusion of certain warranties, so the above limitations may not apply to you.
+                        """ : """
                         在法律允许的最大范围内：
                         
                         • 服务按"现状"提供，不提供任何明示或暗示的保证
@@ -128,8 +195,15 @@ struct TermsOfServiceView: View {
                     )
                     
                     termsSection(
-                        title: "条款变更",
-                        content: """
+                        title: isEnglish ? "Terms Changes" : "条款变更",
+                        content: isEnglish ? """
+                        We may update these terms from time to time:
+                        
+                        • Major changes will be notified through in-app notifications
+                        • Continued use of the service indicates acceptance of new terms
+                        • If you disagree with new terms, please stop using the service
+                        • Historical versions can be obtained by contacting us
+                        """ : """
                         我们可能会不时更新这些条款：
                         
                         • 重大变更会通过应用内通知告知
@@ -140,8 +214,14 @@ struct TermsOfServiceView: View {
                     )
                     
                     termsSection(
-                        title: "联系我们",
-                        content: """
+                        title: isEnglish ? "Contact Us" : "联系我们",
+                        content: isEnglish ? """
+                        If you have any questions about these Terms of Service, please contact us:
+                        
+                        Email: support@dadaknows.com
+                        
+                        We will respond to your inquiry within 48 hours.
+                        """ : """
                         如果您对服务条款有任何疑问，请联系我们：
                         
                         邮箱：support@dadaknows.com
@@ -155,7 +235,7 @@ struct TermsOfServiceView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button(NSLocalizedString("完成", comment: "")) {
                         dismiss()
                     }
                     .foregroundColor(.appPrimary)

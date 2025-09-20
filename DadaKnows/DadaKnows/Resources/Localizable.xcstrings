@@ -113,13 +113,55 @@
       }
     },
     "• Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• 订阅将自动续费，除非在当前周期结束前至少24小时关闭自动续费"
+          }
+        }
+      }
     },
     "• Subscription takes effect immediately after activation" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Subscription takes effect immediately after activation"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• 订阅激活后立即生效"
+          }
+        }
+      }
     },
     "• You can cancel your subscription anytime in App Store account settings" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• You can cancel your subscription anytime in App Store account settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• 您可以随时在App Store账户设置中取消订阅"
+          }
+        }
+      }
     },
     "2-3岁" : {
       "extractionState" : "manual",
@@ -127,7 +169,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "2-3 years"
+            "value" : "2-3"
           }
         },
         "zh-Hans" : {
@@ -144,7 +186,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "4-5 years"
+            "value" : "4-5"
           }
         },
         "zh-Hans" : {
@@ -161,7 +203,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "6-7 years"
+            "value" : "6-7"
           }
         },
         "zh-Hans" : {
@@ -178,7 +220,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "8-9 years"
+            "value" : "8-9"
           }
         },
         "zh-Hans" : {
@@ -195,7 +237,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "10-12 years"
+            "value" : "10-12"
           }
         },
         "zh-Hans" : {
@@ -343,7 +385,21 @@
       }
     },
     "Dada is thinking" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dada is thinking"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "答答正在思考"
+          }
+        }
+      }
     },
     "dadaknows_pro" : {
       "extractionState" : "manual",
@@ -516,7 +572,21 @@
       }
     },
     "Loading subscription plans..." : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading subscription plans..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载订阅计划中..."
+          }
+        }
+      }
     },
     "M月d日" : {
       "extractionState" : "manual",
@@ -570,7 +640,21 @@
       }
     },
     "Privacy Policy" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私政策"
+          }
+        }
+      }
     },
     "PRO" : {
       "extractionState" : "manual",
@@ -794,7 +878,21 @@
       }
     },
     "Subscription Terms" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription Terms"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "订阅条款"
+          }
+        }
+      }
     },
     "subscription_annual_description" : {
       "extractionState" : "manual",
@@ -916,7 +1014,21 @@
       }
     },
     "Terms of Service" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of Service"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务条款"
+          }
+        }
+      }
     },
     "try_another_way" : {
       "extractionState" : "manual",
@@ -1115,7 +1227,21 @@
 
     },
     "免费用户" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free User"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免费用户"
+          }
+        }
+      }
     },
     "全部" : {
       "extractionState" : "manual",
@@ -1169,7 +1295,21 @@
       }
     },
     "最后更新：2024年1月" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last updated: January 2024"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最后更新：2024年1月"
+          }
+        }
+      }
     },
     "前往App Store评价" : {
       "extractionState" : "manual",
@@ -1278,7 +1418,21 @@
 
     },
     "取消" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
     },
     "同步中..." : {
 
@@ -1304,7 +1458,21 @@
       }
     },
     "完成" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
+          }
+        }
+      }
     },
     "宝贝多大啦" : {
       "extractionState" : "manual",
@@ -1336,7 +1504,21 @@
 
     },
     "对话" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对话"
+          }
+        }
+      }
     },
     "对话历史" : {
       "extractionState" : "manual",
@@ -1802,7 +1984,21 @@
       }
     },
     "用户" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户"
+          }
+        }
+      }
     },
     "用户名" : {
 
@@ -1828,13 +2024,55 @@
       }
     },
     "登录邮箱" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Login Email"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录邮箱"
+          }
+        }
+      }
     },
     "知道了" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "知道了"
+          }
+        }
+      }
     },
     "确定" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确定"
+          }
+        }
+      }
     },
     "确定要退出登录吗？" : {
       "extractionState" : "manual",
@@ -1900,7 +2138,21 @@
       }
     },
     "继续对话" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue Chat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续对话"
+          }
+        }
+      }
     },
     "缓存大小" : {
 
@@ -2021,7 +2273,21 @@
       }
     },
     "输入你的问题..." : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your question..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入你的问题..."
+          }
+        }
+      }
     },
     "输入您的邮箱地址，我们将发送重置密码的链接" : {
 
@@ -2155,7 +2421,21 @@
 
     },
     "错误" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误"
+          }
+        }
+      }
     },
     "问题" : {
 

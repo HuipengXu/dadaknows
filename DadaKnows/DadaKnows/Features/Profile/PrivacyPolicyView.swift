@@ -10,18 +10,22 @@ import SwiftUI
 struct PrivacyPolicyView: View {
     @Environment(\.dismiss) var dismiss
     
+    private var isEnglish: Bool {
+        Locale.current.language.languageCode?.identifier == "en"
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("隐私政策")
+                        Text(NSLocalizedString("Privacy Policy", comment: ""))
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.textPrimary)
                         
-                        Text("最后更新：2024年1月")
+                        Text(NSLocalizedString("最后更新：2024年1月", comment: ""))
                             .font(.caption)
                             .foregroundColor(.textSecondary)
                     }
@@ -30,8 +34,20 @@ struct PrivacyPolicyView: View {
                     
                     // Content sections
                     privacySection(
-                        title: "信息收集",
-                        content: """
+                        title: isEnglish ? "Information Collection" : "信息收集",
+                        content: isEnglish ? """
+                        We only collect necessary information to provide our services:
+                        
+                        • Questions you ask (to generate answers)
+                        • Usage statistics (to improve app experience)
+                        • Account information (for Pro feature management)
+                        
+                        We do not collect:
+                        • Personal information from children under 13
+                        • Location data
+                        • Contact information
+                        • Health information
+                        """ : """
                         我们仅收集必要的信息以提供服务：
                         
                         • 您提出的问题（用于生成回答）
@@ -47,8 +63,17 @@ struct PrivacyPolicyView: View {
                     )
                     
                     privacySection(
-                        title: "数据使用",
-                        content: """
+                        title: isEnglish ? "Data Usage" : "数据使用",
+                        content: isEnglish ? """
+                        Your data is only used for:
+                        
+                        • Providing personalized educational answers for your child
+                        • Improving AI answer quality and accuracy
+                        • Providing technical support and customer service
+                        • Complying with legal requirements
+                        
+                        We promise not to use your data for advertising or marketing purposes.
+                        """ : """
                         您的数据仅用于：
                         
                         • 为您的孩子提供个性化的教育回答
@@ -61,8 +86,17 @@ struct PrivacyPolicyView: View {
                     )
                     
                     privacySection(
-                        title: "数据保护",
-                        content: """
+                        title: isEnglish ? "Data Protection" : "数据保护",
+                        content: isEnglish ? """
+                        We employ industry-standard security measures:
+                        
+                        • All data transmission uses TLS 1.3 encryption
+                        • Database uses static encryption storage
+                        • Regular security audits
+                        • Strict access control and permission management
+                        
+                        Your data is stored on secure servers compliant with GDPR and COPPA standards.
+                        """ : """
                         我们采用行业标准的安全措施：
                         
                         • 所有数据传输使用TLS 1.3加密
@@ -75,8 +109,17 @@ struct PrivacyPolicyView: View {
                     )
                     
                     privacySection(
-                        title: "儿童隐私",
-                        content: """
+                        title: isEnglish ? "Children's Privacy" : "儿童隐私",
+                        content: isEnglish ? """
+                        We place special emphasis on children's privacy protection:
+                        
+                        • No collection of personal information from children under 13
+                        • All content is safety filtered
+                        • Parents can view and delete data at any time
+                        • Compliance with COPPA Children's Online Privacy Protection Act
+                        
+                        If you discover we have inadvertently collected children's information, please contact us immediately.
+                        """ : """
                         我们特别重视儿童隐私保护：
                         
                         • 不收集13岁以下儿童的个人信息
@@ -89,8 +132,18 @@ struct PrivacyPolicyView: View {
                     )
                     
                     privacySection(
-                        title: "您的权利",
-                        content: """
+                        title: isEnglish ? "Your Rights" : "您的权利",
+                        content: isEnglish ? """
+                        You have the right to:
+                        
+                        • View the data we collect about you
+                        • Request correction of inaccurate information
+                        • Request deletion of your account and data
+                        • Export your data
+                        • Withdraw consent (where applicable)
+                        
+                        To exercise these rights, please contact us through the in-app feedback feature.
+                        """ : """
                         您有权：
                         
                         • 查看我们收集的您的数据
@@ -104,8 +157,14 @@ struct PrivacyPolicyView: View {
                     )
                     
                     privacySection(
-                        title: "联系我们",
-                        content: """
+                        title: isEnglish ? "Contact Us" : "联系我们",
+                        content: isEnglish ? """
+                        If you have any questions about this privacy policy, please contact us:
+                        
+                        Email: privacy@dadaknows.com
+                        
+                        We will respond to your inquiry within 48 hours.
+                        """ : """
                         如果您对本隐私政策有任何疑问，请联系我们：
                         
                         邮箱：privacy@dadaknows.com
@@ -119,7 +178,7 @@ struct PrivacyPolicyView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button(NSLocalizedString("完成", comment: "")) {
                         dismiss()
                     }
                     .foregroundColor(.appPrimary)
