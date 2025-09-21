@@ -62,10 +62,6 @@ class AnalyticsManager: ObservableObject {
         updateStats(for: event)
     }
     
-    func trackVoiceInputUsed() {
-        learningStats.voiceInputCount += 1
-        saveStats()
-    }
     
     func trackOfflineModeUsed() {
         learningStats.offlineModeUsageCount += 1
@@ -211,10 +207,6 @@ class AnalyticsManager: ObservableObject {
             newAchievements.append(.thousandQuestions)
         }
         
-        // 语音使用
-        if learningStats.voiceInputCount >= 10 && !hasAchievement(.voiceExplorer) {
-            newAchievements.append(.voiceExplorer)
-        }
         
         // 学习时间
         if learningStats.totalLearningTime >= 3600 && !hasAchievement(.oneHourLearning) { // 1小时
@@ -407,7 +399,6 @@ struct LearningStats: Codable {
     var averageResponseTime: TimeInterval = 0
     var currentStreak: Int = 0
     var longestStreak: Int = 0
-    var voiceInputCount: Int = 0
     var offlineModeUsageCount: Int = 0
     var lastLearningDate: Date?
     var lastSessionDate: Date?
@@ -478,7 +469,6 @@ enum Achievement: String, Codable, CaseIterable {
     case monthStreak = "month_streak"
     case hundredQuestions = "hundred_questions"
     case thousandQuestions = "thousand_questions"
-    case voiceExplorer = "voice_explorer"
     case oneHourLearning = "one_hour_learning"
     
     var title: String {
@@ -493,8 +483,6 @@ enum Achievement: String, Codable, CaseIterable {
             return "好奇宝宝"
         case .thousandQuestions:
             return "知识探索者"
-        case .voiceExplorer:
-            return "语音达人"
         case .oneHourLearning:
             return "时间管理者"
         }
@@ -512,8 +500,6 @@ enum Achievement: String, Codable, CaseIterable {
             return "累计提问100个问题"
         case .thousandQuestions:
             return "累计提问1000个问题"
-        case .voiceExplorer:
-            return "使用语音输入10次"
         case .oneHourLearning:
             return "累计学习时间达到1小时"
         }
@@ -531,8 +517,6 @@ enum Achievement: String, Codable, CaseIterable {
             return "questionmark.circle.fill"
         case .thousandQuestions:
             return "brain.head.profile"
-        case .voiceExplorer:
-            return "mic.fill"
         case .oneHourLearning:
             return "clock.fill"
         }

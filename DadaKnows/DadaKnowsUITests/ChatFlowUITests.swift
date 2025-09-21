@@ -45,34 +45,6 @@ final class ChatFlowUITests: XCTestCase {
         XCTAssertTrue(responseText.waitForExistence(timeout: 10))
     }
     
-    func testVoiceInput() throws {
-        // Navigate to chat view
-        let chatView = app.otherElements["ChatView"]
-        XCTAssertTrue(chatView.waitForExistence(timeout: 5))
-        
-        // Find voice input button
-        let voiceButton = app.buttons["voiceInputButton"]
-        XCTAssertTrue(voiceButton.exists)
-        
-        // Tap voice button
-        voiceButton.tap()
-        
-        // Check if permission alert appears and handle it
-        let allowButton = app.alerts.buttons["Allow"]
-        if allowButton.exists {
-            allowButton.tap()
-        }
-        
-        // Voice recording overlay should appear
-        let recordingOverlay = app.otherElements["VoiceRecordingOverlay"]
-        XCTAssertTrue(recordingOverlay.waitForExistence(timeout: 3))
-        
-        // Stop recording by tapping the stop button
-        let stopButton = app.buttons["stopRecordingButton"]
-        if stopButton.exists {
-            stopButton.tap()
-        }
-    }
     
     func testNavigationFlow() throws {
         // Test navigation between different tabs

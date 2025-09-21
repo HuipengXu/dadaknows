@@ -102,13 +102,6 @@ struct HomeView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
                 
-                // Voice input button in the bottom right of text field
-                VStack {
-                    Spacer()
-                    VoiceInputButton(text: $question)
-                        .padding(.trailing, 10)
-                        .padding(.bottom, 10)
-                }
             }
             .background(
                 RoundedRectangle(cornerRadius: 16)

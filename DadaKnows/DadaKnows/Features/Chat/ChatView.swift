@@ -11,7 +11,6 @@ import Combine
 struct ChatView: View {
     @StateObject private var aiManager = AIManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var speechManager = SpeechRecognitionManager.shared
     @StateObject private var offlineManager = OfflineManager.shared
     @StateObject private var analyticsManager = AnalyticsManager.shared
     @StateObject private var chatService = ChatService.shared
@@ -23,8 +22,6 @@ struct ChatView: View {
     let historicalSession: ChatSession? // Optional historical session to display
     
     @State private var currentQuestion = ""
-    @State private var isListening = false
-    @State private var showingVoicePermissionAlert = false
     @State private var showingProUpgrade = false
     @State private var sessionStartTime: Date?
     
@@ -97,9 +94,7 @@ struct ChatView: View {
                         // Input field and buttons
                         InputAreaView(
                             currentQuestion: $currentQuestion,
-                            isListening: isListening,
                             canSendQuestion: canSendQuestion,
-                            onVoiceInput: handleVoiceInput,
                             onSendQuestion: sendQuestion
                         )
                         .padding(.horizontal, 16)
@@ -108,12 +103,6 @@ struct ChatView: View {
                     }
                 }
                 
-                // Voice recording overlay for better visual feedback
-                if isListening {
-                    Color.black.opacity(0.1)
-                        .ignoresSafeArea()
-                        .allowsHitTesting(false)
-                }
             }
             .navigationTitle(historicalSession != nil ? NSLocalizedString("继续对话", comment: "") : NSLocalizedString("对话", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
@@ -130,26 +119,6 @@ struct ChatView: View {
                     }
                     .foregroundColor(.appPrimary)
                 }
-            }
-            .onReceive(speechManager.$recognizedText) { text in
-                if !text.isEmpty && !speechManager.isRecording {
-                    currentQuestion = text
-                    isListening = false
-                    speechManager.clearText()
-                }
-            }
-            .onReceive(speechManager.$isRecording) { recording in
-                isListening = recording
-            }
-            .alert(NSLocalizedString("需要麦克风权限", comment: ""), isPresented: $showingVoicePermissionAlert) {
-                Button(NSLocalizedString("设置", comment: "")) {
-                    if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(settingsUrl)
-                    }
-                }
-                Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
-            } message: {
-                Text(NSLocalizedString("请在设置中允许访问麦克风以使用语音输入功能", comment: ""))
             }
             .sheet(isPresented: $showingProUpgrade) {
                 ProSubscriptionView()
@@ -219,19 +188,6 @@ struct ChatView: View {
         impactFeedback.impactOccurred()
     }
     
-    private func handleVoiceInput() {
-        if isListening {
-            speechManager.stopRecording()
-        } else {
-            if speechManager.isAuthorized {
-                speechManager.startRecording()
-                analyticsManager.trackVoiceInputUsed()
-            } else {
-                speechManager.requestAuthorization()
-                showingVoicePermissionAlert = true
-            }
-        }
-    }
     
 }
 
@@ -401,32 +357,24 @@ struct HistoricalChatBubbleView: View {
 // MARK: - Input Area View
 struct InputAreaView: View {
     @Binding var currentQuestion: String
-    let isListening: Bool
     let canSendQuestion: Bool
-    let onVoiceInput: () -> Void
     let onSendQuestion: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {
-            // Custom text input with voice button inside
-            HStack(spacing: 8) {
-                // Voice button inside input field
-                VoiceButtonView(isListening: isListening, onVoiceInput: onVoiceInput)
-                
-                // Text input
-                TextField(NSLocalizedString("输入你的问题...", comment: ""), text: $currentQuestion, axis: .vertical)
-                    .lineLimit(1...4)
-                    .onSubmit {
-                        onSendQuestion()
-                    }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color.backgroundSecondary)
-                    .stroke(Color.separator, lineWidth: 1)
-            )
+            // Text input
+            TextField(NSLocalizedString("输入你的问题...", comment: ""), text: $currentQuestion, axis: .vertical)
+                .lineLimit(1...4)
+                .onSubmit {
+                    onSendQuestion()
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(Color.backgroundSecondary)
+                        .stroke(Color.separator, lineWidth: 1)
+                )
             
             // Send button
             Button(action: onSendQuestion) {
@@ -444,41 +392,6 @@ struct InputAreaView: View {
     }
 }
 
-// MARK: - Voice Button View
-struct VoiceButtonView: View {
-    let isListening: Bool
-    let onVoiceInput: () -> Void
-    
-    var body: some View {
-        Button(action: onVoiceInput) {
-            ZStack {
-                Circle()
-                    .fill(isListening ? Color.statusError : Color.appPrimary)
-                    .frame(width: 32, height: 32)
-                    .scaleEffect(isListening ? 1.1 : 1.0)
-                    .animation(.easeInOut(duration: 0.2), value: isListening)
-                
-                Image(systemName: isListening ? "stop.fill" : "mic.fill")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-            }
-        }
-        .buttonStyle(.plain)
-        .overlay(
-            // Recording ripple effect
-            Group {
-                if isListening {
-                    Circle()
-                        .stroke(Color.statusError.opacity(0.3), lineWidth: 1)
-                        .frame(width: 44, height: 44)
-                        .scaleEffect(isListening ? 1.3 : 1.0)
-                        .opacity(isListening ? 0.0 : 1.0)
-                        .animation(.easeOut(duration: 1.0).repeatForever(autoreverses: false), value: isListening)
-                }
-            }
-        )
-    }
-}
 
 #Preview {
     ChatView(
