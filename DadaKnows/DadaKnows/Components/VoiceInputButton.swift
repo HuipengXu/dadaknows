@@ -146,7 +146,7 @@ struct VoiceRecordingOverlay: View {
                             .multilineTextAlignment(.center)
                     }
                     
-                    Button("停止录音") {
+                    Button(NSLocalizedString("停止录音", comment: "")) {
                         speechManager.stopRecording()
                     }
                     .foregroundColor(.white)

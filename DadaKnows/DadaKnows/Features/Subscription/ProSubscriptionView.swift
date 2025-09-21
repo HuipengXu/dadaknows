@@ -294,22 +294,22 @@ struct ProSubscriptionView: View {
                 ModernBenefitRow(
                     icon: "sparkles",
                     iconColor: .yellow,
-                    title: isEnglish ? "Unlock Your Child's Potential" : "释放孩子的潜能",
-                    description: isEnglish ? "Let children freely explore the ocean of knowledge and develop lifelong learning habits" : "让孩子自由探索知识的海洋，培养终身学习的习惯"
+                    title: NSLocalizedString("unlock_child_potential", comment: ""),
+                    description: NSLocalizedString("unlock_child_potential_desc", comment: "")
                 )
                 
                 ModernBenefitRow(
                     icon: "globe.asia.australia.fill",
                     iconColor: .blue,
-                    title: isEnglish ? "Global Quality Content" : "全球优质内容",
-                    description: isEnglish ? "Access the most advanced AI models for accurate and interesting answers" : "访问最先进的AI模型，获得准确有趣的回答"
+                    title: NSLocalizedString("global_quality_content", comment: ""),
+                    description: NSLocalizedString("global_quality_content_desc", comment: "")
                 )
                 
                 ModernBenefitRow(
                     icon: "shield.checkered",
                     iconColor: .green,
-                    title: isEnglish ? "Safe and Reliable" : "安全可靠",
-                    description: isEnglish ? "Strict content filtering provides a safe learning environment for children" : "严格的内容过滤为孩子提供安全的学习环境"
+                    title: NSLocalizedString("safe_and_reliable", comment: ""),
+                    description: NSLocalizedString("safe_and_reliable_desc", comment: "")
                 )
             }
         }
@@ -501,9 +501,9 @@ struct ProSubscriptionView: View {
     
     private func savingsText(for product: Product) -> String? {
         if product.id.contains("annual") {
-            return "相比月度订阅节省33%"
+            return NSLocalizedString("annual_savings", comment: "")
         } else if product.id.contains("biannual") {
-            return "相比月度订阅节省17%"
+            return NSLocalizedString("biannual_savings", comment: "")
         }
         return nil
     }

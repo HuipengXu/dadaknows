@@ -28,6 +28,7 @@ struct ProfileView: View {
     @State private var showingLogoutAlert = false
     @State private var showingLanguageSelector = false
     @State private var showingLanguageChangedAlert = false
+    @State private var showingRatingDialog = false
     @State private var showingUpgradeAlert = false
     
     var body: some View {
@@ -341,7 +342,7 @@ struct ProfileView: View {
     // MARK: - Support Section
     private var supportSection: some View {
         Section(NSLocalizedString("支持", comment: "")) {
-            Button(action: { requestAppStoreReview() }) {
+            Button(action: { showingRatingDialog = true }) {
                 HStack {
                     Image(systemName: "star")
                         .foregroundColor(.appAccent)
@@ -409,6 +410,14 @@ struct ProfileView: View {
             }
         } message: {
             Text(NSLocalizedString("确定要退出登录吗？", comment: ""))
+        }
+        .alert(NSLocalizedString("rate_app_title", comment: ""), isPresented: $showingRatingDialog) {
+            Button(NSLocalizedString("rate_on_app_store", comment: "")) {
+                openAppStore()
+            }
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
+        } message: {
+            Text(NSLocalizedString("rate_app_message", comment: ""))
         }
     }
     
@@ -534,6 +543,12 @@ struct ProfileView: View {
     private func requestAppStoreReview() {
         if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
             SKStoreReviewController.requestReview(in: scene)
+        }
+    }
+    
+    private func openAppStore() {
+        if let url = URL(string: Config.appStoreURL) {
+            UIApplication.shared.open(url)
         }
     }
     

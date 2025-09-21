@@ -27,7 +27,7 @@ struct OfflineIndicator: View {
                         .rotationEffect(.degrees(dataManager.isSyncing ? 360 : 0))
                         .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: dataManager.isSyncing)
                     
-                    Text(dataManager.isSyncing ? "同步中..." : "等待同步")
+                    Text(dataManager.isSyncing ? NSLocalizedString("同步中...", comment: "") : NSLocalizedString("等待同步", comment: ""))
                         .font(.caption)
                         .fontWeight(.medium)
                 }
@@ -74,7 +74,7 @@ struct NetworkStatusBanner: View {
                     
                     Spacer()
                     
-                    Button("知道了") {
+                    Button(NSLocalizedString("知道了", comment: "")) {
                         hideBanner()
                     }
                     .font(.caption)

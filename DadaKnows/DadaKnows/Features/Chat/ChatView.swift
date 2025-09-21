@@ -482,7 +482,7 @@ struct VoiceButtonView: View {
 
 #Preview {
     ChatView(
-        question: "什么是恐龙？",
+        question: NSLocalizedString("sample_question", comment: ""),
         targetAge: 5,
         onDismiss: {},
         historicalSession: nil
