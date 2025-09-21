@@ -65,9 +65,12 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
     }
     
     private func requestMicrophonePermission() {
+        print("🎤 Requesting microphone permission...")
+        
         if #available(iOS 17.0, *) {
             AVAudioApplication.requestRecordPermission { [weak self] granted in
                 Task { @MainActor in
+                    print("🎤 iOS 17+ microphone permission: \(granted)")
                     if !granted {
                         self?.errorMessage = NSLocalizedString("需要麦克风权限", comment: "")
                     }
@@ -76,6 +79,7 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
         } else {
             audioSession.requestRecordPermission { [weak self] granted in
                 Task { @MainActor in
+                    print("🎤 Legacy microphone permission: \(granted)")
                     if !granted {
                         self?.errorMessage = NSLocalizedString("需要麦克风权限", comment: "")
                     }
@@ -87,12 +91,18 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
     // MARK: - Recording Control
     
     func startRecording() {
+        print("🎤 Starting recording...")
+        
         guard isAuthorized else {
             errorMessage = NSLocalizedString("请先授权语音识别权限", comment: "")
+            print("❌ Not authorized for speech recognition")
             return
         }
         
-        guard !isRecording else { return }
+        guard !isRecording else { 
+            print("⚠️ Already recording")
+            return 
+        }
         
         // 停止之前的任务
         stopRecording()
@@ -102,16 +112,32 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
             isRecording = true
             recognizedText = ""
             errorMessage = nil
+            print("✅ Recording started successfully")
         } catch {
-            errorMessage = String(format: NSLocalizedString("开始录音失败: %@", comment: ""), error.localizedDescription)
+            errorMessage = error.localizedDescription
+            print("❌ Failed to start recording: \(error.localizedDescription)")
         }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func isRunningOnSimulator() -> Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return false
+        #endif
     }
     
     func stopRecording() {
         guard isRecording else { return }
         
+        isRecording = false
+        
         // 停止音频引擎
-        audioEngine.stop()
+        if audioEngine.isRunning {
+            audioEngine.stop()
+        }
         
         // 移除输入节点上的 tap
         audioEngine.inputNode.removeTap(onBus: 0)
@@ -123,25 +149,49 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
         recognitionRequest = nil
         recognitionTask = nil
         
-        isRecording = false
+        // 重置音频会话
+        do {
+            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Failed to deactivate audio session: \(error)")
+        }
     }
     
     private func startRecordingSession() throws {
+        // 在iOS 26及以上版本的模拟器上，直接抛出错误，因为存在已知的音频引擎bug
+        if #available(iOS 26.0, *) {
+            #if targetEnvironment(simulator)
+            print("❌ Recording is not supported on iOS 26+ simulators due to audio engine bugs.")
+            throw SpeechError.simulatorNotSupported
+            #endif
+        }
+
+        print("🔧 Starting recording session...")
+        
         // 确保音频引擎处于干净状态
         if audioEngine.isRunning {
+            print("⚠️ Stopping existing audio engine")
             audioEngine.stop()
         }
         
         // 移除可能存在的旧 tap
         audioEngine.inputNode.removeTap(onBus: 0)
         
-        // 配置音频会话
-        try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        // 配置音频会话 - 使用更适合语音识别的配置
+        do {
+            print("🔧 Configuring audio session...")
+            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: [.duckOthers, .allowBluetooth])
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            print("✅ Audio session configured successfully")
+        } catch {
+            print("❌ Audio session configuration failed: \(error)")
+            throw SpeechError.audioEngineError
+        }
         
         // 创建识别请求
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
         guard let recognitionRequest = recognitionRequest else {
+            print("❌ Failed to create recognition request")
             throw SpeechError.recognitionRequestFailed
         }
         
@@ -154,6 +204,7 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
         
         // 获取音频输入节点
         let inputNode = audioEngine.inputNode
+        print("🔧 Input node format: \(inputNode.outputFormat(forBus: 0))")
         
         // 创建识别任务
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
@@ -174,15 +225,26 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
             }
         }
         
-        // 配置音频格式
+        // 使用输入节点的原生格式安装 tap，避免与硬件格式不匹配
         let recordingFormat = inputNode.outputFormat(forBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
-            recognitionRequest.append(buffer)
+        print("🔧 Original format - Sample Rate: \(recordingFormat.sampleRate), Channels: \(recordingFormat.channelCount)")
+        let bufferSize: AVAudioFrameCount = 2048
+        print("🔧 Installing tap with nil format (use HW/client format), buffer size: \(bufferSize)")
+        inputNode.installTap(onBus: 0, bufferSize: bufferSize, format: nil) { [weak recognitionRequest] buffer, _ in
+            recognitionRequest?.append(buffer)
         }
         
         // 启动音频引擎
-        audioEngine.prepare()
-        try audioEngine.start()
+        do {
+            print("🔧 Preparing audio engine...")
+            audioEngine.prepare()
+            print("🔧 Starting audio engine...")
+            try audioEngine.start()
+            print("✅ Audio engine started successfully")
+        } catch {
+            print("❌ Failed to start audio engine: \(error)")
+            throw SpeechError.audioEngineError
+        }
     }
     
     // MARK: - Utility Methods
@@ -242,6 +304,7 @@ enum SpeechError: Error, LocalizedError {
     case audioEngineError
     case noMicrophonePermission
     case noSpeechPermission
+    case simulatorNotSupported
     
     var errorDescription: String? {
         switch self {
@@ -253,6 +316,8 @@ enum SpeechError: Error, LocalizedError {
             return NSLocalizedString("需要麦克风权限", comment: "")
         case .noSpeechPermission:
             return NSLocalizedString("需要语音识别权限", comment: "")
+        case .simulatorNotSupported:
+            return NSLocalizedString("模拟器不支持录音功能，请在真机上测试", comment: "")
         }
     }
 }

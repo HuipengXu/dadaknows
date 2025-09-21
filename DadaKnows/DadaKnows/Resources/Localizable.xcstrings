@@ -167,6 +167,23 @@
         }
       }
     },
+    "annual_savings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save 33% vs monthly"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相比月度订阅节省33%"
+          }
+        }
+      }
+    },
     "app_name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -214,6 +231,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "想问答答什么问题呢？"
+          }
+        }
+      }
+    },
+    "biannual_savings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save 17% vs monthly"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相比月度订阅节省17%"
           }
         }
       }
@@ -401,6 +435,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "忘记密码？"
+          }
+        }
+      }
+    },
+    "global_quality_content" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Global Quality Content"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全球优质内容"
+          }
+        }
+      }
+    },
+    "global_quality_content_desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access the most advanced AI models for accurate and interesting answers"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "访问最先进的AI模型，获得准确有趣的回答"
           }
         }
       }
@@ -660,6 +728,57 @@
         }
       }
     },
+    "rate_app_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the star to rate us on the App Store."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轻点星形以在App Store中评分。"
+          }
+        }
+      }
+    },
+    "rate_app_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enjoying DadaKnows?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜欢\"问问答答\"吗？"
+          }
+        }
+      }
+    },
+    "rate_on_app_store" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate on App Store"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前往App Store评分"
+          }
+        }
+      }
+    },
     "recommended" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -673,6 +792,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "推荐"
+          }
+        }
+      }
+    },
+    "safe_and_reliable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Safe and Reliable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全可靠"
+          }
+        }
+      }
+    },
+    "safe_and_reliable_desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strict content filtering provides a safe learning environment for children"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "严格的内容过滤为孩子提供安全的学习环境"
+          }
+        }
+      }
+    },
+    "sample_question" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What are dinosaurs?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "什么是恐龙？"
           }
         }
       }
@@ -996,6 +1166,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无限提问"
+          }
+        }
+      }
+    },
+    "unlock_child_potential" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock Your Child's Potential"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "释放孩子的潜能"
+          }
+        }
+      }
+    },
+    "unlock_child_potential_desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let children freely explore the ocean of knowledge and develop lifelong learning habits"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让孩子自由探索知识的海洋，培养终身学习的习惯"
           }
         }
       }
@@ -1746,9 +1950,6 @@
         }
       }
     },
-    "开始录音失败: %@" : {
-
-    },
     "开始提问来创建你的第一条记录吧！" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2129,6 +2330,9 @@
           }
         }
       }
+    },
+    "模拟器不支持录音功能，请在真机上测试" : {
+
     },
     "正在准备..." : {
       "extractionState" : "manual",
@@ -2676,6 +2880,23 @@
     "请在设置中允许访问麦克风以使用语音输入功能" : {
 
     },
+    "请输入您的问题..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your question..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入您的问题..."
+          }
+        }
+      }
+    },
     "请输入用户名" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2961,295 +3182,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "首页"
-          }
-        }
-      }
-    },
-    "停止录音" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stop Recording"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "停止录音"
-          }
-        }
-      }
-    },
-    "问题" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Question"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "问题"
-          }
-        }
-      }
-    },
-    "请输入您的问题..." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter your question..."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请输入您的问题..."
-          }
-        }
-      }
-    },
-    "同步中..." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Syncing..."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同步中..."
-          }
-        }
-      }
-    },
-    "等待同步" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Waiting to sync"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "等待同步"
-          }
-        }
-      }
-    },
-    "unlock_child_potential" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock Your Child's Potential"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "释放孩子的潜能"
-          }
-        }
-      }
-    },
-    "unlock_child_potential_desc" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Let children freely explore the ocean of knowledge and develop lifelong learning habits"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "让孩子自由探索知识的海洋，培养终身学习的习惯"
-          }
-        }
-      }
-    },
-    "global_quality_content" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Global Quality Content"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "全球优质内容"
-          }
-        }
-      }
-    },
-    "global_quality_content_desc" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Access the most advanced AI models for accurate and interesting answers"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "访问最先进的AI模型，获得准确有趣的回答"
-          }
-        }
-      }
-    },
-    "safe_and_reliable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safe and Reliable"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "安全可靠"
-          }
-        }
-      }
-    },
-    "safe_and_reliable_desc" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Strict content filtering provides a safe learning environment for children"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "严格的内容过滤为孩子提供安全的学习环境"
-          }
-        }
-      }
-    },
-    "annual_savings" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save 33% vs monthly"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "相比月度订阅节省33%"
-          }
-        }
-      }
-    },
-    "biannual_savings" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save 17% vs monthly"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "相比月度订阅节省17%"
-          }
-        }
-      }
-    },
-    "sample_question" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What are dinosaurs?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "什么是恐龙？"
-          }
-        }
-      }
-    },
-    "rate_app_title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enjoying DadaKnows?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喜欢\"问问答答\"吗？"
-          }
-        }
-      }
-    },
-    "rate_app_message" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap the star to rate us on the App Store."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "轻点星形以在App Store中评分。"
-          }
-        }
-      }
-    },
-    "rate_on_app_store" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rate on App Store"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "前往App Store评分"
           }
         }
       }

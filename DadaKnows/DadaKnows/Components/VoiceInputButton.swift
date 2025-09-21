@@ -63,9 +63,12 @@ struct VoiceInputButton: View {
     }
     
     private func handleVoiceInput() {
+        print("🔘 Voice button tapped - isAuthorized: \(speechManager.isAuthorized), isRecording: \(speechManager.isRecording)")
+        
         if speechManager.isAuthorized {
             speechManager.toggleRecording()
         } else {
+            print("🔘 Requesting authorization...")
             speechManager.requestAuthorization()
         }
     }

@@ -561,16 +561,23 @@ struct ProfileView: View {
     }
     
     // MARK: - Language Methods
-    private func currentLanguageDisplayName() -> String {
-        let currentLanguages = UserDefaults.standard.stringArray(forKey: "AppleLanguages") ?? ["en"]
-        let currentLanguage = currentLanguages.first ?? "en"
-        switch currentLanguage {
-        case "zh-Hans":
-            return NSLocalizedString("中文（简体）", comment: "")
-        default:
-            return NSLocalizedString("english", comment: "")
-        }
-    }
+	private func currentLanguageDisplayName() -> String {
+		let currentLanguages = UserDefaults.standard.stringArray(forKey: "AppleLanguages") ?? Locale.preferredLanguages
+		let rawLanguage = currentLanguages.first ?? "en"
+		let currentLanguage = normalizeLanguageCode(rawLanguage)
+		switch currentLanguage {
+		case "zh-Hans":
+			return NSLocalizedString("中文（简体）", comment: "")
+		default:
+			return NSLocalizedString("english", comment: "")
+		}
+	}
+
+	private func normalizeLanguageCode(_ code: String) -> String {
+		let lowercased = code.lowercased()
+		if lowercased.hasPrefix("zh") { return "zh-Hans" }
+		return "en"
+	}
     
     private func changeLanguage(to language: String) {
         UserDefaults.standard.set([language], forKey: "AppleLanguages")

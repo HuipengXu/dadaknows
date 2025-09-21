@@ -11,7 +11,11 @@ struct LanguageSelectorView: View {
     @Environment(\.dismiss) private var dismiss
     let onLanguageChanged: (String) -> Void
     
-    @State private var selectedLanguage: String = (UserDefaults.standard.stringArray(forKey: "AppleLanguages") ?? ["en"]).first ?? "en"
+	@State private var selectedLanguage: String = {
+		let list = UserDefaults.standard.stringArray(forKey: "AppleLanguages") ?? Locale.preferredLanguages
+		let first = list.first ?? "en"
+		return normalizeLanguageCode(first)
+	}()
     
     private let languages = [
         ("en", NSLocalizedString("english", comment: "")),
@@ -59,4 +63,11 @@ struct LanguageSelectorView: View {
 
 #Preview {
     LanguageSelectorView { _ in }
+}
+
+// MARK: - Helpers
+private func normalizeLanguageCode(_ code: String) -> String {
+    let lowercased = code.lowercased()
+    if lowercased.hasPrefix("zh") { return "zh-Hans" }
+    return "en"
 }
