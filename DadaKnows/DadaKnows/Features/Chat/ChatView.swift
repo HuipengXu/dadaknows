@@ -245,13 +245,13 @@ struct ChatBubbleView: View {
                 Spacer(minLength: 60)
             } else {
                 // AI avatar
-                Circle()
-                    .fill(Color.appPrimary.opacity(0.1))
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.appPrimary)
                     .frame(width: 32, height: 32)
                     .overlay(
                         Image(systemName: "brain.head.profile")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.appPrimary)
+                            .foregroundColor(.white)
                     )
                     .padding(.top, 4) // Align with text top
             }
@@ -350,13 +350,13 @@ struct HistoricalChatBubbleView: View {
                 Spacer(minLength: 60)
             } else {
                 // AI avatar
-                Circle()
-                    .fill(Color.appPrimary.opacity(0.1))
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.appPrimary)
                     .frame(width: 32, height: 32)
                     .overlay(
                         Image(systemName: "brain.head.profile")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.appPrimary)
+                            .foregroundColor(.white)
                     )
                     .padding(.top, 4) // Align with text top
             }

@@ -28,6 +28,7 @@ struct ProfileView: View {
     @State private var showingLogoutAlert = false
     @State private var showingLanguageSelector = false
     @State private var showingLanguageChangedAlert = false
+    @State private var showingUpgradeAlert = false
     
     var body: some View {
         NavigationStack {
@@ -224,27 +225,8 @@ struct ProfileView: View {
     // MARK: - App Settings Section
     private var appSettingsSection: some View {
         Section(NSLocalizedString("应用设置", comment: "")) {
-            // On-device model toggle
-            HStack {
-                Image(systemName: "cpu")
-                    .foregroundColor(.appPrimary)
-                    .frame(width: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("端侧模型", comment: ""))
-                        .font(.body)
-                        .foregroundColor(.textPrimary)
-                    
-                    Text(aiManager.isUsingOnDeviceModel ? NSLocalizedString("已启用 - 无使用限制", comment: "") : NSLocalizedString("使用云端模型", comment: ""))
-                        .font(.caption)
-                        .foregroundColor(.textSecondary)
-                }
-                
-                Spacer()
-                
-                Toggle("", isOn: $aiManager.isUsingOnDeviceModel)
-                    .tint(.appPrimary)
-            }
+            // AI Model Selection
+            aiModelSelectionView
             
             // Notifications
             Button(action: {
@@ -487,6 +469,65 @@ struct ProfileView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
     */
+    
+    // MARK: - AI Model Selection View
+    private var aiModelSelectionView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Gemini Model Toggle
+            HStack {
+                Image(systemName: "cloud")
+                    .foregroundColor(.appPrimary)
+                    .frame(width: 24)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(NSLocalizedString("使用云端模型", comment: ""))
+                        .font(.body)
+                        .foregroundColor(.textPrimary)
+                    
+                    Text(aiManager.useGeminiModel ? NSLocalizedString("云端AI，功能更强大", comment: "") : NSLocalizedString("使用本地设备模型", comment: ""))
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
+                }
+                
+                Spacer()
+                
+                Toggle("", isOn: Binding(
+                    get: { aiManager.useGeminiModel },
+                    set: { newValue in
+                        let success = aiManager.switchToGemini(newValue)
+                        if !success {
+                            // 如果切换失败，显示提示
+                            showingUpgradeAlert = true
+                        }
+                    }
+                ))
+                .tint(.appPrimary)
+            }
+            
+            // Status Information for unsupported devices
+            let localStatus = aiManager.getLocalModelStatus()
+            if !localStatus.isSupported && !aiManager.useGeminiModel {
+                HStack {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.orange)
+                        .font(.caption)
+                    
+                    Text(NSLocalizedString("本地模型需要iOS 26.0+，当前使用云端模型", comment: ""))
+                        .font(.caption2)
+                        .foregroundColor(.textSecondary)
+                        .multilineTextAlignment(.leading)
+                    
+                    Spacer()
+                }
+                .padding(.top, 4)
+            }
+        }
+        .alert(NSLocalizedString("系统版本不支持", comment: ""), isPresented: $showingUpgradeAlert) {
+            Button(NSLocalizedString("确定", comment: ""), role: .cancel) { }
+        } message: {
+            Text(NSLocalizedString("本地模型需要iOS 26.0或更高版本，请升级系统以使用此功能", comment: ""))
+        }
+    }
     
     // MARK: - Helper Functions
     
@@ -814,6 +855,7 @@ struct EditProfileView: View {
         }
     }
 }
+
 
 #Preview {
     ProfileView()

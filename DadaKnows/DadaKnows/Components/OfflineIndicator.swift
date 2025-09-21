@@ -18,7 +18,7 @@ struct OfflineIndicator: View {
                     Image(systemName: "wifi.slash")
                         .font(.system(size: 14, weight: .medium))
                     
-                    Text("离线模式")
+                    Text(NSLocalizedString("离线模式", comment: ""))
                         .font(.caption)
                         .fontWeight(.medium)
                 } else if offlineManager.hasPendingSync {
@@ -62,12 +62,12 @@ struct NetworkStatusBanner: View {
                         .foregroundColor(.white)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("网络连接已断开")
+                        Text(NSLocalizedString("网络连接已断开", comment: ""))
                             .font(.subheadline)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
                         
-                        Text("您可以浏览离线内容，问题将在联网后处理")
+                        Text(NSLocalizedString("您可以浏览离线内容，问题将在联网后处理", comment: ""))
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.9))
                     }
@@ -140,7 +140,7 @@ struct SyncStatusView: View {
                     .foregroundColor(offlineManager.isOnline ? .green : .red)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("网络状态")
+                    Text(NSLocalizedString("网络状态", comment: ""))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -157,7 +157,7 @@ struct SyncStatusView: View {
                     .foregroundColor(.blue)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("同步状态")
+                    Text(NSLocalizedString("同步状态", comment: ""))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -169,7 +169,7 @@ struct SyncStatusView: View {
                 Spacer()
                 
                 if offlineManager.canSync && offlineManager.hasPendingSync {
-                    Button("立即同步") {
+                    Button(NSLocalizedString("立即同步", comment: "")) {
                         Task {
                             await offlineManager.forceSyncAll()
                         }
@@ -189,7 +189,7 @@ struct SyncStatusView: View {
                         .foregroundColor(.orange)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("缓存大小")
+                        Text(NSLocalizedString("缓存大小", comment: ""))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         

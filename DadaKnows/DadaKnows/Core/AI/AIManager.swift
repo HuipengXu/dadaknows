@@ -9,6 +9,30 @@ import Foundation
 import SwiftUI
 import Combine
 
+// MARK: - AI Model Types
+enum AIModelType: String, CaseIterable {
+    case gemini = "gemini"
+    case local = "local"
+    
+    var displayName: String {
+        switch self {
+        case .gemini:
+            return "Cloud Model (Gemini)"
+        case .local:
+            return "Local Model (Apple)"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .gemini:
+            return "Powerful, requires internet connection"
+        case .local:
+            return "Private, offline, unlimited usage"
+        }
+    }
+}
+
 @MainActor
 class AIManager: ObservableObject {
     static let shared = AIManager()
@@ -19,16 +43,45 @@ class AIManager: ObservableObject {
     @Published var chatHistory: [ChatMessage] = []
     @Published var error: Error?
     
-    // 标记是否正在使用端侧模型
-    @Published var isUsingOnDeviceModel = false
+    // 是否使用Gemini模型（默认false，使用本地模型）
+    @Published var useGeminiModel: Bool {
+        didSet {
+            UserDefaults.standard.set(useGeminiModel, forKey: "useGeminiModel")
+            if Config.isDebug {
+                print("🔄 AIManager: 切换到\(useGeminiModel ? "Gemini" : "Local") Model")
+            }
+        }
+    }
+    
+    // 当前模型类型（向后兼容）
+    var currentModelType: AIModelType {
+        return useGeminiModel ? .gemini : .local
+    }
+    
+    // 标记是否正在使用端侧模型（向后兼容）
+    var isUsingOnDeviceModel: Bool {
+        return !useGeminiModel && localAIManager.isAvailable
+    }
     
     private let apiClient = APIClient.shared
     private let supabaseClient = SupabaseClient.shared
     private let offlineManager = OfflineManager.shared
     private let subscriptionManager = SubscriptionManager.shared
+    private let localAIManager = LocalAIManager.shared
     private var cancellables = Set<AnyCancellable>()
     
-    private init() {}
+    private init() {
+        // 从UserDefaults加载保存的模型选择（默认使用本地模型）
+        self.useGeminiModel = UserDefaults.standard.bool(forKey: "useGeminiModel")
+        
+        // 如果设备不支持本地模型，自动切换到Gemini
+        if !useGeminiModel && !localAIManager.isAvailable {
+            useGeminiModel = true
+            if Config.isDebug {
+                print("⚠️ AIManager: 设备不支持本地模型，自动切换到Gemini模型")
+            }
+        }
+    }
     
     // MARK: - Core Ask Function with Streaming
     func askQuestion(
@@ -40,88 +93,163 @@ class AIManager: ObservableObject {
     ) -> AsyncThrowingStream<String, Error> {
         return AsyncThrowingStream { continuation in
             Task {
-                // 如果不是端侧模型，则增加使用次数计数
-                if !self.isUsingOnDeviceModel {
+                // 根据当前模型选择处理方式
+                if self.useGeminiModel {
+                    // 使用Gemini模型，计入使用次数
                     self.subscriptionManager.incrementQuestionCount()
-                }
-                
-                do {
-                    await MainActor.run {
-                        self.isLoading = true
-                        self.currentResponse = ""
-                        self.error = nil
-                    }
-                    
-                    // 检查是否有缓存的答案
-                    if let cachedAnswer = offlineManager.getCachedAnswer(
-                        question: question,
-                        targetAge: targetAge,
-                        language: language
-                    ) {
-                        // 模拟流式输出缓存的答案
-                        let words = cachedAnswer.split(separator: " ")
-                        for (index, word) in words.enumerated() {
-                            try await Task.sleep(nanoseconds: 100_000_000) // 0.1秒延迟
-                            let chunk = index == 0 ? String(word) : " " + String(word)
-                            continuation.yield(chunk)
-                        }
-                        continuation.finish()
-                        return
-                    }
-                    
-                    // 检查网络状态
-                    if !offlineManager.isOnline {
-                        // 离线模式：添加到队列并返回离线提示
-                        offlineManager.addToOfflineQueue(
-                            question: question,
-                            targetAge: targetAge,
-                            language: language
-                        )
-                        
-                        let offlineMessage = "您当前处于离线状态。这个问题已经保存，我们会在网络恢复后为您处理。现在您可以浏览一些离线内容！"
-                        continuation.yield(offlineMessage)
-                        continuation.finish()
-                        return
-                    }
-                    
-                    // 使用 Supabase Edge Function 进行真实的AI调用
-                    let streamingResponse = supabaseClient.callAskDadaFunction(
+                    await self.processWithCloudModel(
                         question: question,
                         targetAge: targetAge,
                         language: language,
                         previousAnswer: previousAnswer,
-                        conversationHistory: conversationHistory
+                        conversationHistory: conversationHistory,
+                        continuation: continuation
                     )
-                    
-                    for try await chunk in streamingResponse {
-                        continuation.yield(chunk)
-                        await MainActor.run {
-                            self.currentResponse += chunk
-                        }
-                    }
-                    
-                    continuation.finish()
-                    
-                    // 缓存答案
-                    await MainActor.run {
-                        if !self.currentResponse.isEmpty {
-                            self.offlineManager.cacheAnswer(
-                                question: question,
-                                answer: self.currentResponse,
-                                targetAge: targetAge,
-                                language: language
-                            )
-                        }
-                        self.isLoading = false
-                    }
-                } catch {
-                    await MainActor.run {
-                        self.error = error
-                        self.isLoading = false
-                    }
-                    continuation.finish(throwing: error)
+                } else {
+                    // 使用本地模型，不计入使用次数
+                    await self.processWithLocalModel(
+                        question: question,
+                        targetAge: targetAge,
+                        language: language,
+                        continuation: continuation
+                    )
                 }
             }
+        }
+    }
+    
+    // MARK: - Local Model Processing
+    private func processWithLocalModel(
+        question: String,
+        targetAge: Int,
+        language: String,
+        continuation: AsyncThrowingStream<String, Error>.Continuation
+    ) async {
+        do {
+            await MainActor.run {
+                self.isLoading = true
+                self.currentResponse = ""
+                self.error = nil
+            }
+            
+            // 检查本地模型是否可用
+            guard localAIManager.isAvailable else {
+                throw AIError.localModelNotAvailable
+            }
+            
+            // 使用本地模型生成回答
+            let localStream = localAIManager.askQuestion(
+                question: question,
+                targetAge: targetAge,
+                language: language
+            )
+            
+            for try await chunk in localStream {
+                continuation.yield(chunk)
+                await MainActor.run {
+                    self.currentResponse += chunk
+                }
+            }
+            
+            continuation.finish()
+            
+            await MainActor.run {
+                self.isLoading = false
+            }
+            
+        } catch {
+            await MainActor.run {
+                self.error = error
+                self.isLoading = false
+            }
+            continuation.finish(throwing: error)
+        }
+    }
+    
+    // MARK: - Cloud Model Processing
+    private func processWithCloudModel(
+        question: String,
+        targetAge: Int,
+        language: String,
+        previousAnswer: String?,
+        conversationHistory: [ChatMessage]?,
+        continuation: AsyncThrowingStream<String, Error>.Continuation
+    ) async {
+        do {
+            await MainActor.run {
+                self.isLoading = true
+                self.currentResponse = ""
+                self.error = nil
+            }
+            
+            // 检查是否有缓存的答案
+            if let cachedAnswer = offlineManager.getCachedAnswer(
+                question: question,
+                targetAge: targetAge,
+                language: language
+            ) {
+                // 模拟流式输出缓存的答案
+                let words = cachedAnswer.split(separator: " ")
+                for (index, word) in words.enumerated() {
+                    try await Task.sleep(nanoseconds: 100_000_000) // 0.1秒延迟
+                    let chunk = index == 0 ? String(word) : " " + String(word)
+                    continuation.yield(chunk)
+                }
+                continuation.finish()
+                return
+            }
+            
+            // 检查网络状态
+            if !offlineManager.isOnline {
+                // 离线模式：添加到队列并返回离线提示
+                offlineManager.addToOfflineQueue(
+                    question: question,
+                    targetAge: targetAge,
+                    language: language
+                )
+                
+                let offlineMessage = "您当前处于离线状态。这个问题已经保存，我们会在网络恢复后为您处理。现在您可以浏览一些离线内容！"
+                continuation.yield(offlineMessage)
+                continuation.finish()
+                return
+            }
+            
+            // 使用 Supabase Edge Function 进行真实的AI调用
+            let streamingResponse = supabaseClient.callAskDadaFunction(
+                question: question,
+                targetAge: targetAge,
+                language: language,
+                previousAnswer: previousAnswer,
+                conversationHistory: conversationHistory
+            )
+            
+            for try await chunk in streamingResponse {
+                continuation.yield(chunk)
+                await MainActor.run {
+                    self.currentResponse += chunk
+                }
+            }
+            
+            continuation.finish()
+            
+            // 缓存答案
+            await MainActor.run {
+                if !self.currentResponse.isEmpty {
+                    self.offlineManager.cacheAnswer(
+                        question: question,
+                        answer: self.currentResponse,
+                        targetAge: targetAge,
+                        language: language
+                    )
+                }
+                self.isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                self.error = error
+                self.isLoading = false
+            }
+            continuation.finish(throwing: error)
         }
     }
     
@@ -167,6 +295,32 @@ class AIManager: ObservableObject {
         }
         // Sort by timestamp to ensure correct order
         self.chatHistory = historicalMessages.sorted(by: { $0.timestamp < $1.timestamp })
+    }
+    
+    // MARK: - Model Management
+    
+    /// 切换到Gemini模型
+    func switchToGemini(_ enabled: Bool) -> Bool {
+        // 如果要切换到本地模型但设备不支持，返回false
+        if !enabled && !localAIManager.isAvailable {
+            if Config.isDebug {
+                print("⚠️ AIManager: 无法切换到本地模型，设备不支持")
+            }
+            return false
+        }
+        
+        useGeminiModel = enabled
+        return true
+    }
+    
+    /// 获取本地模型的可用性状态
+    func getLocalModelStatus() -> LocalAIAvailabilityStatus {
+        return localAIManager.getAvailabilityStatus()
+    }
+    
+    /// 检查是否可以使用本地模型
+    var canUseLocalModel: Bool {
+        return localAIManager.isAvailable
     }
     
     // MARK: - Error Handling
@@ -309,6 +463,7 @@ enum AIError: LocalizedError {
     case networkError(Error)
     case streamingError
     case rateLimitExceeded
+    case localModelNotAvailable
     
     var errorDescription: String? {
         switch self {
@@ -320,6 +475,8 @@ enum AIError: LocalizedError {
             return "Streaming response error"
         case .rateLimitExceeded:
             return "Rate limit exceeded"
+        case .localModelNotAvailable:
+            return NSLocalizedString("本地模型不可用，请切换到云端模型或升级系统版本", comment: "")
         }
     }
 }

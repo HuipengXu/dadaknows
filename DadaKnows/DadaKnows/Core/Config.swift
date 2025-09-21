@@ -20,6 +20,19 @@ struct Config {
     static let feedbackEmail = "support@dada.llamafactory.cn"
     static let appStoreURL = "https://apps.apple.com/app/dadaknows" // 待更新为实际的App Store链接
     
+    // MARK: - Foundation Models Configuration
+    /// Foundation Models框架最低系统要求
+    static let foundationModelsMinimumVersion = "26.0"
+    
+    /// 检查当前设备是否支持Foundation Models
+    static var isFoundationModelsSupported: Bool {
+        if #available(iOS 26.0, *) {
+            return true
+        } else {
+            return false
+        }
+    }
+    
     // MARK: - Usage Limits
     /// 普通用户每日免费使用次数限制
     static let dailyFreeQuestionLimit = 100
@@ -64,6 +77,10 @@ struct Config {
             print("✅ 配置验证成功")
             print("🔗 Supabase URL: \(supabaseURL)")
             print("🔑 API Keys已配置")
+            print("📱 Foundation Models支持: \(isFoundationModelsSupported ? "是" : "否")")
+            if !isFoundationModelsSupported {
+                print("ℹ️ 当前系统版本不支持Foundation Models，将使用云端模型")
+            }
         }
         
         return true

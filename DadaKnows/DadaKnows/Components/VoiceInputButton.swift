@@ -41,13 +41,13 @@ struct VoiceInputButton: View {
                 }
             }
         )
-        .alert("需要权限", isPresented: $showPermissionAlert) {
-            Button("设置") {
+        .alert(NSLocalizedString("需要权限", comment: ""), isPresented: $showPermissionAlert) {
+            Button(NSLocalizedString("设置", comment: "")) {
                 openSettings()
             }
-            Button("取消", role: .cancel) { }
+            Button(NSLocalizedString("取消", comment: ""), role: .cancel) { }
         } message: {
-            Text("请在设置中允许DadaKnows访问麦克风和语音识别功能")
+            Text(NSLocalizedString("请在设置中允许DadaKnows访问麦克风和语音识别功能", comment: ""))
         }
         .onChange(of: speechManager.recognizedText) { oldValue, newValue in
             if !newValue.isEmpty && !speechManager.isRecording {
@@ -132,7 +132,7 @@ struct VoiceRecordingOverlay: View {
                             .foregroundColor(.white)
                     }
                     
-                    Text("正在聆听...")
+                    Text(NSLocalizedString("正在聆听...", comment: ""))
                         .font(.headline)
                         .foregroundColor(.white)
                     

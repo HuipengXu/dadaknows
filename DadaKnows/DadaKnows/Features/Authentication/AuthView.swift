@@ -33,13 +33,14 @@ struct AuthView: View {
                     VStack(spacing: 15) {
                         // Logo
                         ZStack {
-                            Circle()
-                                .fill(Color.appPrimary.opacity(0.1))
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appPrimary)
                                 .frame(width: 80, height: 80)
+                                .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
                             
-                            Image(systemName: "bubble.left.and.bubble.right")
-                                .font(.system(size: 30, weight: .medium))
-                                .foregroundColor(.appPrimary)
+                            Image(systemName: "brain.head.profile")
+                                .font(.system(size: 32, weight: .medium))
+                                .foregroundColor(.white)
                         }
                         
                         Text("welcome_title")
@@ -147,7 +148,7 @@ struct AuthView: View {
                     VStack(spacing: 15) {
                         SocialLoginButton(
                             title: "sign_in_with_google",
-                            icon: "globe",
+                            icon: "g.circle.fill",
                             backgroundColor: .cardBackground,
                             textColor: .textPrimary,
                             isLoading: authManager.isGoogleLoading

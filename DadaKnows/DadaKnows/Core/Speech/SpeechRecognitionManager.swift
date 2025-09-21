@@ -55,10 +55,10 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
                     self?.requestMicrophonePermission()
                 case .denied, .restricted, .notDetermined:
                     self?.isAuthorized = false
-                    self?.errorMessage = "语音识别权限被拒绝"
+                    self?.errorMessage = NSLocalizedString("语音识别权限被拒绝", comment: "")
                 @unknown default:
                     self?.isAuthorized = false
-                    self?.errorMessage = "未知的权限状态"
+                    self?.errorMessage = NSLocalizedString("未知的权限状态", comment: "")
                 }
             }
         }
@@ -69,7 +69,7 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
             AVAudioApplication.requestRecordPermission { [weak self] granted in
                 Task { @MainActor in
                     if !granted {
-                        self?.errorMessage = "麦克风权限被拒绝"
+                        self?.errorMessage = NSLocalizedString("需要麦克风权限", comment: "")
                     }
                 }
             }
@@ -77,7 +77,7 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
             audioSession.requestRecordPermission { [weak self] granted in
                 Task { @MainActor in
                     if !granted {
-                        self?.errorMessage = "麦克风权限被拒绝"
+                        self?.errorMessage = NSLocalizedString("需要麦克风权限", comment: "")
                     }
                 }
             }
@@ -88,7 +88,7 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
     
     func startRecording() {
         guard isAuthorized else {
-            errorMessage = "请先授权语音识别权限"
+            errorMessage = NSLocalizedString("请先授权语音识别权限", comment: "")
             return
         }
         
@@ -103,14 +103,20 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
             recognizedText = ""
             errorMessage = nil
         } catch {
-            errorMessage = "开始录音失败: \(error.localizedDescription)"
+            errorMessage = String(format: NSLocalizedString("开始录音失败: %@", comment: ""), error.localizedDescription)
         }
     }
     
     func stopRecording() {
         guard isRecording else { return }
         
+        // 停止音频引擎
         audioEngine.stop()
+        
+        // 移除输入节点上的 tap
+        audioEngine.inputNode.removeTap(onBus: 0)
+        
+        // 清理识别相关资源
         recognitionRequest?.endAudio()
         recognitionTask?.cancel()
         
@@ -121,6 +127,14 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
     }
     
     private func startRecordingSession() throws {
+        // 确保音频引擎处于干净状态
+        if audioEngine.isRunning {
+            audioEngine.stop()
+        }
+        
+        // 移除可能存在的旧 tap
+        audioEngine.inputNode.removeTap(onBus: 0)
+        
         // 配置音频会话
         try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
         try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
@@ -154,7 +168,7 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
                 }
                 
                 if let error = error {
-                    self?.errorMessage = "语音识别错误: \(error.localizedDescription)"
+                    self?.errorMessage = String(format: NSLocalizedString("语音识别错误: %@", comment: ""), error.localizedDescription)
                     self?.stopRecording()
                 }
             }
@@ -189,14 +203,17 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
     // MARK: - Language Support
     
     func switchToLanguage(_ languageCode: String) {
-        stopRecording()
+        // 确保完全停止当前录音
+        if isRecording {
+            stopRecording()
+        }
         
         let locale = Locale(identifier: languageCode)
         if let recognizer = SFSpeechRecognizer(locale: locale) {
             speechRecognizer = recognizer
             speechRecognizer?.delegate = self
         } else {
-            errorMessage = "不支持的语言: \(languageCode)"
+            errorMessage = String(format: NSLocalizedString("不支持的语言: %@", comment: ""), languageCode)
         }
     }
     
@@ -211,7 +228,7 @@ extension SpeechRecognitionManager: SFSpeechRecognizerDelegate {
     nonisolated func speechRecognizer(_ speechRecognizer: SFSpeechRecognizer, availabilityDidChange available: Bool) {
         Task { @MainActor in
             if !available {
-                self.errorMessage = "语音识别服务暂时不可用"
+                self.errorMessage = NSLocalizedString("语音识别服务暂时不可用", comment: "")
                 self.stopRecording()
             }
         }
@@ -229,13 +246,13 @@ enum SpeechError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .recognitionRequestFailed:
-            return "创建语音识别请求失败"
+            return NSLocalizedString("创建语音识别请求失败", comment: "")
         case .audioEngineError:
-            return "音频引擎错误"
+            return NSLocalizedString("音频引擎错误", comment: "")
         case .noMicrophonePermission:
-            return "没有麦克风权限"
+            return NSLocalizedString("需要麦克风权限", comment: "")
         case .noSpeechPermission:
-            return "没有语音识别权限"
+            return NSLocalizedString("需要语音识别权限", comment: "")
         }
     }
 }

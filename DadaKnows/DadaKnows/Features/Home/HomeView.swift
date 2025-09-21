@@ -68,13 +68,14 @@ struct HomeView: View {
         VStack(spacing: 16) {
             // App icon or character
             ZStack {
-                Circle()
-                    .fill(Color.appPrimary.opacity(0.1))
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color.appPrimary)
                     .frame(width: 100, height: 100)
+                    .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
                 
                 Image(systemName: "brain.head.profile")
                     .font(.system(size: 40, weight: .medium))
-                    .foregroundColor(.appPrimary)
+                    .foregroundColor(.white)
             }
             
             VStack(spacing: 8) {

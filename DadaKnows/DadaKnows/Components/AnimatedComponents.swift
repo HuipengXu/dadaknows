@@ -381,7 +381,7 @@ struct CustomLoadingSpinner: View {
 #Preview {
     VStack(spacing: 30) {
         FloatingView {
-            Text("浮动文字")
+            Text(NSLocalizedString("浮动文字", comment: ""))
                 .padding()
                 .background(Color.tenderYellow)
                 .cornerRadius(10)

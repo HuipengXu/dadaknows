@@ -144,7 +144,7 @@ struct ProSubscriptionView: View {
                             )
                         )
                     
-                    Text("PRO")
+                    Text(NSLocalizedString("PRO", comment: ""))
                         .font(.caption)
                         .fontWeight(.black)
                         .foregroundColor(.appPrimary)
@@ -215,7 +215,7 @@ struct ProSubscriptionView: View {
     private var loadingPlansSection: some View {
         VStack(spacing: 16) {
             HStack {
-                Text("Loading subscription plans...")
+                Text(NSLocalizedString("Loading subscription plans...", comment: ""))
                     .font(.title2)
                 .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -318,15 +318,15 @@ struct ProSubscriptionView: View {
     // MARK: - Footer Section
     private var footerSection: some View {
         VStack(spacing: 16) {
-            Text("Subscription Terms")
+            Text(NSLocalizedString("Subscription Terms", comment: ""))
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .fontWeight(.medium)
             
             VStack(spacing: 8) {
-                Text("• Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period")
-                Text("• You can cancel your subscription anytime in App Store account settings")
-                Text("• Subscription takes effect immediately after activation")
+                Text(NSLocalizedString("• Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period", comment: ""))
+                Text(NSLocalizedString("• You can cancel your subscription anytime in App Store account settings", comment: ""))
+                Text(NSLocalizedString("• Subscription takes effect immediately after activation", comment: ""))
             }
             .font(.caption)
             .foregroundColor(.secondary)
