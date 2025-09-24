@@ -186,9 +186,6 @@ struct ProfileView: View {
             
             // Login email (if authenticated) - 重新设计
             if authManager.isAuthenticated {
-                Divider()
-                    .padding(.vertical, 4)
-                
                 HStack(spacing: 12) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 8)

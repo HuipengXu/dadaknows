@@ -14,6 +14,8 @@ struct ProSubscriptionView: View {
     
     @State private var selectedProduct: Product?
     @State private var isShowingPurchaseFlow = false
+    @State private var showingTermsOfService = false
+    @State private var showingPrivacyPolicy = false
     
     private var isEnglish: Bool {
         Locale.current.language.languageCode?.identifier == "en"
@@ -103,6 +105,12 @@ struct ProSubscriptionView: View {
             }
             .sheet(isPresented: $isShowingPurchaseFlow) {
                 purchaseConfirmationSheet
+            }
+            .sheet(isPresented: $showingTermsOfService) {
+                TermsOfServiceView()
+            }
+            .sheet(isPresented: $showingPrivacyPolicy) {
+                PrivacyPolicyView()
             }
             .alert(NSLocalizedString("错误", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil)) {
                 Button(NSLocalizedString("确定", comment: "")) {
@@ -323,24 +331,24 @@ struct ProSubscriptionView: View {
                 .foregroundColor(.secondary)
                 .fontWeight(.medium)
             
-            VStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(NSLocalizedString("• Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period", comment: ""))
                 Text(NSLocalizedString("• You can cancel your subscription anytime in App Store account settings", comment: ""))
                 Text(NSLocalizedString("• Subscription takes effect immediately after activation", comment: ""))
             }
             .font(.caption)
             .foregroundColor(.secondary)
-            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
             
             HStack(spacing: 20) {
                 Button(NSLocalizedString("Terms of Service", comment: "")) {
-                    // 打开服务条款
+                    showingTermsOfService = true
                 }
                 .font(.caption)
                 .foregroundColor(.appPrimary)
                 
                 Button(NSLocalizedString("Privacy Policy", comment: "")) {
-                    // 打开隐私政策
+                    showingPrivacyPolicy = true
                 }
                 .font(.caption)
                 .foregroundColor(.appPrimary)
