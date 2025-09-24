@@ -4,6 +4,12 @@
     "" : {
 
     },
+    "'答答'的AI模型已下载完成，快来体验吧！" : {
+
+    },
+    "/" : {
+
+    },
     "%@: %@" : {
       "localizations" : {
         "en" : {
@@ -13,6 +19,9 @@
           }
         }
       }
+    },
+    "%lld%%" : {
+
     },
     "%lld个问答" : {
       "extractionState" : "manual",
@@ -78,6 +87,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "• 您可以随时在App Store账户设置中取消订阅"
+          }
+        }
+      }
+    },
+    "🤖 激活你的专属AI伙伴答答" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🤖 Activate Your Personal AI Companion Dada"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🤖 激活你的专属AI伙伴答答"
           }
         }
       }
@@ -167,6 +193,77 @@
         }
       }
     },
+    "advanced_settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高级设置"
+          }
+        }
+      }
+    },
+    "ai_model_selection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI Model Selection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI模型选择"
+          }
+        }
+      }
+    },
+    "ai_model_settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI Model Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI模型设置"
+          }
+        }
+      }
+    },
+    "AI伙伴已准备就绪" : {
+
+    },
+    "always_updated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always updated"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终最新"
+          }
+        }
+      }
+    },
     "annual_savings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -201,6 +298,23 @@
         }
       }
     },
+    "app_settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用设置"
+          }
+        }
+      }
+    },
     "ask_button" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -231,6 +345,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "想问答答什么问题呢？"
+          }
+        }
+      }
+    },
+    "available_storage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available Storage"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用存储空间"
+          }
+        }
+      }
+    },
+    "background_downloads" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Downloads"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后台下载"
+          }
+        }
+      }
+    },
+    "background_downloads_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow downloads to continue in background"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许在后台继续下载"
           }
         }
       }
@@ -282,6 +447,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "取消"
+          }
+        }
+      }
+    },
+    "cloud_model" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云端模型"
+          }
+        }
+      }
+    },
+    "cloud_model_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest AI technology with advanced capabilities"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新AI技术，功能强大"
+          }
+        }
+      }
+    },
+    "cloud_model_requires_pro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud model requires Pro subscription"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云端模型需要Pro订阅"
           }
         }
       }
@@ -371,6 +587,128 @@
         }
       }
     },
+    "delete" : {
+
+    },
+    "delete_model" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除模型"
+          }
+        }
+      }
+    },
+    "delete_model_confirmation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This will delete the local model and free up about 640MB of storage. You'll need to download again to use local AI features."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这将删除本地模型并释放约640MB存储空间。您需要重新下载才能使用本地AI功能。"
+          }
+        }
+      }
+    },
+    "done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
+          }
+        }
+      }
+    },
+    "download_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Failed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载失败"
+          }
+        }
+      }
+    },
+    "download_model" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载模型"
+          }
+        }
+      }
+    },
+    "download_model_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About 640MB, works completely offline"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "约640MB，完全离线工作"
+          }
+        }
+      }
+    },
+    "downloading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载中"
+          }
+        }
+      }
+    },
     "early_features" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -418,6 +756,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "英语"
+          }
+        }
+      }
+    },
+    "error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误"
           }
         }
       }
@@ -541,6 +896,23 @@
         }
       }
     },
+    "language_settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言设置"
+          }
+        }
+      }
+    },
     "let_curiosity_fly" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -575,6 +947,193 @@
         }
       }
     },
+    "local_model" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地模型"
+          }
+        }
+      }
+    },
+    "local_model_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy-focused AI that works offline"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注重隐私的AI，可离线工作"
+          }
+        }
+      }
+    },
+    "local_model_management" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local Model Management"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地模型管理"
+          }
+        }
+      }
+    },
+    "local_model_management_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download and manage the local AI model for offline use."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载和管理本地AI模型以供离线使用。"
+          }
+        }
+      }
+    },
+    "model_information" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model Information"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型信息"
+          }
+        }
+      }
+    },
+    "model_ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model Ready"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型就绪"
+          }
+        }
+      }
+    },
+    "model_ready_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local AI is ready for offline use"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地AI已准备就绪，可离线使用"
+          }
+        }
+      }
+    },
+    "model_selection_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose between cloud AI for advanced features or local AI for privacy and offline use."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择云端AI享受高级功能，或选择本地AI保护隐私并可离线使用。"
+          }
+        }
+      }
+    },
+    "model_settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型设置"
+          }
+        }
+      }
+    },
+    "model_status" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型状态"
+          }
+        }
+      }
+    },
+    "model_storage_used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model Storage Used"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型存储占用"
+          }
+        }
+      }
+    },
     "M月d日" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -592,6 +1151,40 @@
         }
       }
     },
+    "not_downloaded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Downloaded"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未下载"
+          }
+        }
+      }
+    },
+    "notification_settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知设置"
+          }
+        }
+      }
+    },
     "password" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -605,6 +1198,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "密码"
+          }
+        }
+      }
+    },
+    "pause" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂停"
           }
         }
       }
@@ -639,6 +1249,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隐私政策"
+          }
+        }
+      }
+    },
+    "privacy_focused" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy focused"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保护隐私"
           }
         }
       }
@@ -779,6 +1406,23 @@
         }
       }
     },
+    "ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就绪"
+          }
+        }
+      }
+    },
     "recommended" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -792,6 +1436,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "推荐"
+          }
+        }
+      }
+    },
+    "required_storage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Required Storage"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所需存储空间"
+          }
+        }
+      }
+    },
+    "requires_internet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requires internet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要网络"
+          }
+        }
+      }
+    },
+    "resume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
           }
         }
       }
@@ -966,6 +1661,57 @@
         }
       }
     },
+    "storage_info" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Storage Info"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存储信息"
+          }
+        }
+      }
+    },
+    "storage_information" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Storage Information"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存储信息"
+          }
+        }
+      }
+    },
+    "storage_information_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View storage usage and requirements for the local AI model."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看本地AI模型的存储使用情况和要求。"
+          }
+        }
+      }
+    },
     "Subscription Terms" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1119,6 +1865,23 @@
         }
       }
     },
+    "try_again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try Again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试"
+          }
+        }
+      }
+    },
     "try_another_way" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1132,6 +1895,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "换个说法"
+          }
+        }
+      }
+    },
+    "unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知"
           }
         }
       }
@@ -1204,6 +1984,74 @@
         }
       }
     },
+    "upgrade_required" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade Required"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要升级"
+          }
+        }
+      }
+    },
+    "upgrade_to_pro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade to Pro"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "升级到Pro"
+          }
+        }
+      }
+    },
+    "using_cloud_model" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using cloud model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用云端模型"
+          }
+        }
+      }
+    },
+    "using_local_model" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using local model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用本地模型"
+          }
+        }
+      }
+    },
     "welcome_subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1237,6 +2085,61 @@
           }
         }
       }
+    },
+    "WiFi下约 5-10 分钟" : {
+
+    },
+    "works_offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Works offline"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可离线使用"
+          }
+        }
+      }
+    },
+    "下载中" : {
+
+    },
+    "下载中 %.0f%%" : {
+
+    },
+    "下载失败" : {
+
+    },
+    "下载时间" : {
+
+    },
+    "下载本地模型" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Local Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载本地模型"
+          }
+        }
+      }
+    },
+    "下载本地模型后，答答即可完全离线为你服务，保护隐私，无任何提问限制。" : {
+
+    },
+    "下载的文件不存在：%@" : {
+
     },
     "不支持的语言: %@" : {
       "extractionState" : "manual",
@@ -1374,6 +2277,9 @@
         }
       }
     },
+    "你想如何下载？" : {
+
+    },
     "使用云端模型" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1407,6 +2313,9 @@
           }
         }
       }
+    },
+    "使用限制" : {
+
     },
     "保存" : {
       "extractionState" : "manual",
@@ -1509,6 +2418,12 @@
           }
         }
       }
+    },
+    "删除" : {
+
+    },
+    "删除模型" : {
+
     },
     "前往App Store评价" : {
       "extractionState" : "manual",
@@ -1751,6 +2666,9 @@
         }
       }
     },
+    "后台下载" : {
+
+    },
     "复制邮箱地址" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1767,6 +2685,18 @@
           }
         }
       }
+    },
+    "失败：%@" : {
+
+    },
+    "存储占用：" : {
+
+    },
+    "存储空间不足，请清理设备空间后重试" : {
+
+    },
+    "完全离线，数据不上传" : {
+
     },
     "完成" : {
       "extractionState" : "manual",
@@ -1848,6 +2778,9 @@
         }
       }
     },
+    "就绪" : {
+
+    },
     "展开" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1865,6 +2798,12 @@
         }
       }
     },
+    "已下载" : {
+
+    },
+    "已下载，准备中..." : {
+
+    },
     "已启用 - 无使用限制" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1881,6 +2820,12 @@
           }
         }
       }
+    },
+    "已完成" : {
+
+    },
+    "已暂停" : {
+
     },
     "已激活" : {
       "extractionState" : "manual",
@@ -1916,6 +2861,12 @@
         }
       }
     },
+    "应用需保持在前台，速度最快\n可以关闭应用，下载完成后通知你" : {
+
+    },
+    "建议：请检查设备存储空间，并尝试重新下载" : {
+
+    },
     "开始提问来创建你的第一条记录吧！" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1932,6 +2883,9 @@
           }
         }
       }
+    },
+    "当前状态" : {
+
     },
     "恢复购买" : {
       "extractionState" : "manual",
@@ -2095,6 +3049,33 @@
     "数据同步" : {
 
     },
+    "文件位置异常：%@" : {
+
+    },
+    "文件校验失败，请重新下载" : {
+
+    },
+    "文件解压失败" : {
+
+    },
+    "文本生成失败：%@" : {
+
+    },
+    "无效的下载链接" : {
+
+    },
+    "无效的模型参数" : {
+
+    },
+    "无法创建目录：%@" : {
+
+    },
+    "无法创建目标目录：%@" : {
+
+    },
+    "无法访问应用数据目录" : {
+
+    },
     "无问题内容" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2111,6 +3092,9 @@
           }
         }
       }
+    },
+    "无限制提问" : {
+
     },
     "无限次提问，更多功能" : {
       "extractionState" : "manual",
@@ -2149,6 +3133,9 @@
     "昵称: 用户" : {
 
     },
+    "暂停" : {
+
+    },
     "有什么想问的吗？" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2182,6 +3169,9 @@
           }
         }
       }
+    },
+    "未下载" : {
+
     },
     "未知" : {
       "extractionState" : "manual",
@@ -2217,14 +3207,51 @@
         }
       }
     },
+    "本地AI模型" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local AI Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地AI模型"
+          }
+        }
+      }
+    },
     "本地AI模型不可用" : {
 
     },
     "本地AI模型未初始化" : {
 
     },
-    "本地模型不可用，请切换到云端模型或升级系统版本" : {
+    "本地模型不可用，请切换到云端模型或检查模型下载状态" : {
 
+    },
+    "本地模型未准备就绪，请先下载模型" : {
+
+    },
+    "本地模型状态" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local Model Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地模型状态"
+          }
+        }
+      }
     },
     "本地模型需要iOS 26.0+，当前使用云端模型" : {
       "extractionState" : "manual",
@@ -2294,6 +3321,27 @@
         }
       }
     },
+    "模型下载完成" : {
+
+    },
+    "模型信息" : {
+
+    },
+    "模型加载失败：%@" : {
+
+    },
+    "模型大小" : {
+
+    },
+    "模型未下载" : {
+
+    },
+    "模型未加载" : {
+
+    },
+    "正在下载..." : {
+
+    },
     "正在准备..." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2310,6 +3358,9 @@
           }
         }
       }
+    },
+    "正在准备模型..." : {
+
     },
     "正在思考..." : {
       "extractionState" : "manual",
@@ -2487,6 +3538,9 @@
         }
       }
     },
+    "目录无写入权限：%@" : {
+
+    },
     "知道了" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2520,6 +3574,9 @@
           }
         }
       }
+    },
+    "确定要删除本地模型吗？这将释放约640MB存储空间，但需要重新下载才能使用本地AI功能。" : {
+
     },
     "确定要退出登录吗？" : {
       "extractionState" : "manual",
@@ -2555,6 +3612,9 @@
         }
       }
     },
+    "立即下载" : {
+
+    },
     "立即同步" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2588,6 +3648,9 @@
           }
         }
       }
+    },
+    "等待中" : {
+
     },
     "等待同步" : {
 
@@ -2663,6 +3726,23 @@
         }
       }
     },
+    "编辑" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑"
+          }
+        }
+      }
+    },
     "编辑个人信息" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2731,7 +3811,13 @@
         }
       }
     },
+    "网络错误：%@" : {
+
+    },
     "至少8位字符" : {
+
+    },
+    "解压中" : {
 
     },
     "订阅: 免费版" : {
@@ -3007,6 +4093,9 @@
     "重置密码的链接已发送到您的邮箱，请查收" : {
 
     },
+    "重试下载" : {
+
+    },
     "错误" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3023,6 +4112,9 @@
           }
         }
       }
+    },
+    "错误：%@" : {
+
     },
     "问题" : {
 
@@ -3043,6 +4135,9 @@
           }
         }
       }
+    },
+    "隐私保护" : {
+
     },
     "隐私政策" : {
       "extractionState" : "manual",

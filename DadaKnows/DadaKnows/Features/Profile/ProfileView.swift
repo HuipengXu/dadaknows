@@ -17,6 +17,7 @@ struct ProfileView: View {
     @StateObject private var offlineManager = OfflineManager.shared
     @StateObject private var aiManager = AIManager.shared
     @State private var showProSubscription = false
+    @State private var showModelSettings = false
     @State private var showingMailComposer = false
     @State private var showingMailAlert = false
     @State private var showingFeedbackOptions = false
@@ -78,6 +79,9 @@ struct ProfileView: View {
                 changeLanguage(to: language)
             })
         }
+        .sheet(isPresented: $showModelSettings) {
+            ModelSettingsView()
+        }
         .alert(NSLocalizedString("language_changed", comment: ""), isPresented: $showingLanguageChangedAlert) {
             Button(NSLocalizedString("i_understand", comment: ""), role: .cancel) { }
         } message: {
@@ -103,51 +107,103 @@ struct ProfileView: View {
     // MARK: - User Profile Section
     private var userProfileSection: some View {
         Section {
-            // User info with edit button
+            // User info with edit button - 现代化设计
             Button(action: { 
                 editingUsername = userService.currentUsername
                 showingEditProfile = true 
             }) {
                 HStack(spacing: 16) {
-                    // Avatar
-                    Circle()
-                        .fill(Color.appPrimary.opacity(0.1))
-                        .frame(width: 60, height: 60)
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(.appPrimary)
-                        )
+                    // 现代化头像
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.appPrimary.opacity(0.8), Color.appPrimary.opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 64, height: 64)
+                        
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 26, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.2), lineWidth: 2)
+                    )
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(userService.currentUsername.isEmpty ? NSLocalizedString("用户", comment: "") : userService.currentUsername)
-                            .font(.headline)
-                            .foregroundColor(.textPrimary)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
+                            Text(userService.currentUsername.isEmpty ? NSLocalizedString("用户", comment: "") : userService.currentUsername)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.textPrimary)
+                            
+                            // Pro 徽章
+                            if subscriptionManager.isProMember {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: 10, weight: .medium))
+                                    Text("PRO")
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color.appAccent, Color.appAccent.opacity(0.8)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(8)
+                            }
+                        }
                         
                         Text(subscriptionManager.isProMember ? NSLocalizedString("Pro会员", comment: "") : NSLocalizedString("免费用户", comment: ""))
-                            .font(.subheadline)
+                            .font(.callout)
                             .foregroundColor(.textSecondary)
                     }
                     
                     Spacer()
                     
-                    Image(systemName: "pencil")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.textTertiary)
+                    VStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.appPrimary.opacity(0.7))
+                        
+                        Text(NSLocalizedString("编辑", comment: ""))
+                            .font(.caption2)
+                            .foregroundColor(.textTertiary)
+                    }
                 }
-                .padding(.vertical, 8)
+                .padding(.vertical, 12)
             }
             .buttonStyle(.plain)
             
-            // Login email (if authenticated)
+            // Login email (if authenticated) - 重新设计
             if authManager.isAuthenticated {
-                HStack {
-                    Image(systemName: "envelope")
-                        .foregroundColor(.appPrimary)
-                        .frame(width: 24)
+                Divider()
+                    .padding(.vertical, 4)
+                
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.appPrimary.opacity(0.1))
+                            .frame(width: 32, height: 32)
+                        
+                        Image(systemName: "envelope.fill")
+                            .foregroundColor(.appPrimary)
+                            .font(.system(size: 14, weight: .medium))
+                    }
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(NSLocalizedString("登录邮箱", comment: ""))
+                            .font(.callout)
+                            .fontWeight(.medium)
                             .foregroundColor(.textPrimary)
                         
                         Text(authManager.currentUser?.email ?? NSLocalizedString("未知", comment: ""))
@@ -157,6 +213,7 @@ struct ProfileView: View {
                     
                     Spacer()
                 }
+                .padding(.vertical, 4)
             }
         }
         .sheet(isPresented: $showingEditProfile) {
@@ -165,7 +222,6 @@ struct ProfileView: View {
             }
         }
     }
-    
     
     // MARK: - Pro Membership Section
     private var proMembershipSection: some View {
@@ -225,9 +281,35 @@ struct ProfileView: View {
     
     // MARK: - App Settings Section
     private var appSettingsSection: some View {
-        Section(NSLocalizedString("应用设置", comment: "")) {
-            // AI Model Selection
-            aiModelSelectionView
+        Section(NSLocalizedString("app_settings", comment: "")) {
+            // AI Model Settings
+            Button(action: { showModelSettings = true }) {
+                HStack {
+                    Image(systemName: aiManager.useGeminiModel ? "cloud.fill" : "brain.head.profile")
+                        .foregroundColor(.appPrimary)
+                        .frame(width: 24)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(NSLocalizedString("ai_model_settings", comment: ""))
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.textPrimary)
+                        
+                        Text(aiManager.useGeminiModel ? 
+                             NSLocalizedString("using_cloud_model", comment: "") : 
+                             NSLocalizedString("using_local_model", comment: ""))
+                            .font(.caption)
+                            .foregroundColor(.textSecondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
             
             // Notifications
             Button(action: {
@@ -240,7 +322,7 @@ struct ProfileView: View {
                         .foregroundColor(.appAccent)
                         .frame(width: 24)
                     
-                    Text(NSLocalizedString("通知设置", comment: ""))
+                    Text(NSLocalizedString("notification_settings", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -259,7 +341,7 @@ struct ProfileView: View {
                         .foregroundColor(.appSecondary)
                         .frame(width: 24)
                     
-                    Text(NSLocalizedString("语言设置", comment: ""))
+                    Text(NSLocalizedString("language_settings", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -479,64 +561,6 @@ struct ProfileView: View {
     }
     */
     
-    // MARK: - AI Model Selection View
-    private var aiModelSelectionView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Gemini Model Toggle
-            HStack {
-                Image(systemName: "cloud")
-                    .foregroundColor(.appPrimary)
-                    .frame(width: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("使用云端模型", comment: ""))
-                        .font(.body)
-                        .foregroundColor(.textPrimary)
-                    
-                    Text(aiManager.useGeminiModel ? NSLocalizedString("云端AI，功能更强大", comment: "") : NSLocalizedString("使用本地设备模型", comment: ""))
-                        .font(.caption)
-                        .foregroundColor(.textSecondary)
-                }
-                
-                Spacer()
-                
-                Toggle("", isOn: Binding(
-                    get: { aiManager.useGeminiModel },
-                    set: { newValue in
-                        let success = aiManager.switchToGemini(newValue)
-                        if !success {
-                            // 如果切换失败，显示提示
-                            showingUpgradeAlert = true
-                        }
-                    }
-                ))
-                .tint(.appPrimary)
-            }
-            
-            // Status Information for unsupported devices
-            let localStatus = aiManager.getLocalModelStatus()
-            if !localStatus.isSupported && !aiManager.useGeminiModel {
-                HStack {
-                    Image(systemName: "info.circle")
-                        .foregroundColor(.orange)
-                        .font(.caption)
-                    
-                    Text(NSLocalizedString("本地模型需要iOS 26.0+，当前使用云端模型", comment: ""))
-                        .font(.caption2)
-                        .foregroundColor(.textSecondary)
-                        .multilineTextAlignment(.leading)
-                    
-                    Spacer()
-                }
-                .padding(.top, 4)
-            }
-        }
-        .alert(NSLocalizedString("系统版本不支持", comment: ""), isPresented: $showingUpgradeAlert) {
-            Button(NSLocalizedString("确定", comment: ""), role: .cancel) { }
-        } message: {
-            Text(NSLocalizedString("本地模型需要iOS 26.0或更高版本，请升级系统以使用此功能", comment: ""))
-        }
-    }
     
     // MARK: - Helper Functions
     

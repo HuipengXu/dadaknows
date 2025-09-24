@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		72201E2B2E8199A2000AB25E /* MyLlamaPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E2A2E8199A2000AB25E /* MyLlamaPackage */; };
 		72F855E62E6B3748003C290C /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E52E6B3748003C290C /* Auth */; };
 		72F855E82E6B3748003C290C /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E72E6B3748003C290C /* Functions */; };
 		72F855EA2E6B3748003C290C /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E92E6B3748003C290C /* PostgREST */; };
@@ -80,6 +81,7 @@
 				72F855EC2E6B3748003C290C /* Storage in Frameworks */,
 				72F855EA2E6B3748003C290C /* PostgREST in Frameworks */,
 				72F855E82E6B3748003C290C /* Functions in Frameworks */,
+				72201E2B2E8199A2000AB25E /* MyLlamaPackage in Frameworks */,
 				72F855E62E6B3748003C290C /* Auth in Frameworks */,
 				72F855F22E6B4000003C290C /* GoogleSignIn in Frameworks */,
 				72F855F42E6B4000003C290C /* GoogleSignInSwift in Frameworks */,
@@ -104,12 +106,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		72201C9F2E8191C2000AB25E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		72F854F82E6B2D66003C290C = {
 			isa = PBXGroup;
 			children = (
 				72F855032E6B2D66003C290C /* DadaKnows */,
 				72F855112E6B2D68003C290C /* DadaKnowsTests */,
 				72F8551B2E6B2D68003C290C /* DadaKnowsUITests */,
+				72201C9F2E8191C2000AB25E /* Frameworks */,
 				72F855022E6B2D66003C290C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -152,6 +162,7 @@
 				72F855F12E6B4000003C290C /* GoogleSignIn */,
 				72F855F32E6B4000003C290C /* GoogleSignInSwift */,
 				72F855F52E6B4001003C290C /* Crypto */,
+				72201E2A2E8199A2000AB25E /* MyLlamaPackage */,
 			);
 			productName = DadaKnows;
 			productReference = 72F855012E6B2D66003C290C /* DadaKnows.app */;
@@ -239,6 +250,7 @@
 			packageReferences = (
 				72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				72F855F02E6B4000003C290C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				72201E292E8194C5000AB25E /* XCLocalSwiftPackageReference "../MyLlamaPackage" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 72F855022E6B2D66003C290C /* Products */;
@@ -612,6 +624,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		72201E292E8194C5000AB25E /* XCLocalSwiftPackageReference "../MyLlamaPackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../MyLlamaPackage;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -632,6 +651,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		72201E2A2E8199A2000AB25E /* MyLlamaPackage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72201E292E8194C5000AB25E /* XCLocalSwiftPackageReference "../MyLlamaPackage" */;
+			productName = MyLlamaPackage;
+		};
 		72F855E52E6B3748003C290C /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */;

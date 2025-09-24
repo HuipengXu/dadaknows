@@ -19,7 +19,7 @@ enum AIModelType: String, CaseIterable {
         case .gemini:
             return "Cloud Model (Gemini)"
         case .local:
-            return "Local Model (Apple)"
+            return "Local Model (llama.cpp)"
         }
     }
     
@@ -476,7 +476,7 @@ enum AIError: LocalizedError {
         case .rateLimitExceeded:
             return "Rate limit exceeded"
         case .localModelNotAvailable:
-            return NSLocalizedString("本地模型不可用，请切换到云端模型或升级系统版本", comment: "")
+            return NSLocalizedString("本地模型不可用，请切换到云端模型或检查模型下载状态", comment: "")
         }
     }
 }
