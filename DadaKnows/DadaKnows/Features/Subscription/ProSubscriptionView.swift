@@ -97,8 +97,10 @@ struct ProSubscriptionView: View {
             .onAppear {
                 Task {
                     await subscriptionManager.loadProducts()
-                    // 默认选择年付订阅
-                    if let annualProduct = subscriptionManager.availableProducts.first(where: { $0.id.contains("annual") }) {
+                    // 默认选择年付订阅（排除 biannual）
+                    if let annualProduct = subscriptionManager.availableProducts.first(where: { 
+                        $0.id.contains("annual") && !$0.id.contains("biannual")
+                    }) {
                         selectedProduct = annualProduct
                     }
                 }
@@ -195,9 +197,14 @@ struct ProSubscriptionView: View {
             }
             
             // 按价值排序：年付 -> 半年付 -> 月付
+            // 注意：必须先判断 biannual，因为 "biannual" 也包含 "annual"
             let sortedProducts = subscriptionManager.availableProducts.sorted { product1, product2 in
-                if product1.id.contains("annual") { return true }
-                if product2.id.contains("annual") { return false }
+                // 年付优先（但要排除 biannual）
+                let isProduct1Annual = product1.id.contains("annual") && !product1.id.contains("biannual")
+                let isProduct2Annual = product2.id.contains("annual") && !product2.id.contains("biannual")
+                if isProduct1Annual { return true }
+                if isProduct2Annual { return false }
+                // 半年付次之
                 if product1.id.contains("biannual") { return true }
                 if product2.id.contains("biannual") { return false }
                 return false
@@ -214,6 +221,11 @@ struct ProSubscriptionView: View {
                             }
                         }
                     )
+                    .onAppear {
+                        print("📦 Product: \(product.id)")
+                        print("   Price: \(product.price) (\(product.displayPrice))")
+                        print("   Display Name: \(product.displayName)")
+                    }
                 }
             }
         }
@@ -508,12 +520,34 @@ struct ProSubscriptionView: View {
     }
     
     private func savingsText(for product: Product) -> String? {
-        if product.id.contains("annual") {
-            return NSLocalizedString("annual_savings", comment: "")
-        } else if product.id.contains("biannual") {
-            return NSLocalizedString("biannual_savings", comment: "")
+        // 获取月付产品作为基准
+        guard let monthlyProduct = subscriptionManager.availableProducts.first(where: { $0.id.contains("monthly") }) else {
+            return nil
         }
-        return nil
+        
+        let percentage: Int
+        // 注意：必须先判断 biannual，因为 "biannual" 也包含 "annual"
+        if product.id.contains("biannual") {
+            // 半年付：计算相比月付×6的节省
+            let monthlySixMonthCost = monthlyProduct.price * Decimal(6)
+            let biannualCost = product.price
+            if monthlySixMonthCost == 0 { return nil }
+            let savings = (monthlySixMonthCost - biannualCost) as NSDecimalNumber
+            let total = monthlySixMonthCost as NSDecimalNumber
+            percentage = Int((savings.doubleValue / total.doubleValue) * 100)
+        } else if product.id.contains("annual") {
+            // 年付：计算相比月付×12的节省
+            let monthlyYearCost = monthlyProduct.price * Decimal(12)
+            let annualCost = product.price
+            if monthlyYearCost == 0 { return nil }
+            let savings = (monthlyYearCost - annualCost) as NSDecimalNumber
+            let total = monthlyYearCost as NSDecimalNumber
+            percentage = Int((savings.doubleValue / total.doubleValue) * 100)
+        } else {
+            return nil
+        }
+        
+        return String(format: NSLocalizedString("save_percentage", comment: ""), "\(percentage)%")
     }
 }
 
@@ -523,6 +557,7 @@ struct ModernSubscriptionCard: View {
     let product: Product
     let isSelected: Bool
     let onSelect: () -> Void
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     
     var body: some View {
         Button(action: onSelect) {
@@ -637,16 +672,42 @@ struct ModernSubscriptionCard: View {
     }
     
     private var isPopular: Bool {
-        product.id.contains("annual")
+        // 只有真正的年付才显示 Recommended（排除 biannual）
+        product.id.contains("annual") && !product.id.contains("biannual")
     }
     
     private var savingsText: String? {
-        if product.id.contains("annual") {
-            return String(format: NSLocalizedString("save_percentage", comment: ""), "33%")
-        } else if product.id.contains("biannual") {
-            return String(format: NSLocalizedString("save_percentage", comment: ""), "17%")
+        // 获取月付产品作为基准
+        guard let monthlyProduct = subscriptionManager.availableProducts.first(where: { $0.id.contains("monthly") }) else {
+            print("⚠️ Monthly product not found for savings calculation")
+            return nil
         }
-        return nil
+        
+        let percentage: Int
+        // 注意：必须先判断 biannual，因为 "biannual" 也包含 "annual"
+        if product.id.contains("biannual") {
+            // 半年付：计算相比月付×6的节省
+            let monthlySixMonthCost = monthlyProduct.price * Decimal(6)
+            let biannualCost = product.price
+            if monthlySixMonthCost == 0 { return nil }
+            let savings = (monthlySixMonthCost - biannualCost) as NSDecimalNumber
+            let total = monthlySixMonthCost as NSDecimalNumber
+            percentage = Int((savings.doubleValue / total.doubleValue) * 100)
+            print("💰 Biannual savings: monthly=\(monthlyProduct.price), total=\(monthlySixMonthCost), biannual=\(biannualCost), savings=\(percentage)%")
+        } else if product.id.contains("annual") {
+            // 年付：计算相比月付×12的节省
+            let monthlyYearCost = monthlyProduct.price * Decimal(12)
+            let annualCost = product.price
+            if monthlyYearCost == 0 { return nil }
+            let savings = (monthlyYearCost - annualCost) as NSDecimalNumber
+            let total = monthlyYearCost as NSDecimalNumber
+            percentage = Int((savings.doubleValue / total.doubleValue) * 100)
+            print("💰 Annual savings: monthly=\(monthlyProduct.price), total=\(monthlyYearCost), annual=\(annualCost), savings=\(percentage)%")
+        } else {
+            return nil
+        }
+        
+        return String(format: NSLocalizedString("save_percentage", comment: ""), "\(percentage)%")
     }
 }
 

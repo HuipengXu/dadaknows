@@ -37,7 +37,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "• Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period"
+            "value" : "• Auto-renews unless canceled 24h before period ends"
           }
         },
         "zh-Hans" : {
@@ -54,7 +54,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "• Subscription takes effect immediately after activation"
+            "value" : "• Takes effect immediately upon activation"
           }
         },
         "zh-Hans" : {
@@ -71,7 +71,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "• You can cancel your subscription anytime in App Store account settings"
+            "value" : "• Cancel anytime in App Store settings"
           }
         },
         "zh-Hans" : {
@@ -258,13 +258,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save 33% vs monthly"
+            "value" : "Best Value"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "相比月度订阅节省33%"
+            "value" : "最超值"
           }
         }
       }
@@ -394,13 +394,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save 17% vs monthly"
+            "value" : "Save More"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "相比月度订阅节省17%"
+            "value" : "更省钱"
           }
         }
       }
@@ -785,13 +785,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Global Quality Content"
+            "value" : "Smart AI Responses"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全球优质内容"
+            "value" : "智能AI回答"
           }
         }
       }
@@ -802,13 +802,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Access the most advanced AI models for accurate and interesting answers"
+            "value" : "Fast, efficient AI responses tailored for children's learning"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "访问最先进的AI模型，获得准确有趣的回答"
+            "value" : "快速高效的AI回答，专为儿童学习定制"
           }
         }
       }
@@ -904,7 +904,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Let your child's curiosity fly freely\nNo usage limits, ask anytime, anywhere"
+            "value" : "Unlimited questions, anytime, anywhere"
           }
         },
         "zh-Hans" : {
@@ -1502,7 +1502,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Strict content filtering provides a safe learning environment for children"
+            "value" : "Child-safe content filtering for peace of mind"
           }
         },
         "zh-Hans" : {
@@ -1723,13 +1723,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save 33% with our annual plan. Unlock all premium features."
+            "value" : "Best value. All premium features."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "年付计划节省33%，解锁所有高级功能。"
+            "value" : "最超值，解锁所有高级功能。"
           }
         }
       }
@@ -1757,7 +1757,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enjoy 6 months of full access."
+            "value" : "6 months of full access"
           }
         },
         "zh-Hans" : {
@@ -1791,7 +1791,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unlock all features on a monthly basis."
+            "value" : "All features, monthly"
           }
         },
         "zh-Hans" : {
@@ -1910,7 +1910,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unlock Unlimited Exploration"
+            "value" : "Go Pro, Go Unlimited"
           }
         },
         "zh-Hans" : {
@@ -1961,7 +1961,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Let children freely explore the ocean of knowledge and develop lifelong learning habits"
+            "value" : "Foster curiosity and build lifelong learning habits"
           }
         },
         "zh-Hans" : {
