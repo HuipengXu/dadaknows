@@ -44,7 +44,7 @@ struct LoadingView: View {
 
 #Preview {
     ZStack {
-        Color.creamYellow
+        Color.backgroundPrimary
         LoadingView()
     }
 }

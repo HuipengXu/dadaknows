@@ -34,8 +34,9 @@ struct Config {
     }
     
     // MARK: - Usage Limits
-    /// 普通用户每日免费使用次数限制
-    static let dailyFreeQuestionLimit = 100
+    /// 普通用户每日免费使用次数限制（仅云端模型）
+    /// 注意：本地模型不受此限制
+    static let dailyFreeQuestionLimit = 2
     
     // MARK: - Environment
     static let isDebug: Bool = {

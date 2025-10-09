@@ -19,7 +19,7 @@ enum AIModelType: String, CaseIterable {
         case .gemini:
             return "Cloud Model (Gemini)"
         case .local:
-            return "Local Model (llama.cpp)"
+            return "Local Model (MLX)"
         }
     }
     
@@ -78,7 +78,7 @@ class AIManager: ObservableObject {
         if !useGeminiModel && !localAIManager.isAvailable {
             useGeminiModel = true
             if Config.isDebug {
-                print("⚠️ AIManager: 设备不支持本地模型，自动切换到Gemini模型")
+                print("⚠️ AIManager: 设备不支持MLX本地模型，自动切换到Gemini模型")
             }
         }
     }
@@ -304,7 +304,7 @@ class AIManager: ObservableObject {
         // 如果要切换到本地模型但设备不支持，返回false
         if !enabled && !localAIManager.isAvailable {
             if Config.isDebug {
-                print("⚠️ AIManager: 无法切换到本地模型，设备不支持")
+                print("⚠️ AIManager: 无法切换到MLX本地模型，设备不支持")
             }
             return false
         }
@@ -476,7 +476,7 @@ enum AIError: LocalizedError {
         case .rateLimitExceeded:
             return "Rate limit exceeded"
         case .localModelNotAvailable:
-            return NSLocalizedString("本地模型不可用，请切换到云端模型或检查模型下载状态", comment: "")
+            return NSLocalizedString("本地模型不可用，请切换到云端模型或等待模型下载完成", comment: "")
         }
     }
 }

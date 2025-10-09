@@ -248,7 +248,7 @@ struct ParticleView: View {
     let particleCount: Int
     let colors: [Color]
     
-    init(particleCount: Int = 20, colors: [Color] = [.vibrantOrange, .tenderYellow, .skyBlue]) {
+    init(particleCount: Int = 20, colors: [Color] = [.appPrimary, .orange, .blue]) {
         self.particleCount = particleCount
         self.colors = colors
     }
@@ -383,13 +383,13 @@ struct CustomLoadingSpinner: View {
         FloatingView {
             Text(NSLocalizedString("浮动文字", comment: ""))
                 .padding()
-                .background(Color.tenderYellow)
+                .background(Color.yellow)
                 .cornerRadius(10)
         }
         
         PulseView {
             Circle()
-                .fill(Color.vibrantOrange)
+                .fill(Color.appPrimary)
                 .frame(width: 50, height: 50)
         }
         

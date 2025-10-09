@@ -14,6 +14,7 @@ struct ChatView: View {
     @StateObject private var offlineManager = OfflineManager.shared
     @StateObject private var analyticsManager = AnalyticsManager.shared
     @StateObject private var chatService = ChatService.shared
+    @StateObject private var localAIManager = LocalAIManager.shared
     
     // Parameters from HomeView or HistoryView
     let question: String
@@ -43,9 +44,17 @@ struct ChatView: View {
                                         .accessibilityLabel("\(chat.isFromUser ? "You asked" : "Dada answered"): \(chat.message)")
                                 }
                                 
+                                // 显示加载指示器
                                 if aiManager.isLoading && (aiManager.chatHistory.last?.isFromUser ?? true) {
-                                    TypingIndicator()
-                                        .accessibilityLabel("Dada is thinking")
+                                    if !aiManager.isUsingOnDeviceModel || localAIManager.isModelLoaded {
+                                        // 正常的思考指示器
+                                        TypingIndicator()
+                                            .accessibilityLabel("Dada is thinking")
+                                    } else {
+                                        // 模型加载指示器
+                                        ModelLoadingIndicator()
+                                            .accessibilityLabel("Loading AI model")
+                                    }
                                 }
                             }
                             .padding(.horizontal, 16)
@@ -292,6 +301,43 @@ struct TypingIndicator: View {
             Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { _ in
                 animationPhase = (animationPhase + 1) % 3
             }
+        }
+    }
+}
+
+// MARK: - Model Loading Indicator
+struct ModelLoadingIndicator: View {
+    @State private var rotation: Double = 0
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            // AI avatar
+            Circle()
+                .fill(Color.appPrimary.opacity(0.1))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.appPrimary)
+                )
+                .padding(.top, 4)
+            
+            HStack(spacing: 8) {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .appPrimary))
+                
+                Text(NSLocalizedString("正在加载AI模型...", comment: ""))
+                    .font(.body)
+                    .foregroundColor(.textSecondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.aiMessageBackground)
+            )
+            
+            Spacer(minLength: 60)
         }
     }
 }

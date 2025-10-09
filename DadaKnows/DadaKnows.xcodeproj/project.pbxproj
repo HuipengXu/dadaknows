@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		72201E2B2E8199A2000AB25E /* MyLlamaPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E2A2E8199A2000AB25E /* MyLlamaPackage */; };
+		72201E302E8582E0000AB25E /* MLX in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E2F2E8582E0000AB25E /* MLX */; };
+		72201E322E8582E0000AB25E /* MLXFast in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E312E8582E0000AB25E /* MLXFast */; };
+		72201E342E8582E0000AB25E /* MLXNN in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E332E8582E0000AB25E /* MLXNN */; };
+		72201E3D2E858D90000AB25E /* MLXRandom in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E3C2E858D90000AB25E /* MLXRandom */; };
+		72201E422E85927E000AB25E /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E412E85927E000AB25E /* MLXLLM */; };
+		72201E442E85927E000AB25E /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E432E85927E000AB25E /* MLXLMCommon */; };
 		72F855E62E6B3748003C290C /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E52E6B3748003C290C /* Auth */; };
 		72F855E82E6B3748003C290C /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E72E6B3748003C290C /* Functions */; };
 		72F855EA2E6B3748003C290C /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E92E6B3748003C290C /* PostgREST */; };
@@ -77,14 +82,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				72201E422E85927E000AB25E /* MLXLLM in Frameworks */,
+				72201E342E8582E0000AB25E /* MLXNN in Frameworks */,
+				72201E302E8582E0000AB25E /* MLX in Frameworks */,
 				72F855EE2E6B3748003C290C /* Supabase in Frameworks */,
 				72F855EC2E6B3748003C290C /* Storage in Frameworks */,
 				72F855EA2E6B3748003C290C /* PostgREST in Frameworks */,
+				72201E442E85927E000AB25E /* MLXLMCommon in Frameworks */,
 				72F855E82E6B3748003C290C /* Functions in Frameworks */,
-				72201E2B2E8199A2000AB25E /* MyLlamaPackage in Frameworks */,
 				72F855E62E6B3748003C290C /* Auth in Frameworks */,
+				72201E3D2E858D90000AB25E /* MLXRandom in Frameworks */,
 				72F855F22E6B4000003C290C /* GoogleSignIn in Frameworks */,
 				72F855F42E6B4000003C290C /* GoogleSignInSwift in Frameworks */,
+				72201E322E8582E0000AB25E /* MLXFast in Frameworks */,
 				72F855F62E6B4001003C290C /* Crypto in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -162,7 +172,12 @@
 				72F855F12E6B4000003C290C /* GoogleSignIn */,
 				72F855F32E6B4000003C290C /* GoogleSignInSwift */,
 				72F855F52E6B4001003C290C /* Crypto */,
-				72201E2A2E8199A2000AB25E /* MyLlamaPackage */,
+				72201E2F2E8582E0000AB25E /* MLX */,
+				72201E312E8582E0000AB25E /* MLXFast */,
+				72201E332E8582E0000AB25E /* MLXNN */,
+				72201E3C2E858D90000AB25E /* MLXRandom */,
+				72201E412E85927E000AB25E /* MLXLLM */,
+				72201E432E85927E000AB25E /* MLXLMCommon */,
 			);
 			productName = DadaKnows;
 			productReference = 72F855012E6B2D66003C290C /* DadaKnows.app */;
@@ -250,7 +265,8 @@
 			packageReferences = (
 				72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				72F855F02E6B4000003C290C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
-				72201E292E8194C5000AB25E /* XCLocalSwiftPackageReference "../MyLlamaPackage" */,
+				72201E2E2E8582E0000AB25E /* XCRemoteSwiftPackageReference "mlx-swift" */,
+				72201E402E85927E000AB25E /* XCRemoteSwiftPackageReference "mlx-swift-examples" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 72F855022E6B2D66003C290C /* Products */;
@@ -624,14 +640,23 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		72201E292E8194C5000AB25E /* XCLocalSwiftPackageReference "../MyLlamaPackage" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../MyLlamaPackage;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
+		72201E2E2E8582E0000AB25E /* XCRemoteSwiftPackageReference "mlx-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.25.6;
+			};
+		};
+		72201E402E85927E000AB25E /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.25.7;
+			};
+		};
 		72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
@@ -651,10 +676,35 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		72201E2A2E8199A2000AB25E /* MyLlamaPackage */ = {
+		72201E2F2E8582E0000AB25E /* MLX */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 72201E292E8194C5000AB25E /* XCLocalSwiftPackageReference "../MyLlamaPackage" */;
-			productName = MyLlamaPackage;
+			package = 72201E2E2E8582E0000AB25E /* XCRemoteSwiftPackageReference "mlx-swift" */;
+			productName = MLX;
+		};
+		72201E312E8582E0000AB25E /* MLXFast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72201E2E2E8582E0000AB25E /* XCRemoteSwiftPackageReference "mlx-swift" */;
+			productName = MLXFast;
+		};
+		72201E332E8582E0000AB25E /* MLXNN */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72201E2E2E8582E0000AB25E /* XCRemoteSwiftPackageReference "mlx-swift" */;
+			productName = MLXNN;
+		};
+		72201E3C2E858D90000AB25E /* MLXRandom */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72201E2E2E8582E0000AB25E /* XCRemoteSwiftPackageReference "mlx-swift" */;
+			productName = MLXRandom;
+		};
+		72201E412E85927E000AB25E /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72201E402E85927E000AB25E /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXLLM;
+		};
+		72201E432E85927E000AB25E /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72201E402E85927E000AB25E /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXLMCommon;
 		};
 		72F855E52E6B3748003C290C /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;

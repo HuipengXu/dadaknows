@@ -11,12 +11,22 @@ struct ModelSettingsView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var aiManager = AIManager.shared
     @StateObject private var localAIManager = LocalAIManager.shared
-    @StateObject private var modelDownloader = ModelDownloader.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var downloadManager = ModelDownloadManager.shared
     
     @State private var showingUpgradeAlert = false
-    @State private var showingDeleteAlert = false
-    @State private var showingStorageInfo = false
+    @State private var selectedModel: LMModel?
+    @State private var showingDeleteConfirmation = false
+    @State private var isDeletingModel = false
+    @State private var deleteError: Error?
+    @State private var showingDeleteError = false
+    @State private var downloadError: Error?
+    @State private var showingDownloadError = false
+    @State private var refreshCount = 0
+    @State private var showingBackgroundDownloadInfo = false
+    
+    // Timer to refresh status during download
+    private let statusRefreshTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
     
     var body: some View {
         NavigationStack {
@@ -24,16 +34,15 @@ struct ModelSettingsView: View {
                 // Model Selection Section
                 modelSelectionSection
                 
-                // Local Model Management Section
+                // Model Information Section  
                 if !aiManager.useGeminiModel {
-                    localModelManagementSection
+                    modelInformationSection
                 }
                 
-                // Storage Information Section
-                storageInformationSection
-                
-                // Advanced Settings Section
-                advancedSettingsSection
+                // Storage Management Section
+                if !aiManager.useGeminiModel {
+                    storageManagementSection
+                }
             }
             .listStyle(.insetGrouped)
             .navigationTitle(NSLocalizedString("model_settings", comment: ""))
@@ -41,11 +50,40 @@ struct ModelSettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(NSLocalizedString("done", comment: "")) {
-                        dismiss()
+                        handleDismiss()
                     }
                     .foregroundColor(.appPrimary)
                     .fontWeight(.semibold)
                 }
+            }
+        }
+        .onAppear {
+            selectedModel = localAIManager.getTargetModelInfo()
+            
+            // 在调试模式下输出当前状态
+            if Config.isDebug {
+                print("""
+                    📱 ModelSettings: 初始状态
+                       模型状态: \(localAIManager.modelStatus.localizedDescription)
+                       下载进度: \(Int(localAIManager.downloadProgress * 100))%
+                       下载消息: \(localAIManager.downloadStatusMessage)
+                    """)
+            }
+        }
+        .onReceive(statusRefreshTimer) { _ in
+            // 在下载或解压过程中强制刷新视图
+            if localAIManager.modelStatus.isProcessing {
+                if Config.isDebug {
+                    // 每秒输出一次进度（定时器是0.5秒，所以每2次输出一次）
+                    refreshCount += 1
+                    if refreshCount % 2 == 0 {
+                        let clampedProgress = min(1.0, max(0.0, localAIManager.downloadProgress))
+                        print("🔄 ModelSettings: 状态刷新 - \(localAIManager.modelStatus.localizedDescription) \(Int(clampedProgress * 100))%")
+                    }
+                }
+            } else {
+                // 重置计数器
+                refreshCount = 0
             }
         }
         .alert(NSLocalizedString("upgrade_required", comment: ""), isPresented: $showingUpgradeAlert) {
@@ -56,13 +94,41 @@ struct ModelSettingsView: View {
         } message: {
             Text(NSLocalizedString("cloud_model_requires_pro", comment: ""))
         }
-        .alert(NSLocalizedString("delete_model", comment: ""), isPresented: $showingDeleteAlert) {
-            Button(NSLocalizedString("delete", comment: ""), role: .destructive) {
-                deleteLocalModel()
+        .alert("确认删除", isPresented: $showingDeleteConfirmation) {
+            Button("删除", role: .destructive) {
+                Task {
+                    await performDeleteModel()
+                }
             }
-            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
+            Button("取消", role: .cancel) { }
         } message: {
-            Text(NSLocalizedString("delete_model_confirmation", comment: ""))
+            Text("确定要删除本地模型吗？这将释放一定的存储空间，但下次使用时需要重新下载。")
+        }
+        .alert("删除失败", isPresented: $showingDeleteError) {
+            Button("确定") { }
+        } message: {
+            if let error = deleteError {
+                Text("删除模型时发生错误：\(error.localizedDescription)")
+            }
+        }
+        .alert("下载失败", isPresented: $showingDownloadError) {
+            Button("确定") { }
+        } message: {
+            if let error = downloadError {
+                Text("下载模型时发生错误：\(error.localizedDescription)")
+            }
+        }
+        .alert("后台下载", isPresented: $showingBackgroundDownloadInfo) {
+            Button("好的") { 
+                dismiss()
+            }
+            Button("留在此页") { }
+        } message: {
+            if localAIManager.modelStatus == .downloading {
+                Text("模型正在后台下载中。您可以关闭此页面，下载将继续进行。下载完成后模型将自动可用。")
+            } else {
+                Text("模型正在后台解压中。此过程会继续在后台进行，完成后模型将自动可用。")
+            }
         }
     }
     
@@ -131,9 +197,15 @@ struct ModelSettingsView: View {
                 
                 // Status indicators
                 HStack(spacing: 12) {
-                    Label(NSLocalizedString("always_updated", comment: ""), systemImage: "arrow.clockwise")
-                        .font(.caption)
-                        .foregroundColor(.statusSuccess)
+                    if subscriptionManager.isProMember {
+                        Label(NSLocalizedString("always_updated", comment: ""), systemImage: "arrow.clockwise")
+                            .font(.caption)
+                            .foregroundColor(.statusSuccess)
+                    } else {
+                        Label("每天2次免费", systemImage: "number.circle")
+                            .font(.caption)
+                            .foregroundColor(.appAccent)
+                    }
                     
                     Label(NSLocalizedString("requires_internet", comment: ""), systemImage: "wifi")
                         .font(.caption)
@@ -177,16 +249,16 @@ struct ModelSettingsView: View {
             }
             
             // Content
-            VStack(alignment: .leading, spacing: 4) {
-                Text(NSLocalizedString("local_model", comment: ""))
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.textPrimary)
-                
-                Text(NSLocalizedString("local_model_description", comment: ""))
-                    .font(.subheadline)
-                    .foregroundColor(.textSecondary)
-                    .multilineTextAlignment(.leading)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(NSLocalizedString("local_model", comment: ""))
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.textPrimary)
+                    
+                    Text("使用先进AI技术提供离线智能服务")
+                        .font(.subheadline)
+                        .foregroundColor(.textSecondary)
+                        .multilineTextAlignment(.leading)
                 
                 // Status indicators
                 HStack(spacing: 12) {
@@ -222,439 +294,225 @@ struct ModelSettingsView: View {
         }
     }
     
-    // MARK: - Local Model Management Section
+    // MARK: - Storage Management Section
     
-    private var localModelManagementSection: some View {
+    private var storageManagementSection: some View {
         Section {
-            // Model Status
-            modelStatusRow
+            // Download model button
+            if localAIManager.modelStatus == .notDownloaded {
+                Button(action: {
+                    Task {
+                        await performDownloadModel()
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "arrow.down.circle")
+                            .foregroundColor(.appPrimary)
+                            .frame(width: 24)
+                        
+                        Text(NSLocalizedString("download_model", comment: ""))
+                            .foregroundColor(.appPrimary)
+                        
+                        Spacer()
+                    }
+                }
+                .buttonStyle(.plain)
+            }
             
-            // Download/Management Actions
-            switch localAIManager.modelStatus {
-            case .notDownloaded:
-                downloadModelRow
-                
-            case .downloading:
-                downloadProgressRow
-                
-            case .ready:
-                modelReadyActions
-                
-            case .error:
-                modelErrorActions
-                
-            default:
-                EmptyView()
+            // Download/Extract progress display
+            if localAIManager.modelStatus.isProcessing {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        // Icon based on status
+                        if localAIManager.modelStatus == .extracting {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .frame(width: 24)
+                        } else {
+                            Image(systemName: localAIManager.modelStatus.icon)
+                                .foregroundColor(.appPrimary)
+                                .frame(width: 24)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            // 状态标题（只显示一行）
+                            if localAIManager.modelStatus == .downloading {
+                                Text("正在下载... \(Int(min(1.0, max(0.0, localAIManager.downloadProgress)) * 100))%")
+                                    .foregroundColor(.textPrimary)
+                                    .lineLimit(1)
+                            } else if localAIManager.modelStatus == .paused {
+                                Text("下载已暂停 \(Int(min(1.0, max(0.0, localAIManager.downloadProgress)) * 100))%")
+                                    .foregroundColor(.orange)
+                                    .lineLimit(1)
+                            } else if localAIManager.modelStatus == .extracting {
+                                Text("正在解压...")
+                                    .foregroundColor(.textPrimary)
+                                    .lineLimit(1)
+                            } else {
+                                Text("准备中...")
+                                    .foregroundColor(.textPrimary)
+                                    .lineLimit(1)
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    
+                    // Progress bar
+                    if localAIManager.downloadProgress > 0 && (localAIManager.modelStatus == .downloading || localAIManager.modelStatus == .paused) {
+                        ProgressView(value: min(1.0, max(0.0, localAIManager.downloadProgress)))
+                            .progressViewStyle(LinearProgressViewStyle(tint: localAIManager.modelStatus == .paused ? .orange : .appPrimary))
+                    } else if localAIManager.modelStatus == .extracting {
+                        ProgressView()
+                            .progressViewStyle(LinearProgressViewStyle(tint: .appPrimary))
+                    } else {
+                        ProgressView(value: 0.0)
+                            .progressViewStyle(LinearProgressViewStyle(tint: .appPrimary))
+                    }
+                    
+                    // Control buttons
+                    if localAIManager.modelStatus == .downloading || localAIManager.modelStatus == .paused {
+                        HStack(spacing: 12) {
+                            // Pause/Resume button
+                            Button(action: {
+                                Task {
+                                    await performPauseResumeDownload()
+                                }
+                            }) {
+                                if downloadManager.isPaused {
+                                    Label("继续", systemImage: "play.circle")
+                                        .font(.caption)
+                                } else {
+                                    Label("暂停", systemImage: "pause.circle")
+                                        .font(.caption)
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.orange)
+                            
+                            // Cancel button
+                            Button(action: {
+                                Task {
+                                    await performCancelDownload()
+                                }
+                            }) {
+                                Label("取消", systemImage: "xmark.circle")
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.red)
+                        }
+                    }
+                }
+            }
+            
+            // Delete model button
+            if localAIManager.modelStatus.isReady {
+                Button(action: {
+                    showingDeleteConfirmation = true
+                }) {
+                    HStack {
+                        if isDeletingModel {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .frame(width: 24)
+                        } else {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                                .frame(width: 24)
+                        }
+                        
+                        Text(isDeletingModel ? "删除中..." : "删除本地模型")
+                            .foregroundColor(isDeletingModel ? .textSecondary : .red)
+                        
+                        Spacer()
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isDeletingModel)
             }
         } header: {
-            Text(NSLocalizedString("local_model_management", comment: ""))
+            Text("存储管理")
         } footer: {
-            Text(NSLocalizedString("local_model_management_description", comment: ""))
-        }
-    }
-    
-    private var modelStatusRow: some View {
-        HStack(spacing: 12) {
-            statusIcon
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(NSLocalizedString("model_status", comment: ""))
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.textPrimary)
-                
-                Text(localAIManager.modelStatus.localizedDescription)
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
-            }
-            
-            Spacer()
-            
-            statusBadge
-        }
-        .padding(.vertical, 4)
-    }
-    
-    private var statusIcon: some View {
-        ZStack {
-            Circle()
-                .fill(statusColor.opacity(0.15))
-                .frame(width: 32, height: 32)
-            
-            Image(systemName: statusSymbol)
-                .foregroundColor(statusColor)
-                .font(.system(size: 14, weight: .medium))
-        }
-    }
-    
-    private var statusBadge: some View {
-        Text(statusText)
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .foregroundColor(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(statusColor)
-            .cornerRadius(8)
-    }
-    
-    private var downloadModelRow: some View {
-        Button(action: startDownload) {
-            HStack(spacing: 12) {
-                Image(systemName: "arrow.down.circle.fill")
-                    .foregroundColor(.appPrimary)
-                    .font(.system(size: 20))
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("download_model", comment: ""))
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundColor(.appPrimary)
-                    
-                    Text(NSLocalizedString("download_model_description", comment: ""))
-                        .font(.caption)
-                        .foregroundColor(.textSecondary)
-                        .multilineTextAlignment(.leading)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.appPrimary.opacity(0.6))
-                    .font(.system(size: 12, weight: .medium))
+            if localAIManager.modelStatus == .notDownloaded {
+                Text("模型文件存储在设备本地。首次使用需要下载模型文件，建议在WiFi环境下进行。")
+            } else {
+                Text("模型文件已存储在设备本地。删除模型可释放存储空间。")
             }
         }
-        .buttonStyle(.plain)
     }
     
-    private var downloadProgressRow: some View {
-        VStack(spacing: 12) {
-            HStack {
-                HStack(spacing: 8) {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                        .tint(.appPrimary)
-                    
-                    Text(NSLocalizedString("downloading", comment: ""))
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundColor(.textPrimary)
-                }
-                
-                Spacer()
-                
-                Text("\(Int(modelDownloader.downloadProgress * 100))%")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.appPrimary)
-            }
-            
-            VStack(spacing: 8) {
-                ProgressView(value: modelDownloader.downloadProgress)
-                    .tint(.appPrimary)
-                    .background(Color.fillSecondary)
-                    .cornerRadius(2)
-                
-                HStack {
-                    Text(formatBytes(modelDownloader.downloadedBytes))
-                        .font(.caption2)
-                        .foregroundColor(.textSecondary)
-                    
-                    Spacer()
-                    
-                    Text(formatBytes(modelDownloader.totalBytes))
-                        .font(.caption2)
-                        .foregroundColor(.textSecondary)
-                }
-            }
-            
-            // Download control buttons
-            HStack(spacing: 12) {
-                if modelDownloader.downloadState == .downloading {
-                    Button(NSLocalizedString("pause", comment: "")) {
-                        pauseDownload()
-                    }
-                    .font(.caption)
-                    .foregroundColor(.orange)
-                } else if modelDownloader.canResumeDownload {
-                    Button(NSLocalizedString("resume", comment: "")) {
-                        resumeDownload()
-                    }
-                    .font(.caption)
-                    .foregroundColor(.appPrimary)
-                }
-                
-                Spacer()
-                
-                Button(NSLocalizedString("cancel", comment: "")) {
-                    cancelDownload()
-                }
-                .font(.caption)
-                .foregroundColor(.statusError)
-            }
-        }
-        .padding(.vertical, 8)
-    }
+    // MARK: - Model Information Section
     
-    private var modelReadyActions: some View {
-        VStack(spacing: 8) {
-            // Ready status
-            HStack(spacing: 12) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.statusSuccess)
-                    .font(.system(size: 20))
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("model_ready", comment: ""))
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundColor(.statusSuccess)
-                    
-                    Text(NSLocalizedString("model_ready_description", comment: ""))
-                        .font(.caption)
-                        .foregroundColor(.textSecondary)
-                }
-                
-                Spacer()
-            }
-            
-            // Management actions
-            VStack(spacing: 8) {
-                Button(action: { showingDeleteAlert = true }) {
-                    HStack {
-                        Image(systemName: "trash")
-                            .foregroundColor(.statusError)
-                        
-                        Text(NSLocalizedString("delete_model", comment: ""))
-                            .foregroundColor(.statusError)
-                        
-                        Spacer()
-                    }
-                }
-                .buttonStyle(.plain)
-                
-                Button(action: { showingStorageInfo = true }) {
-                    HStack {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(.appPrimary)
-                        
-                        Text(NSLocalizedString("storage_info", comment: ""))
-                            .foregroundColor(.appPrimary)
-                        
-                        Spacer()
-                        
-                        Text(formatBytes(ModelManager.shared.getModelStorageSize()))
-                            .font(.caption)
-                            .foregroundColor(.textSecondary)
-                    }
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.vertical, 8)
-    }
-    
-    private var modelErrorActions: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(.statusError)
-                    .font(.system(size: 20))
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("download_failed", comment: ""))
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundColor(.statusError)
-                    
-                    if case .error(let message) = localAIManager.modelStatus {
-                        Text(message)
-                            .font(.caption)
-                            .foregroundColor(.textSecondary)
-                            .lineLimit(3)
-                    }
-                }
-                
-                Spacer()
-            }
-            
-            Button(NSLocalizedString("try_again", comment: "")) {
-                retryDownload()
-            }
-            .font(.body)
-            .fontWeight(.medium)
-            .foregroundColor(.appPrimary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(Color.appPrimary.opacity(0.1))
-            .cornerRadius(10)
-        }
-        .padding(.vertical, 8)
-    }
-    
-    // MARK: - Storage Information Section
-    
-    private var storageInformationSection: some View {
+    private var modelInformationSection: some View {
         Section {
-            // Available storage
+            // Target model info  
             HStack {
-                Image(systemName: "externaldrive")
+                Image(systemName: "brain.head.profile")
                     .foregroundColor(.appSecondary)
                     .frame(width: 24)
                 
-                Text(NSLocalizedString("available_storage", comment: ""))
-                    .foregroundColor(.textPrimary)
-                
-                Spacer()
-                
-                Text(formatBytes(ModelManager.shared.checkAvailableStorage()))
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
-            }
-            
-            // Required storage
-            HStack {
-                Image(systemName: "doc.badge.plus")
-                    .foregroundColor(.appPrimary)
-                    .frame(width: 24)
-                
-                Text(NSLocalizedString("required_storage", comment: ""))
-                    .foregroundColor(.textPrimary)
-                
-                Spacer()
-                
-                Text(formatBytes(Int64(ModelManager.modelInfo.expectedZipSize)))
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
-            }
-            
-            // Model storage (if downloaded)
-            if ModelManager.shared.getModelStorageSize() > 0 {
-                HStack {
-                    Image(systemName: "brain.head.profile")
-                        .foregroundColor(.appSecondary)
-                        .frame(width: 24)
-                    
-                    Text(NSLocalizedString("model_storage_used", comment: ""))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("本地AI模型")
                         .foregroundColor(.textPrimary)
                     
-                    Spacer()
-                    
-                    Text(formatBytes(ModelManager.shared.getModelStorageSize()))
+                    Text("高性能智能模型")
                         .font(.caption)
                         .foregroundColor(.textSecondary)
                 }
+                
+                Spacer()
             }
-        } header: {
-            Text(NSLocalizedString("storage_information", comment: ""))
-        } footer: {
-            Text(NSLocalizedString("storage_information_description", comment: ""))
-        }
-    }
-    
-    // MARK: - Advanced Settings Section
-    
-    private var advancedSettingsSection: some View {
-        Section {
-            // Background downloads
+            
+            // Model status
             HStack {
-                Image(systemName: "moon.stars")
+                Image(systemName: "checkmark.circle")
+                    .foregroundColor(localAIManager.modelStatus.isReady ? .statusSuccess : .textSecondary)
+                    .frame(width: 24)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("模型状态")
+                        .foregroundColor(.textPrimary)
+                    
+                    Text(localAIManager.modelStatus.localizedDescription)
+                        .font(.caption)
+                        .foregroundColor(localAIManager.modelStatus.isReady ? .statusSuccess : .textSecondary)
+                }
+                
+                Spacer()
+            }
+            
+            // Device compatibility
+            HStack {
+                Image(systemName: "iphone")
                     .foregroundColor(.appPrimary)
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("background_downloads", comment: ""))
+                    Text("设备兼容性")
                         .foregroundColor(.textPrimary)
                     
-                    Text(NSLocalizedString("background_downloads_description", comment: ""))
+                    let status = localAIManager.getAvailabilityStatus()
+                    Text(status.localizedDescription)
                         .font(.caption)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(status.isSupported ? .statusSuccess : .statusError)
                 }
                 
                 Spacer()
-                
-                Toggle("", isOn: .constant(true))
-                    .tint(.appPrimary)
-                    .disabled(true) // Always enabled for now
             }
-            
-            // Model information
-            Button(action: { showingStorageInfo = true }) {
-                HStack {
-                    Image(systemName: "info.circle")
-                        .foregroundColor(.appSecondary)
-                        .frame(width: 24)
-                    
-                    Text(NSLocalizedString("model_information", comment: ""))
-                        .foregroundColor(.textPrimary)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.textTertiary)
-                }
-            }
-            .buttonStyle(.plain)
         } header: {
-            Text(NSLocalizedString("advanced_settings", comment: ""))
-        }
-    }
-    
-    // MARK: - Helper Properties
-    
-    private var statusColor: Color {
-        switch localAIManager.modelStatus {
-        case .ready:
-            return .statusSuccess
-        case .downloading:
-            return .appPrimary
-        case .error:
-            return .statusError
-        case .notDownloaded:
-            return .textSecondary
-        default:
-            return .textSecondary
-        }
-    }
-    
-    private var statusSymbol: String {
-        switch localAIManager.modelStatus {
-        case .ready:
-            return "checkmark"
-        case .downloading:
-            return "arrow.down"
-        case .error:
-            return "exclamationmark"
-        case .notDownloaded:
-            return "square.and.arrow.down"
-        default:
-            return "questionmark"
-        }
-    }
-    
-    private var statusText: String {
-        switch localAIManager.modelStatus {
-        case .ready:
-            return NSLocalizedString("ready", comment: "")
-        case .downloading:
-            return NSLocalizedString("downloading", comment: "")
-        case .error:
-            return NSLocalizedString("error", comment: "")
-        case .notDownloaded:
-            return NSLocalizedString("not_downloaded", comment: "")
-        default:
-            return NSLocalizedString("unknown", comment: "")
-        }
+            Text("模型信息")
+            } footer: {
+                Text("使用专为儿童优化的AI模型。采用先进技术针对Apple设备深度优化，提供高性能本地智能服务。")
+            }
     }
     
     // MARK: - Actions
     
     private func selectCloudModel() {
-        let success = aiManager.switchToGemini(true)
-        if !success {
-            showingUpgradeAlert = true
-        }
+        // 允许所有用户选择云端模型
+        // 非Pro用户会受到每日使用次数限制（在 SubscriptionManager.canAskQuestion 中控制）
+        _ = aiManager.switchToGemini(true)
     }
     
     private func selectLocalModel() {
@@ -664,59 +522,100 @@ struct ModelSettingsView: View {
         }
     }
     
-    private func startDownload() {
-        Task {
-            do {
-                try await modelDownloader.startDownload(background: false)
-            } catch {
-                print("Download failed: \(error)")
-            }
-        }
-    }
-    
-    private func pauseDownload() {
-        Task {
-            await modelDownloader.pauseDownload()
-        }
-    }
-    
-    private func resumeDownload() {
-        Task {
-            do {
-                try await modelDownloader.startDownload(background: false)
-            } catch {
-                print("Resume failed: \(error)")
-            }
-        }
-    }
-    
-    private func cancelDownload() {
-        Task {
-            await modelDownloader.cancelDownload()
-        }
-    }
-    
-    private func retryDownload() {
-        Task {
-            do {
-                try await modelDownloader.startDownload(background: false)
-            } catch {
-                print("Retry failed: \(error)")
-            }
-        }
-    }
-    
-    private func deleteLocalModel() {
+    /// 执行异步下载模型操作
+    private func performDownloadModel() async {
         do {
-            try ModelManager.shared.deleteModel()
-            // Model status will be automatically updated by observing LocalAIManager
+            if Config.isDebug {
+                print("📱 ModelSettings: 开始启动下载")
+            }
+            
+            // 启动下载任务（不等待完成）
+            // 下载进度由 localAIManager 的 @Published 属性自动更新 UI
+            try await localAIManager.downloadModel()
+            
+            if Config.isDebug {
+                print("✅ ModelSettings: 下载任务已启动")
+            }
+            
         } catch {
-            print("Delete failed: \(error)")
+            await MainActor.run {
+                downloadError = error
+                showingDownloadError = true
+                if Config.isDebug {
+                    print("❌ ModelSettings: 启动下载失败 - \(error)")
+                }
+            }
+        }
+    }
+    
+    /// 执行异步删除模型操作
+    private func performDeleteModel() async {
+        await MainActor.run {
+            isDeletingModel = true
+            deleteError = nil
+        }
+        
+        do {
+            // 在后台线程执行删除操作，避免阻塞UI
+            try await Task.detached(priority: .userInitiated) {
+                try await localAIManager.deleteModel()
+            }.value
+            
+            await MainActor.run {
+                isDeletingModel = false
+                if Config.isDebug {
+                    print("🗑️ ModelSettings: 模型已删除")
+                }
+            }
+            
+        } catch {
+            await MainActor.run {
+                isDeletingModel = false
+                deleteError = error
+                showingDeleteError = true
+                if Config.isDebug {
+                    print("❌ ModelSettings: 删除模型失败 - \(error)")
+                }
+            }
         }
     }
     
     private func formatBytes(_ bytes: Int64) -> String {
         return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+    
+    /// 暂停/恢复下载
+    private func performPauseResumeDownload() async {
+        if downloadManager.isPaused {
+            // 当前是暂停状态，执行恢复操作
+            do {
+                try await localAIManager.resumeDownload()
+            } catch {
+                downloadError = error
+                showingDownloadError = true
+                if Config.isDebug {
+                    print("❌ ModelSettings: 恢复下载失败 - \(error)")
+                }
+            }
+        } else {
+            // 当前是下载状态，执行暂停操作
+            await localAIManager.pauseDownload()
+        }
+    }
+    
+    /// 取消下载
+    private func performCancelDownload() async {
+        await localAIManager.cancelDownload()
+    }
+    
+    /// 处理页面关闭
+    private func handleDismiss() {
+        // 如果正在下载或解压，显示后台提示
+        if localAIManager.modelStatus.isProcessing {
+            showingBackgroundDownloadInfo = true
+        } else {
+            dismiss()
+        }
     }
 }
 

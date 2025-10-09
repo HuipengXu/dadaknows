@@ -24,28 +24,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
     
-    // MARK: - Background Download Support
-    
-    func application(
-        _ application: UIApplication,
-        handleEventsForBackgroundURLSession identifier: String,
-        completionHandler: @escaping () -> Void
-    ) {
-        if Config.isDebug {
-            print("🌙 AppDelegate: 处理后台下载事件 - \(identifier)")
-        }
-        
-        // 确保这是我们的模型下载会话
-        if identifier == "com.DadaKnows.modeldownloader" {
-            // 存储完成处理器，ModelDownloader会在适当时候调用
-            // 注意：这里需要协调ModelDownloader来调用completionHandler
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                completionHandler()
-            }
-        } else {
-            completionHandler()
-        }
-    }
     
     private func configureGoogleSignIn() {
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
