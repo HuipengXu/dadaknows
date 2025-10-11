@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "/ 3000" : {
+
+    },
     "%@: %@" : {
       "localizations" : {
         "en" : {
@@ -13,6 +16,12 @@
           }
         }
       }
+    },
+    "%lld" : {
+
+    },
+    "%lld%%" : {
+
     },
     "%lld个问答" : {
       "extractionState" : "manual",
@@ -1020,6 +1029,23 @@
         }
       }
     },
+    "model_information_footer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Child-optimized AI model. Advanced technology deeply optimized for Apple devices, delivering high-performance local AI services."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用专为儿童优化的AI模型。采用先进技术针对Apple设备深度优化，提供高性能本地智能服务。"
+          }
+        }
+      }
+    },
     "model_ready" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1322,6 +1348,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pro会员"
+          }
+        }
+      }
+    },
+    "pro用户月度3000次配额" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro: 3000 questions/month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro用户月度3000次配额"
           }
         }
       }
@@ -1645,6 +1688,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开始订阅"
+          }
+        }
+      }
+    },
+    "storage_footer_downloaded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model files are stored locally. Deleting model will free up storage."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型文件已存储在设备本地。删除模型可释放存储空间。"
+          }
+        }
+      }
+    },
+    "storage_footer_not_downloaded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model files are stored locally. First-time use requires downloading. WiFi recommended."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型文件存储在设备本地。首次使用需要下载模型文件，建议在WiFi环境下进行。"
           }
         }
       }
@@ -2092,13 +2169,55 @@
       }
     },
     "下载中" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载中"
+          }
+        }
+      }
     },
     "下载失败" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Failed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载失败"
+          }
+        }
+      }
     },
     "下载已暂停 %lld%%" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download paused %lld%%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载已暂停 %lld%%"
+          }
+        }
+      }
     },
     "下载本地模型" : {
       "extractionState" : "manual",
@@ -2118,7 +2237,21 @@
       }
     },
     "下载模型时发生错误：%@" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error downloading model: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载模型时发生错误：%@"
+          }
+        }
+      }
     },
     "不支持的语言: %@" : {
       "extractionState" : "manual",
@@ -2256,9 +2389,6 @@
         }
       }
     },
-    "使用专为儿童优化的AI模型。采用先进技术针对Apple设备深度优化，提供高性能本地智能服务。" : {
-
-    },
     "使用云端模型" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2275,9 +2405,6 @@
           }
         }
       }
-    },
-    "使用先进AI技术提供离线智能服务" : {
-
     },
     "使用本地设备模型" : {
       "extractionState" : "manual",
@@ -2399,22 +2526,106 @@
       }
     },
     "准备中..." : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备中..."
+          }
+        }
+      }
     },
     "删除" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除"
+          }
+        }
+      }
     },
     "删除中..." : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleting..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除中..."
+          }
+        }
+      }
     },
     "删除失败" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Failed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除失败"
+          }
+        }
+      }
     },
     "删除本地模型" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Local Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除本地模型"
+          }
+        }
+      }
     },
     "删除模型时发生错误：%@" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error deleting model: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除模型时发生错误：%@"
+          }
+        }
+      }
     },
     "前往App Store评价" : {
       "extractionState" : "manual",
@@ -2658,7 +2869,21 @@
       }
     },
     "后台下载" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Download"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后台下载"
+          }
+        }
+      }
     },
     "复制邮箱地址" : {
       "extractionState" : "manual",
@@ -2678,10 +2903,38 @@
       }
     },
     "好的" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好的"
+          }
+        }
+      }
     },
     "存储管理" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Storage Management"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存储管理"
+          }
+        }
+      }
     },
     "完成" : {
       "extractionState" : "manual",
@@ -2798,10 +3051,38 @@
       }
     },
     "已就绪" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已就绪"
+          }
+        }
+      }
     },
     "已暂停" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暂停"
+          }
+        }
+      }
     },
     "已激活" : {
       "extractionState" : "manual",
@@ -2819,6 +3100,9 @@
           }
         }
       }
+    },
+    "已达到使用限制，请稍后再试" : {
+
     },
     "应用设置" : {
       "extractionState" : "manual",
@@ -2887,6 +3171,9 @@
           }
         }
       }
+    },
+    "您本月的3000次问答额度已用完，请下月再来或切换到本地模型使用。" : {
+
     },
     "您的设备未配置邮件账户，请选择其他反馈方式" : {
       "extractionState" : "manual",
@@ -2977,7 +3264,21 @@
       }
     },
     "支持本地模型" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supports local model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支持本地模型"
+          }
+        }
+      }
     },
     "收藏" : {
       "extractionState" : "manual",
@@ -3068,10 +3369,55 @@
       }
     },
     "昵称: 用户" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nickname: User"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昵称: 用户"
+          }
+        }
+      }
     },
     "暂停" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂停"
+          }
+        }
+      }
+    },
+    "月度3000次" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3000/month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "月度3000次"
+          }
+        }
+      }
     },
     "有什么想问的吗？" : {
       "extractionState" : "manual",
@@ -3108,7 +3454,21 @@
       }
     },
     "未下载" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Downloaded"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未下载"
+          }
+        }
+      }
     },
     "未知" : {
       "extractionState" : "manual",
@@ -3241,6 +3601,23 @@
         }
       }
     },
+    "本月剩余问答次数" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remaining questions this month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本月剩余问答次数"
+          }
+        }
+      }
+    },
     "本次会话 · %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3259,25 +3636,89 @@
       }
     },
     "模型信息" : {
-
-    },
-    "模型文件存储在设备本地。首次使用需要下载模型文件，建议在WiFi环境下进行。" : {
-
-    },
-    "模型文件已存储在设备本地。删除模型可释放存储空间。" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model Information"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型信息"
+          }
+        }
+      }
     },
     "模型正在后台下载中。您可以关闭此页面，下载将继续进行。下载完成后模型将自动可用。" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model is downloading in background. You can close this page, download will continue. Model will be ready once complete."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型正在后台下载中。您可以关闭此页面，下载将继续进行。下载完成后模型将自动可用。"
+          }
+        }
+      }
     },
     "模型正在后台解压中。此过程会继续在后台进行，完成后模型将自动可用。" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model is extracting in background. This process will continue in background. Model will be ready once complete."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型正在后台解压中。此过程会继续在后台进行，完成后模型将自动可用。"
+          }
+        }
+      }
     },
     "模型状态" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型状态"
+          }
+        }
+      }
     },
     "正在下载... %lld%%" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading... %lld%%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在下载... %lld%%"
+          }
+        }
+      }
     },
     "正在准备..." : {
       "extractionState" : "manual",
@@ -3334,10 +3775,38 @@
       }
     },
     "正在解压..." : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extracting..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在解压..."
+          }
+        }
+      }
     },
     "每天2次免费" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 free per day"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每天2次免费"
+          }
+        }
+      }
     },
     "没有找到相关记录" : {
       "extractionState" : "manual",
@@ -3408,7 +3877,21 @@
       }
     },
     "生成失败：%@" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generation failed: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "生成失败：%@"
+          }
+        }
+      }
     },
     "用户" : {
       "extractionState" : "manual",
@@ -3448,7 +3931,21 @@
 
     },
     "留在此页" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stay Here"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "留在此页"
+          }
+        }
+      }
     },
     "登录" : {
       "extractionState" : "manual",
@@ -3519,7 +4016,21 @@
       }
     },
     "确定要删除本地模型吗？这将释放一定的存储空间，但下次使用时需要重新下载。" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to delete the local model? This will free up storage, but you'll need to download again for next use."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确定要删除本地模型吗？这将释放一定的存储空间，但下次使用时需要重新下载。"
+          }
+        }
+      }
     },
     "确定要退出登录吗？" : {
       "extractionState" : "manual",
@@ -3539,7 +4050,21 @@
       }
     },
     "确认删除" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm Delete"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认删除"
+          }
+        }
+      }
     },
     "离线模式" : {
       "extractionState" : "manual",
@@ -3633,7 +4158,21 @@
       }
     },
     "继续" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
+          }
+        }
+      }
     },
     "继续对话" : {
       "extractionState" : "manual",
@@ -3758,7 +4297,21 @@
 
     },
     "解压中" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extracting"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压中"
+          }
+        }
+      }
     },
     "订阅: 免费版" : {
 
@@ -3781,7 +4334,21 @@
       }
     },
     "设备兼容性" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device Compatibility"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设备兼容性"
+          }
+        }
+      }
     },
     "设置" : {
       "extractionState" : "manual",
@@ -3921,6 +4488,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "还没有对话记录"
+          }
+        }
+      }
+    },
+    "远程模型问答配额" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud AI Q&A quota"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云端AI问答配额"
           }
         }
       }
@@ -4091,10 +4675,17 @@
       }
     },
     "需要iOS %@或更高版本（当前：%@）" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
+            "value" : "Requires iOS %1$@ or later (Current: %2$@)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "需要iOS %1$@或更高版本（当前：%2$@）"
           }
         }
@@ -4135,7 +4726,21 @@
       }
     },
     "高性能智能模型" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "High-performance AI model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高性能智能模型"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

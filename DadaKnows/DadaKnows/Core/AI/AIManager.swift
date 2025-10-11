@@ -182,6 +182,14 @@ class AIManager: ObservableObject {
                 self.error = nil
             }
             
+            // Pro用户检查月度限制
+            if subscriptionManager.isProMember {
+                let canAsk = await subscriptionManager.canAskQuestion()
+                if !canAsk {
+                    throw AIError.monthlyLimitExceeded
+                }
+            }
+            
             // 检查是否有缓存的答案
             if let cachedAnswer = offlineManager.getCachedAnswer(
                 question: question,
@@ -464,6 +472,7 @@ enum AIError: LocalizedError {
     case streamingError
     case rateLimitExceeded
     case localModelNotAvailable
+    case monthlyLimitExceeded
     
     var errorDescription: String? {
         switch self {
@@ -474,9 +483,11 @@ enum AIError: LocalizedError {
         case .streamingError:
             return "Streaming response error"
         case .rateLimitExceeded:
-            return "Rate limit exceeded"
+            return NSLocalizedString("已达到使用限制，请稍后再试", comment: "")
         case .localModelNotAvailable:
             return NSLocalizedString("本地模型不可用，请切换到云端模型或等待模型下载完成", comment: "")
+        case .monthlyLimitExceeded:
+            return NSLocalizedString("您本月的3000次问答额度已用完，请下月再来或切换到本地模型使用。", comment: "")
         }
     }
 }

@@ -11,11 +11,11 @@
 | AI Chat | Gemini-powered answers, age-adaptive language, streaming responses |
 | Voice | Speech-to-text input, animated recording UI |
 | Offline | Local caching & offline queue |
-| Pro Subscription | Monthly / Yearly / Lifetime tiers via StoreKit 2 |
+| Pro Subscription | Monthly / Yearly / Lifetime tiers via StoreKit 2, **月度3000次限制** ⭐ |
 | Analytics | Progress charts, achievement badges |
 | Notifications | Daily study reminders, goal streaks |
 
-See [`docs/feature_completion_summary.md`](docs/feature_completion_summary.md) for the full delivered scope.
+**新功能**: Pro用户远程模型月度限制 - [查看详情](docs/monthly_usage_index.md)
 
 ---
 
@@ -105,8 +105,10 @@ Configuration keys are stored in `DadaKnows/Core/Config.swift` and `supabase/con
 | 脚本 | 功能 | 使用场景 |
 |------|------|----------|
 | [`deploy-supabase.sh`](scripts/deploy-supabase.sh) | 一键部署后端 | 初始化部署 |
+| [`deploy-monthly-usage.sh`](scripts/deploy-monthly-usage.sh) | 部署月度限制功能 | 新功能部署 ⭐ |
 | [`build-ios.sh`](scripts/build-ios.sh) | iOS构建验证 | 开发测试 |
 | [`test-ask-dada.sh`](scripts/test-ask-dada.sh) | 功能测试 | 部署验证 |
+| [`test-monthly-usage.sh`](scripts/test-monthly-usage.sh) | 月度限制测试 | 功能验证 ⭐ |
 | [`clean-simulator.sh`](scripts/clean-simulator.sh) | 清理缓存 | 问题排查 |
 | [`verify-model-urls.sh`](scripts/verify-model-urls.sh) | 验证模型URL | MLX开发 |
 

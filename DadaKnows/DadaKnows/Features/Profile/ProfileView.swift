@@ -250,28 +250,85 @@ struct ProfileView: View {
                 }
                 .buttonStyle(.plain)
             } else {
-                HStack {
-                    Image(systemName: "crown.fill")
-                        .foregroundColor(.appAccent)
-                        .frame(width: 24)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                                Text(NSLocalizedString("Pro会员", comment: ""))
-                            .font(.body)
-                            .fontWeight(.medium)
-                            .foregroundColor(.textPrimary)
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "crown.fill")
+                            .foregroundColor(.appAccent)
+                            .frame(width: 24)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                                    Text(NSLocalizedString("Pro会员", comment: ""))
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .foregroundColor(.textPrimary)
+                                    
+                                    Text(NSLocalizedString("享受完整功能体验", comment: ""))
+                                .font(.caption)
+                                .foregroundColor(.textSecondary)
+                                }
                                 
-                                Text(NSLocalizedString("享受完整功能体验", comment: ""))
+                                Spacer()
+                                
+                        Text(NSLocalizedString("已激活", comment: ""))
                             .font(.caption)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.statusSuccess)
+                    }
+                    
+                    // 月度使用情况 - 仅对使用云端模型的Pro用户显示
+                    if aiManager.useGeminiModel {
+                        Divider()
+                        
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(NSLocalizedString("本月剩余问答次数", comment: ""))
+                                    .font(.caption)
+                                    .foregroundColor(.textSecondary)
+                                
+                                HStack(spacing: 6) {
+                                    Text("\(subscriptionManager.monthlyRemaining)")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(subscriptionManager.monthlyRemaining > 500 ? .statusSuccess : 
+                                                        subscriptionManager.monthlyRemaining > 100 ? .orange : .statusError)
+                                    
+                                    Text("/ 3000")
+                                        .font(.subheadline)
+                                        .foregroundColor(.textSecondary)
+                                }
                             }
                             
                             Spacer()
                             
-                    Text(NSLocalizedString("已激活", comment: ""))
-                        .font(.caption)
-                        .foregroundColor(.statusSuccess)
+                            // 使用进度环
+                            ZStack {
+                                Circle()
+                                    .stroke(Color.fillSecondary, lineWidth: 4)
+                                    .frame(width: 40, height: 40)
+                                
+                                Circle()
+                                    .trim(from: 0, to: CGFloat(subscriptionManager.monthlyUsageCount) / 3000.0)
+                                    .stroke(
+                                        subscriptionManager.monthlyRemaining > 500 ? Color.statusSuccess : 
+                                        subscriptionManager.monthlyRemaining > 100 ? Color.orange : Color.statusError,
+                                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                                    )
+                                    .frame(width: 40, height: 40)
+                                    .rotationEffect(.degrees(-90))
+                                
+                                Text("\(Int((Double(subscriptionManager.monthlyUsageCount) / 3000.0) * 100))%")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundColor(.textSecondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
                 }
+            }
+        }
+        .task {
+            // 加载月度使用情况
+            if subscriptionManager.isProMember {
+                await subscriptionManager.fetchMonthlyUsage()
             }
         }
     }

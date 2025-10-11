@@ -38,6 +38,10 @@ struct Config {
     /// 注意：本地模型不受此限制
     static let dailyFreeQuestionLimit = 2
     
+    /// Pro用户每月远程模型使用次数限制
+    /// 注意：本地模型不受此限制
+    static let monthlyProQuestionLimit = 3000
+    
     // MARK: - Environment
     static let isDebug: Bool = {
         #if DEBUG

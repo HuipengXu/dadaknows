@@ -94,40 +94,40 @@ struct ModelSettingsView: View {
         } message: {
             Text(NSLocalizedString("cloud_model_requires_pro", comment: ""))
         }
-        .alert("确认删除", isPresented: $showingDeleteConfirmation) {
-            Button("删除", role: .destructive) {
+        .alert(NSLocalizedString("确认删除", comment: ""), isPresented: $showingDeleteConfirmation) {
+            Button(NSLocalizedString("删除", comment: ""), role: .destructive) {
                 Task {
                     await performDeleteModel()
                 }
             }
-            Button("取消", role: .cancel) { }
+            Button(NSLocalizedString("取消", comment: ""), role: .cancel) { }
         } message: {
-            Text("确定要删除本地模型吗？这将释放一定的存储空间，但下次使用时需要重新下载。")
+            Text(NSLocalizedString("确定要删除本地模型吗？这将释放一定的存储空间，但下次使用时需要重新下载。", comment: ""))
         }
-        .alert("删除失败", isPresented: $showingDeleteError) {
-            Button("确定") { }
+        .alert(NSLocalizedString("删除失败", comment: ""), isPresented: $showingDeleteError) {
+            Button(NSLocalizedString("确定", comment: "")) { }
         } message: {
             if let error = deleteError {
-                Text("删除模型时发生错误：\(error.localizedDescription)")
+                Text(String(format: NSLocalizedString("删除模型时发生错误：%@", comment: ""), error.localizedDescription))
             }
         }
-        .alert("下载失败", isPresented: $showingDownloadError) {
-            Button("确定") { }
+        .alert(NSLocalizedString("下载失败", comment: ""), isPresented: $showingDownloadError) {
+            Button(NSLocalizedString("确定", comment: "")) { }
         } message: {
             if let error = downloadError {
-                Text("下载模型时发生错误：\(error.localizedDescription)")
+                Text(String(format: NSLocalizedString("下载模型时发生错误：%@", comment: ""), error.localizedDescription))
             }
         }
-        .alert("后台下载", isPresented: $showingBackgroundDownloadInfo) {
-            Button("好的") { 
+        .alert(NSLocalizedString("后台下载", comment: ""), isPresented: $showingBackgroundDownloadInfo) {
+            Button(NSLocalizedString("好的", comment: "")) { 
                 dismiss()
             }
-            Button("留在此页") { }
+            Button(NSLocalizedString("留在此页", comment: "")) { }
         } message: {
             if localAIManager.modelStatus == .downloading {
-                Text("模型正在后台下载中。您可以关闭此页面，下载将继续进行。下载完成后模型将自动可用。")
+                Text(NSLocalizedString("模型正在后台下载中。您可以关闭此页面，下载将继续进行。下载完成后模型将自动可用。", comment: ""))
             } else {
-                Text("模型正在后台解压中。此过程会继续在后台进行，完成后模型将自动可用。")
+                Text(NSLocalizedString("模型正在后台解压中。此过程会继续在后台进行，完成后模型将自动可用。", comment: ""))
             }
         }
     }
@@ -198,11 +198,11 @@ struct ModelSettingsView: View {
                 // Status indicators
                 HStack(spacing: 12) {
                     if subscriptionManager.isProMember {
-                        Label(NSLocalizedString("always_updated", comment: ""), systemImage: "arrow.clockwise")
+                        Label(NSLocalizedString("pro用户月度3000次配额", comment: ""), systemImage: "crown.fill")
                             .font(.caption)
-                            .foregroundColor(.statusSuccess)
+                            .foregroundColor(.appAccent)
                     } else {
-                        Label("每天2次免费", systemImage: "number.circle")
+                        Label(NSLocalizedString("每天2次免费", comment: ""), systemImage: "number.circle")
                             .font(.caption)
                             .foregroundColor(.appAccent)
                     }
@@ -255,7 +255,7 @@ struct ModelSettingsView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.textPrimary)
                     
-                    Text("使用先进AI技术提供离线智能服务")
+                    Text(NSLocalizedString("local_model_description", comment: ""))
                         .font(.subheadline)
                         .foregroundColor(.textSecondary)
                         .multilineTextAlignment(.leading)
@@ -337,19 +337,19 @@ struct ModelSettingsView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             // 状态标题（只显示一行）
                             if localAIManager.modelStatus == .downloading {
-                                Text("正在下载... \(Int(min(1.0, max(0.0, localAIManager.downloadProgress)) * 100))%")
+                                Text(String(format: NSLocalizedString("正在下载... %lld%%", comment: ""), Int(min(1.0, max(0.0, localAIManager.downloadProgress)) * 100)))
                                     .foregroundColor(.textPrimary)
                                     .lineLimit(1)
                             } else if localAIManager.modelStatus == .paused {
-                                Text("下载已暂停 \(Int(min(1.0, max(0.0, localAIManager.downloadProgress)) * 100))%")
+                                Text(String(format: NSLocalizedString("下载已暂停 %lld%%", comment: ""), Int(min(1.0, max(0.0, localAIManager.downloadProgress)) * 100)))
                                     .foregroundColor(.orange)
                                     .lineLimit(1)
                             } else if localAIManager.modelStatus == .extracting {
-                                Text("正在解压...")
+                                Text(NSLocalizedString("正在解压...", comment: ""))
                                     .foregroundColor(.textPrimary)
                                     .lineLimit(1)
                             } else {
-                                Text("准备中...")
+                                Text(NSLocalizedString("准备中...", comment: ""))
                                     .foregroundColor(.textPrimary)
                                     .lineLimit(1)
                             }
@@ -380,10 +380,10 @@ struct ModelSettingsView: View {
                                 }
                             }) {
                                 if downloadManager.isPaused {
-                                    Label("继续", systemImage: "play.circle")
+                                    Label(NSLocalizedString("继续", comment: ""), systemImage: "play.circle")
                                         .font(.caption)
                                 } else {
-                                    Label("暂停", systemImage: "pause.circle")
+                                    Label(NSLocalizedString("暂停", comment: ""), systemImage: "pause.circle")
                                         .font(.caption)
                                 }
                             }
@@ -396,7 +396,7 @@ struct ModelSettingsView: View {
                                     await performCancelDownload()
                                 }
                             }) {
-                                Label("取消", systemImage: "xmark.circle")
+                                Label(NSLocalizedString("取消", comment: ""), systemImage: "xmark.circle")
                                     .font(.caption)
                             }
                             .buttonStyle(.bordered)
@@ -422,7 +422,7 @@ struct ModelSettingsView: View {
                                 .frame(width: 24)
                         }
                         
-                        Text(isDeletingModel ? "删除中..." : "删除本地模型")
+                        Text(isDeletingModel ? NSLocalizedString("删除中...", comment: "") : NSLocalizedString("删除本地模型", comment: ""))
                             .foregroundColor(isDeletingModel ? .textSecondary : .red)
                         
                         Spacer()
@@ -432,12 +432,12 @@ struct ModelSettingsView: View {
                 .disabled(isDeletingModel)
             }
         } header: {
-            Text("存储管理")
+            Text(NSLocalizedString("存储管理", comment: ""))
         } footer: {
             if localAIManager.modelStatus == .notDownloaded {
-                Text("模型文件存储在设备本地。首次使用需要下载模型文件，建议在WiFi环境下进行。")
+                Text(NSLocalizedString("storage_footer_not_downloaded", comment: ""))
             } else {
-                Text("模型文件已存储在设备本地。删除模型可释放存储空间。")
+                Text(NSLocalizedString("storage_footer_downloaded", comment: ""))
             }
         }
     }
@@ -453,10 +453,10 @@ struct ModelSettingsView: View {
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("本地AI模型")
+                    Text(NSLocalizedString("本地AI模型", comment: ""))
                         .foregroundColor(.textPrimary)
                     
-                    Text("高性能智能模型")
+                    Text(NSLocalizedString("高性能智能模型", comment: ""))
                         .font(.caption)
                         .foregroundColor(.textSecondary)
                 }
@@ -471,7 +471,7 @@ struct ModelSettingsView: View {
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("模型状态")
+                    Text(NSLocalizedString("模型状态", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Text(localAIManager.modelStatus.localizedDescription)
@@ -489,7 +489,7 @@ struct ModelSettingsView: View {
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("设备兼容性")
+                    Text(NSLocalizedString("设备兼容性", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     let status = localAIManager.getAvailabilityStatus()
@@ -501,9 +501,9 @@ struct ModelSettingsView: View {
                 Spacer()
             }
         } header: {
-            Text("模型信息")
+            Text(NSLocalizedString("模型信息", comment: ""))
             } footer: {
-                Text("使用专为儿童优化的AI模型。采用先进技术针对Apple设备深度优化，提供高性能本地智能服务。")
+                Text(NSLocalizedString("model_information_footer", comment: ""))
             }
     }
     

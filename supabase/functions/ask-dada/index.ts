@@ -4,6 +4,7 @@
  */
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { createGeminiClient } from '../_shared/gemini.ts';
 import { 
@@ -24,6 +25,7 @@ interface RequestBody {
     timestamp: string;
   }>;
   apiKey?: string;
+  userId?: string;
 }
 
 interface StreamChunk {
@@ -66,9 +68,61 @@ function validateRequest(body: any): { isValid: boolean; error?: string; data?: 
       language: body.language,
       previousAnswer: body.previousAnswer?.trim(),
       conversationHistory: body.conversationHistory,
-      apiKey: body.apiKey
+      apiKey: body.apiKey,
+      userId: body.userId
     }
   };
+}
+
+/**
+ * 检查用户的月度使用配额
+ */
+async function checkUsageLimit(supabase: any, userId: string): Promise<{ allowed: boolean; reason?: string }> {
+  try {
+    // 调用数据库函数检查使用限制
+    const { data, error } = await supabase.rpc('check_monthly_usage_limit', {
+      p_user_id: userId,
+      p_monthly_limit: 3000
+    });
+    
+    if (error) {
+      console.error('[Ask-Dada] Usage check error:', error);
+      // 如果检查失败，允许继续（降级处理）
+      return { allowed: true };
+    }
+    
+    if (!data.allowed) {
+      return {
+        allowed: false,
+        reason: data.is_pro 
+          ? 'Monthly usage limit exceeded. You have used all 3000 questions for this month.'
+          : 'Daily usage limit exceeded.'
+      };
+    }
+    
+    return { allowed: true };
+  } catch (error) {
+    console.error('[Ask-Dada] Usage check exception:', error);
+    // 如果检查失败，允许继续（降级处理）
+    return { allowed: true };
+  }
+}
+
+/**
+ * 增加用户的使用次数
+ */
+async function incrementUsage(supabase: any, userId: string): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('increment_remote_usage', {
+      p_user_id: userId
+    });
+    
+    if (error) {
+      console.error('[Ask-Dada] Increment usage error:', error);
+    }
+  } catch (error) {
+    console.error('[Ask-Dada] Increment usage exception:', error);
+  }
 }
 
 /**
@@ -115,6 +169,17 @@ serve(async (req) => {
   }
   
   try {
+    // 获取环境变量
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing Supabase configuration');
+    }
+    
+    // 创建Supabase客户端（使用service role key以绕过RLS）
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
     // 解析请求体
     const body = await req.json();
     
@@ -130,7 +195,24 @@ serve(async (req) => {
       );
     }
     
-    const { question, age, language, previousAnswer, conversationHistory, apiKey } = validation.data!;
+    const { question, age, language, previousAnswer, conversationHistory, apiKey, userId } = validation.data!;
+    
+    // 如果提供了userId，检查使用配额
+    if (userId) {
+      const usageCheck = await checkUsageLimit(supabase, userId);
+      if (!usageCheck.allowed) {
+        return new Response(
+          JSON.stringify({ 
+            error: usageCheck.reason || 'Usage limit exceeded',
+            code: 'USAGE_LIMIT_EXCEEDED'
+          }), 
+          { 
+            status: 429, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    }
     
     // 验证问题安全性
     const safetyCheck = validateQuestionSafety(question, language);
@@ -174,6 +256,11 @@ serve(async (req) => {
         
         // 记录请求（调试用）
         console.log(`[Ask-Dada] Processing question for ${age}-year-old in ${language}:`, question.substring(0, 50) + '...');
+        
+        // 增加使用次数（在开始生成回答之前）
+        if (userId) {
+          await incrementUsage(supabase, userId);
+        }
         
         // 流式生成回答
         const responseGenerator = geminiClient.generateStreamResponse(prompt);

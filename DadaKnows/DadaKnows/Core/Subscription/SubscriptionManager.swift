@@ -129,9 +129,7 @@ class SubscriptionManager: ObservableObject {
         self.isProMember = false
         self.subscriptionStatus = .inactive
         saveSubscriptionStatus()
-        return
-        #endif
-        
+        #else
         var hasActiveSubscription = false
         var currentProducts: [Product] = []
         
@@ -161,6 +159,7 @@ class SubscriptionManager: ObservableObject {
         
         // 保存订阅状态
         saveSubscriptionStatus()
+        #endif
     }
     
     private func updateSubscriptionStatus(for transaction: Transaction) async {
@@ -227,6 +226,10 @@ class SubscriptionManager: ObservableObject {
 
     // MARK: - Usage Tracking
     
+    @Published var monthlyRemaining: Int = Config.monthlyProQuestionLimit
+    @Published var monthlyUsageCount: Int = 0
+    private let monthlyLimit = Config.monthlyProQuestionLimit
+    
     private var dailyQuestionCount: Int {
         get {
             let today = Calendar.current.startOfDay(for: Date())
@@ -246,32 +249,91 @@ class SubscriptionManager: ObservableObject {
         }
     }
     
-    func canAskQuestion() -> Bool {
-        if isProMember {
-            return true
-        }
-        
+    /// 检查是否可以提问（考虑日限制和月限制）
+    func canAskQuestion() async -> Bool {
         // 如果正在使用端侧模型，则不限制使用次数
         if AIManager.shared.isUsingOnDeviceModel {
             return true
         }
         
+        // Pro用户需要检查月度限制
+        if isProMember {
+            await fetchMonthlyUsage()
+            return monthlyUsageCount < monthlyLimit
+        }
+        
+        // 免费用户检查日限制
         return dailyQuestionCount < Config.dailyFreeQuestionLimit
     }
     
+    /// 同步版本的检查（用于快速UI判断）
+    func canAskQuestionSync() -> Bool {
+        // 如果正在使用端侧模型，则不限制使用次数
+        if AIManager.shared.isUsingOnDeviceModel {
+            return true
+        }
+        
+        // Pro用户检查月度限制（使用缓存值）
+        if isProMember {
+            return monthlyUsageCount < monthlyLimit
+        }
+        
+        // 免费用户检查日限制
+        return dailyQuestionCount < Config.dailyFreeQuestionLimit
+    }
+    
+    /// 增加使用次数（仅用于免费用户的日计数）
     func incrementQuestionCount() {
         if !isProMember {
             dailyQuestionCount += 1
         }
     }
     
+    /// 获取剩余提问次数
     func getRemainingQuestions() -> Int? {
-        if isProMember {
-            return nil // 无限制
+        // 如果正在使用端侧模型，返回无限制
+        if AIManager.shared.isUsingOnDeviceModel {
+            return nil
         }
         
+        if isProMember {
+            // Pro用户返回月度剩余次数
+            return max(0, monthlyLimit - monthlyUsageCount)
+        }
+        
+        // 免费用户返回日剩余次数
         let limit = Config.dailyFreeQuestionLimit
         return max(0, limit - dailyQuestionCount)
+    }
+    
+    /// 从服务器获取月度使用情况
+    func fetchMonthlyUsage() async {
+        guard isProMember else { return }
+        
+        // 获取当前用户ID
+        guard let userId = SupabaseClient.shared.getCurrentUserId() else {
+            if Config.isDebug {
+                print("⚠️ SubscriptionManager: 无法获取用户ID")
+            }
+            return
+        }
+        
+        do {
+            let result = try await SupabaseClient.shared.checkMonthlyUsage(userId: userId)
+            
+            await MainActor.run {
+                self.monthlyUsageCount = result.currentUsage
+                self.monthlyRemaining = result.remaining
+            }
+            
+            if Config.isDebug {
+                print("📊 SubscriptionManager: 月度使用情况 - \(result.currentUsage)/\(monthlyLimit) (剩余: \(result.remaining))")
+            }
+        } catch {
+            if Config.isDebug {
+                print("❌ SubscriptionManager: 获取月度使用情况失败 - \(error)")
+            }
+        }
     }
     
     // MARK: - Product Helper Methods

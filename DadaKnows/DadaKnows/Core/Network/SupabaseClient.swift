@@ -236,6 +236,11 @@ class SupabaseClient: ObservableObject {
                         parameters["previousAnswer"] = previousAnswer
                     }
                     
+                    // 添加用户ID（如果可用）
+                    if let userId = await MainActor.run(body: { self.getCurrentUserId() }) {
+                        parameters["userId"] = userId
+                    }
+                    
                     // 添加对话历史
                     if let conversationHistory = conversationHistory, !conversationHistory.isEmpty {
                         let historyData = conversationHistory.map { message in
@@ -359,6 +364,49 @@ class SupabaseClient: ObservableObject {
         }
     }
     
+    // MARK: - Usage Tracking
+    struct MonthlyUsageResult {
+        let allowed: Bool
+        let isPro: Bool
+        let currentUsage: Int
+        let limit: Int
+        let remaining: Int
+    }
+    
+    /// 检查用户的月度使用配额
+    func checkMonthlyUsage(userId: String) async throws -> MonthlyUsageResult {
+        struct UsageResponse: Codable {
+            let allowed: Bool
+            let is_pro: Bool
+            let current_usage: Int
+            let limit: Int
+            let remaining: Int
+        }
+        
+        struct RPCParams: Encodable {
+            let p_user_id: String
+            let p_monthly_limit: Int
+        }
+        
+        let params = RPCParams(
+            p_user_id: userId,
+            p_monthly_limit: 3000
+        )
+        
+        let response: UsageResponse = try await supabase
+            .rpc("check_monthly_usage_limit", params: params)
+            .execute()
+            .value
+        
+        return MonthlyUsageResult(
+            allowed: response.allowed,
+            isPro: response.is_pro,
+            currentUsage: response.current_usage,
+            limit: response.limit,
+            remaining: response.remaining
+        )
+    }
+    
     // MARK: - Helper Methods
     @MainActor
     private func getCurrentUser() -> User? {
@@ -367,8 +415,8 @@ class SupabaseClient: ObservableObject {
     }
     
     @MainActor
-    private func getCurrentUserId() -> String {
-        return getCurrentUser()?.id.uuidString ?? ""
+    func getCurrentUserId() -> String? {
+        return getCurrentUser()?.id.uuidString
     }
 }
 

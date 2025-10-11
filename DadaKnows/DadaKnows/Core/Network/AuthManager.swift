@@ -453,6 +453,8 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
                 completion(.failure(AuthError.notHandled))
             case .unknown:
                 completion(.failure(AuthError.unknownError))
+            case .notInteractive:
+                completion(.failure(AuthError.unknownError))
             @unknown default:
                 completion(.failure(error))
             }

@@ -178,7 +178,7 @@ struct ChatView: View {
     private var canSendQuestion: Bool {
         !currentQuestion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !aiManager.isLoading &&
-        subscriptionManager.canAskQuestion()
+        subscriptionManager.canAskQuestionSync()
     }
     
     private func sendQuestion() {

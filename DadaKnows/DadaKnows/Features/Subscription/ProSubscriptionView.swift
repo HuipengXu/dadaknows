@@ -269,9 +269,9 @@ struct ProSubscriptionView: View {
                 GridItem(.flexible())
             ], spacing: 16) {
                 FeatureCard(
-                    icon: "infinity",
-                    title: NSLocalizedString("unlimited_questions", comment: ""),
-                    description: NSLocalizedString("break_daily_limits", comment: ""),
+                    icon: "cloud.fill",
+                    title: NSLocalizedString("月度3000次", comment: ""),
+                    description: NSLocalizedString("远程模型问答配额", comment: ""),
                     color: .blue
                 )
                 
