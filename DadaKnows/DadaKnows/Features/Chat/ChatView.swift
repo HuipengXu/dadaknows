@@ -405,7 +405,7 @@ struct InputAreaView: View {
     @Binding var currentQuestion: String
     let canSendQuestion: Bool
     let onSendQuestion: () -> Void
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Text input
@@ -421,7 +421,19 @@ struct InputAreaView: View {
                         .fill(Color.backgroundSecondary)
                         .stroke(Color.separator, lineWidth: 1)
                 )
-            
+
+            // Voice input button
+            VoiceInputButton(
+                onVoiceInputUpdate: { text in
+                    // 实时更新输入框内容
+                    currentQuestion = text
+                },
+                onError: { error in
+                    // 可以在这里显示错误提示，比如Toast
+                    print("Voice error: \(error)")
+                }
+            )
+
             // Send button
             Button(action: onSendQuestion) {
                 Image(systemName: "arrow.up.circle.fill")

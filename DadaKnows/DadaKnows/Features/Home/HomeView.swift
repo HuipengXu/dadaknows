@@ -101,7 +101,18 @@ struct HomeView: View {
                     .lineLimit(5...8)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
-                
+
+                // Voice input button
+                VoiceInputButton(
+                    onVoiceInputUpdate: { text in
+                        // 实时更新输入框内容
+                        question = text
+                    },
+                    onError: { error in
+                        // 可以在这里显示错误提示，比如Toast
+                        print("Voice error: \(error)")
+                    }
+                )
             }
             .background(
                 RoundedRectangle(cornerRadius: 16)

@@ -653,8 +653,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
 			requirement = {
-				kind = branch;
 				branch = main;
+				kind = branch;
 			};
 		};
 		72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
