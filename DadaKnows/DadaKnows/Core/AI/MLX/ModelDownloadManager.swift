@@ -42,18 +42,24 @@ class ModelDownloadManager: NSObject, ObservableObject {
     @Published var isPaused = false
     
     // MARK: - Private Properties
-    
+
     private var urlSession: URLSession!
     private let storageManager = MLXStorageManager.shared
-    
+
     /// 当前下载任务映射 (文件名 -> 下载任务)
     private var downloadTasks: [String: URLSessionDownloadTask] = [:]
-    
+
     /// 已下载的文件列表
     private var downloadedFiles: Set<String> = []
-    
+
     /// 文件下载进度 (文件名 -> 进度)
     private var fileProgress: [String: Double] = [:]
+
+    /// 文件下载字节数 (文件名 -> 已下载字节数)
+    private var fileDownloadedBytes: [String: Int64] = [:]
+
+    /// 总下载字节数（用于基于字节数的真实进度计算）
+    private var totalDownloadedBytes: Int64 = 0
     
     /// 恢复数据持久化键前缀
     private let resumeDataKeyPrefix = "com.dadaknows.model.resumeData."
@@ -213,6 +219,7 @@ class ModelDownloadManager: NSObject, ObservableObject {
         isPaused = false
         downloadProgress = 0.0
         fileProgress.removeAll()
+        fileDownloadedBytes.removeAll()
         statusMessage = "下载已取消"
         
         if Config.isDebug {
@@ -230,7 +237,7 @@ class ModelDownloadManager: NSObject, ObservableObject {
     private func startDownloadingFiles() async {
         // 获取需要下载的文件列表（排除已下载的）
         let filesToDownload = ModelConfig.modelFiles.filter { !downloadedFiles.contains($0.name) }
-        
+
         if filesToDownload.isEmpty {
             if Config.isDebug {
                 print("✅ ModelDownload: 所有文件已下载")
@@ -238,18 +245,24 @@ class ModelDownloadManager: NSObject, ObservableObject {
             await downloadCompleted()
             return
         }
-        
+
+        // 按文件大小从大到小排序，优先下载大文件
+        let sortedFilesToDownload = filesToDownload.sorted { $0.size > $1.size }
+
         if Config.isDebug {
-            print("📥 ModelDownload: 需要下载 \(filesToDownload.count) 个文件")
+            print("📥 ModelDownload: 需要下载 \(filesToDownload.count) 个文件（按大小从大到小排序）")
+            printDownloadedFilesStatus()
+            printFilesToDownloadStatus(sortedFilesToDownload)
         }
-        
-        // 初始化文件进度
-        for file in filesToDownload {
+
+        // 初始化文件进度和字节数跟踪
+        for file in sortedFilesToDownload {
             fileProgress[file.name] = 0.0
+            fileDownloadedBytes[file.name] = 0
         }
-        
+
         // 开始下载每个文件
-        for file in filesToDownload {
+        for file in sortedFilesToDownload {
             await startDownloadingFile(file)
         }
     }
@@ -281,16 +294,31 @@ class ModelDownloadManager: NSObject, ObservableObject {
                 throw ModelError.modelNotFound
             }
             
-            if Config.isDebug {
-                print("📥 ModelDownload: \(fileName) 下载完成，开始校验")
+            // 更新状态：显示正在校验
+            let fileSizeMB = Double(fileConfig.size) / (1024 * 1024)
+            if fileSizeMB > 100 {  // 大于100MB的文件显示校验进度
+                statusMessage = "正在校验 \(fileName)..."
             }
             
-            // 校验文件
-            try verifyChecksum(fileURL: tempLocation, expectedChecksum: fileConfig.sha256)
+            if Config.isDebug {
+                print("📥 ModelDownload: \(fileName) 下载完成，开始校验 (\(String(format: "%.1f", fileSizeMB)) MB)")
+            }
+            
+            // 在后台线程执行校验（避免阻塞主线程）
+            // 由于 verifyChecksum 是 nonisolated，可以直接在后台线程调用
+            try await Task.detached(priority: .userInitiated) { [tempLocation, expectedChecksum = fileConfig.sha256] in
+                // 创建临时实例来调用 nonisolated 方法
+                // 注意：这里不能直接使用 self，因为 self 是 MainActor
+                // 所以我们需要创建一个非隔离的辅助函数
+                return try Self.verifyChecksumStatic(fileURL: tempLocation, expectedChecksum: expectedChecksum)
+            }.value
             
             if Config.isDebug {
                 print("✅ ModelDownload: \(fileName) 校验通过")
             }
+            
+            // 更新状态：显示正在保存
+            statusMessage = "正在保存 \(fileName)..."
             
             // 移动到最终位置
             let finalURL = storageManager.modelDirectory.appendingPathComponent(fileName)
@@ -307,8 +335,10 @@ class ModelDownloadManager: NSObject, ObservableObject {
                 try fileManager.removeItem(at: finalURL)
             }
             
-            // 移动文件
-            try fileManager.moveItem(at: tempLocation, to: finalURL)
+            // 移动文件（在后台线程执行，避免阻塞）
+            try await Task.detached(priority: .userInitiated) {
+                try FileManager.default.moveItem(at: tempLocation, to: finalURL)
+            }.value
             
             if Config.isDebug {
                 print("✅ ModelDownload: \(fileName) 已保存到最终位置")
@@ -321,9 +351,27 @@ class ModelDownloadManager: NSObject, ObservableObject {
             // 清理该文件的恢复数据
             clearResumeData(for: fileName)
             
-            // 移除任务和进度记录
+            // 移除任务记录，清理已下载文件的进度避免重复计算
             downloadTasks.removeValue(forKey: fileName)
             fileProgress.removeValue(forKey: fileName)
+            fileDownloadedBytes.removeValue(forKey: fileName)  // 移除已下载文件的字节计数，避免在updateOverallProgress中重复计算
+
+            // 更新进度状态消息
+            let totalFiles = ModelConfig.modelFiles.count
+            let completedFiles = downloadedFiles.count
+            let completedSizeBytes = ModelConfig.modelFiles
+                .filter { downloadedFiles.contains($0.name) }
+                .reduce(0) { $0 + $1.size }
+            let completedSizeMB = completedSizeBytes / (1024 * 1024)
+            let totalSizeMB = ModelConfig.totalSize / (1024 * 1024)
+            let percentInt = Int(Double(completedSizeBytes) / Double(ModelConfig.totalSize) * 100)
+            statusMessage = "正在处理 \(fileName)... (\(completedFiles)/\(totalFiles) 文件, \(percentInt)%, \(completedSizeMB)MB/\(totalSizeMB)MB)"
+            
+            if Config.isDebug {
+                print("📊 ModelDownload: 正在处理 \(fileName) (\(completedFiles)/\(totalFiles) 文件)")
+                print("🎯 ModelDownload: 文件 \(fileName) 已完成，更新已下载列表:")
+                printDownloadedFilesStatus()
+            }
             
             // 检查是否所有文件都已下载
             if downloadedFiles.count == ModelConfig.modelFiles.count {
@@ -351,6 +399,8 @@ class ModelDownloadManager: NSObject, ObservableObject {
         
         if Config.isDebug {
             print("🎉 ModelDownload: 所有文件下载完成！")
+            print("📋 ModelDownload: 最终已下载文件列表:")
+            printDownloadedFilesStatus()
             storageManager.printStorageStatus()
         }
     }
@@ -454,34 +504,176 @@ class ModelDownloadManager: NSObject, ObservableObject {
         }
     }
     
+    /// 静态辅助函数：在后台线程执行校验
+    /// - Parameters:
+    ///   - fileURL: 文件URL
+    ///   - expectedChecksum: 期望的校验和
+    /// - Throws: 校验失败时抛出错误
+    nonisolated private static func verifyChecksumStatic(fileURL: URL, expectedChecksum: String) throws {
+        let actualChecksum = try calculateSHA256Static(fileURL: fileURL)
+        
+        if actualChecksum.lowercased() != expectedChecksum.lowercased() {
+            if Config.isDebug {
+                print("""
+                    ❌ ModelDownload: SHA256 校验失败
+                       期望: \(expectedChecksum)
+                       实际: \(actualChecksum)
+                    """)
+            }
+            throw ModelError.checksumMismatch(
+                expected: expectedChecksum,
+                actual: actualChecksum
+            )
+        }
+    }
+    
+    /// 静态辅助函数：计算文件的 SHA256 校验和
+    /// - Parameter fileURL: 文件URL
+    /// - Returns: SHA256 十六进制字符串
+    nonisolated private static func calculateSHA256Static(fileURL: URL) throws -> String {
+        let bufferSize = 1024 * 1024 // 1MB buffer
+        
+        guard let fileHandle = try? FileHandle(forReadingFrom: fileURL) else {
+            throw ModelError.verificationFailed("无法打开文件进行校验")
+        }
+        
+        defer {
+            try? fileHandle.close()
+        }
+        
+        var hasher = SHA256()
+        
+        // 分块读取文件计算哈希（避免大文件占用过多内存）
+        while autoreleasepool(invoking: {
+            let data = fileHandle.readData(ofLength: bufferSize)
+            if data.isEmpty {
+                return false
+            }
+            hasher.update(data: data)
+            return true
+        }) {}
+        
+        let hash = hasher.finalize()
+        let hashString = hash.compactMap { String(format: "%02x", $0) }.joined()
+        
+        return hashString
+    }
+    
     // MARK: - Private Methods - Progress Calculation
     
     /// 更新总体下载进度
     private func updateOverallProgress() {
-        let totalFiles = ModelConfig.modelFiles.count
-        let completedFiles = downloadedFiles.count
-        
-        // 计算当前正在下载的文件的进度总和
-        let currentProgress = fileProgress.values.reduce(0.0, +)
-        
-        // 总进度 = (已完成文件数 + 当前下载进度总和) / 总文件数
-        // 确保进度不超过 1.0 (100%)
-        let overall = min(1.0, (Double(completedFiles) + currentProgress) / Double(totalFiles))
+        // 计算已完成文件的总大小
+        let completedSizeBytes = ModelConfig.modelFiles
+            .filter { downloadedFiles.contains($0.name) }
+            .reduce(0) { $0 + $1.size }
+
+        // 计算正在下载文件的总大小
+        let inProgressSizeBytes = ModelConfig.modelFiles
+            .filter { file in
+                !downloadedFiles.contains(file.name) && (fileDownloadedBytes[file.name] ?? 0) > 0
+            }
+            .reduce(0) { $0 + $1.size }
+
+        // 获取当前已下载的总字节数（包括已完成和正在下载的）
+        let currentDownloadedBytes = completedSizeBytes + fileDownloadedBytes.values.reduce(0, +)
+
+        // 基于总字节数计算真实进度
+        let overall = min(1.0, Double(currentDownloadedBytes) / Double(ModelConfig.totalSize))
         downloadProgress = overall
-        
+
         // 更新状态消息
         let percentInt = Int(overall * 100)
-        statusMessage = "正在下载... \(percentInt)% (\(completedFiles)/\(totalFiles) 文件)"
-        
-        // 调试日志
-        if Config.isDebug && percentInt % 5 == 0 && percentInt != lastLoggedPercent {
+        let downloadedMB = currentDownloadedBytes / (1024 * 1024)
+        let totalMB = ModelConfig.totalSize / (1024 * 1024)
+        statusMessage = "正在下载... \(percentInt)% (\(downloadedMB)MB/\(totalMB)MB)"
+
+        // 调试日志 - 只在进度百分比变化时才打印
+        if Config.isDebug && percentInt != lastLoggedPercent {
             lastLoggedPercent = percentInt
-            print("📥 ModelDownload: 总进度 \(percentInt)% (\(completedFiles)/\(totalFiles) 文件)")
+            let completedFiles = downloadedFiles.count
+            let inProgressFiles = ModelConfig.modelFiles.filter { file in
+                !downloadedFiles.contains(file.name) && (fileProgress[file.name] ?? 0) > 0
+            }
+            print("📥 ModelDownload: 总进度 \(percentInt)% (\(downloadedMB)MB/\(totalMB)MB) [已完成: \(completedFiles), 下载中: \(inProgressFiles.count)]")
+
+            // 每25%打印一次详细状态快照
+            if percentInt % 25 == 0 {
+                printCurrentDownloadSnapshot()
+            }
         }
     }
     
+    // MARK: - Private Methods - Debug Status Printing
+
+    /// 打印已下载文件状态
+    private func printDownloadedFilesStatus() {
+        if downloadedFiles.isEmpty {
+            print("   ✅ 已下载文件: 无")
+        } else {
+            print("   ✅ 已下载文件 (\(downloadedFiles.count)/\(ModelConfig.modelFiles.count)):")
+            for fileName in downloadedFiles.sorted() {
+                if let fileConfig = ModelConfig.modelFiles.first(where: { $0.name == fileName }) {
+                    let sizeFormatted = ByteCountFormatter.string(fromByteCount: fileConfig.size, countStyle: .file)
+                    print("      ✓ \(fileName) (\(sizeFormatted))")
+                }
+            }
+        }
+    }
+
+    /// 打印待下载文件状态
+    private func printFilesToDownloadStatus(_ files: [ModelFile]) {
+        if files.isEmpty {
+            print("   📝 待下载文件: 无")
+        } else {
+            print("   📝 待下载文件 (\(files.count)/\(ModelConfig.modelFiles.count)):")
+            for file in files.sorted(by: { $0.name < $1.name }) {
+                let sizeFormatted = ByteCountFormatter.string(fromByteCount: file.size, countStyle: .file)
+                print("      ⬇️ \(file.name) (\(sizeFormatted))")
+            }
+        }
+    }
+
+    /// 打印当前下载状态快照
+    private func printCurrentDownloadSnapshot() {
+        let totalFiles = ModelConfig.modelFiles.count
+        let completedFiles = downloadedFiles.count
+        let progress = downloadProgress
+
+        // 计算已下载字节数
+        let completedSizeBytes = ModelConfig.modelFiles
+            .filter { downloadedFiles.contains($0.name) }
+            .reduce(0) { $0 + $1.size }
+        let currentDownloadedBytes = completedSizeBytes + fileDownloadedBytes.values.reduce(0, +)
+        let downloadedMB = currentDownloadedBytes / (1024 * 1024)
+        let totalMB = ModelConfig.totalSize / (1024 * 1024)
+
+        print("📸 ModelDownload: 状态快照")
+        print("   进度: \(Int(progress * 100))% (\(downloadedMB)MB/\(totalMB)MB, \(completedFiles)/\(totalFiles) 文件)")
+        print("   状态: \(statusMessage)")
+
+        if !downloadedFiles.isEmpty {
+            print("   已完成: \(downloadedFiles.sorted().joined(separator: ", "))")
+        }
+
+        let inProgressFiles = ModelConfig.modelFiles.filter { file in
+            !downloadedFiles.contains(file.name) && (fileProgress[file.name] ?? 0) > 0
+        }
+
+        if !inProgressFiles.isEmpty {
+            print("   下载中:")
+            for file in inProgressFiles {
+                let fileProgress = Int((self.fileProgress[file.name] ?? 0) * 100)
+                let downloadedBytes = self.fileDownloadedBytes[file.name] ?? 0
+                let downloadedMB = downloadedBytes / (1024 * 1024)
+                let totalMB = file.size / (1024 * 1024)
+                print("      🔄 \(file.name): \(fileProgress)% (\(downloadedMB)MB/\(totalMB)MB)")
+            }
+        }
+    }
+
     // MARK: - Private Methods - Error Handling
-    
+
     private func setError(_ error: ModelError) async {
         self.error = error
         isDownloading = false
@@ -559,10 +751,11 @@ extension ModelDownloadManager: URLSessionDownloadDelegate {
         guard let fileName = getFileName(from: downloadTask) else {
             return
         }
-        
+
         Task { @MainActor in
             let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
             fileProgress[fileName] = progress
+            fileDownloadedBytes[fileName] = totalBytesWritten
             updateOverallProgress()
         }
     }
@@ -577,11 +770,13 @@ extension ModelDownloadManager: URLSessionDownloadDelegate {
         guard let fileName = getFileName(from: downloadTask) else {
             return
         }
-        
+
         Task { @MainActor in
             let progress = Double(fileOffset) / Double(expectedTotalBytes)
             fileProgress[fileName] = progress
-            
+            fileDownloadedBytes[fileName] = fileOffset
+            updateOverallProgress()
+
             if Config.isDebug {
                 print("🔄 ModelDownload: \(fileName) 从 \(fileOffset) 字节恢复")
             }

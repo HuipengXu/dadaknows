@@ -646,15 +646,15 @@
 			repositoryURL = "https://github.com/ml-explore/mlx-swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.25.6;
+				minimumVersion = 0.25.5;
 			};
 		};
 		72201E402E85927E000AB25E /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.25.7;
+				kind = branch;
+				branch = main;
 			};
 		};
 		72F855E42E6B3748003C290C /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
