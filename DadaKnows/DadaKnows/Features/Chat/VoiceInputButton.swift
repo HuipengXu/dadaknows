@@ -51,13 +51,13 @@ struct VoiceInputButton: View {
             }
         }
         .buttonStyle(VoiceButtonStyle(isRecording: speechManager.isRecording))
-        .alert("语音识别权限", isPresented: $showingPermissionAlert) {
-            Button("取消", role: .cancel) { }
-            Button("去设置") {
+        .alert(NSLocalizedString("voice_recognition_permission", comment: ""), isPresented: $showingPermissionAlert) {
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
+            Button(NSLocalizedString("go_to_settings", comment: "")) {
                 openAppSettings()
             }
         } message: {
-            Text("需要麦克风和语音识别权限才能使用语音输入功能。请在设置中允许访问。")
+            Text(NSLocalizedString("voice_permission_message", comment: ""))
         }
         .onChange(of: speechManager.recognizedText) { _, newText in
             // 实时更新输入框内容

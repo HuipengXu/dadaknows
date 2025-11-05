@@ -11,7 +11,7 @@ struct LoadingView: View {
     let message: String
     @State private var rotationAngle: Double = 0
     
-    init(message: String = "加载中...") {
+    init(message: String = NSLocalizedString("loading", comment: "")) {
         self.message = message
     }
     

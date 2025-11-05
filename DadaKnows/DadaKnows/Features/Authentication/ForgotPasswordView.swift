@@ -45,7 +45,7 @@ struct ForgotPasswordView: View {
                     // Email input
                     VStack(spacing: 20) {
                         CustomTextField(
-                            title: "邮箱地址",
+                            title: LocalizedStringKey("邮箱地址"),
                             text: $email,
                             keyboardType: .emailAddress
                         )

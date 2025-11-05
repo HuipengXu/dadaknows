@@ -216,7 +216,7 @@ class AIManager: ObservableObject {
                     language: language
                 )
                 
-                let offlineMessage = "您当前处于离线状态。这个问题已经保存，我们会在网络恢复后为您处理。现在您可以浏览一些离线内容！"
+                let offlineMessage = NSLocalizedString("offline_message", comment: "")
                 continuation.yield(offlineMessage)
                 continuation.finish()
                 return
@@ -336,34 +336,34 @@ class AIManager: ObservableObject {
         if let nsError = error as NSError? {
             switch nsError.code {
             case 401:
-                return "认证失败，请检查网络连接或稍后重试。"
+                return NSLocalizedString("认证失败，请检查网络连接或稍后重试。", comment: "")
             case 403:
-                return "访问被拒绝，可能是API配额已用完。"
+                return NSLocalizedString("访问被拒绝，可能是API配额已用完。", comment: "")
             case 404:
-                return "服务暂时不可用，请稍后重试。"
+                return NSLocalizedString("服务暂时不可用，请稍后重试。", comment: "")
             case 429:
-                return "请求过于频繁，请稍等片刻再试。"
+                return NSLocalizedString("请求过于频繁，请稍等片刻再试。", comment: "")
             case 500...599:
-                return "服务器暂时出现问题，请稍后重试。"
+                return NSLocalizedString("服务器暂时出现问题，请稍后重试。", comment: "")
             case -1009:
-                return "网络连接已断开，请检查网络设置。"
+                return NSLocalizedString("网络连接已断开，请检查网络设置。", comment: "")
             case -1001:
-                return "请求超时，请检查网络连接。"
+                return NSLocalizedString("请求超时，请检查网络连接。", comment: "")
             default:
                 break
             }
         }
-        
+
         let errorDescription = error.localizedDescription.lowercased()
         if errorDescription.contains("network") || errorDescription.contains("internet") {
-            return "网络连接出现问题，请检查网络设置后重试。"
+            return NSLocalizedString("网络连接出现问题，请检查网络设置后重试。", comment: "")
         } else if errorDescription.contains("timeout") {
-            return "请求超时，请稍后重试。"
+            return NSLocalizedString("请求超时，请稍后重试。", comment: "")
         } else if errorDescription.contains("json") || errorDescription.contains("decode") {
-            return "数据解析出现问题，请稍后重试。"
+            return NSLocalizedString("数据解析出现问题，请稍后重试。", comment: "")
         }
-        
-        return "抱歉，出现了一些问题，请稍后重试。如果问题持续，请联系客服。"
+
+        return NSLocalizedString("抱歉，出现了一些问题，请稍后重试。如果问题持续，请联系客服。", comment: "")
     }
 }
 
