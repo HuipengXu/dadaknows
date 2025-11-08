@@ -969,6 +969,23 @@
         }
       }
     },
+    "continue_with_apple" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue with Apple"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Apple 登录"
+          }
+        }
+      }
+    },
     "global_quality_content" : {
       "extractionState" : "manual",
       "localizations" : {

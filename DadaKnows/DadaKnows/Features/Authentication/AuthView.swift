@@ -78,8 +78,9 @@ struct AuthView: View {
                                 } else {
                                     Image("GoogleLogo")
                                         .resizable()
+                                        .renderingMode(.original)
                                         .aspectRatio(contentMode: .fit)
-                                        .frame(width: 28, height: 28)
+                                        .frame(width: 18, height: 18)
                                 }
 
                                 Text("continue_with_google")
@@ -92,27 +93,34 @@ struct AuthView: View {
                             .cornerRadius(8)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.black.opacity(0.15), lineWidth: 0.8)
+                                    .stroke(Color.black.opacity(0.15), lineWidth: 1)
                             )
                         }
                         .disabled(authManager.isGoogleLoading)
                         .opacity(authManager.isGoogleLoading ? 0.6 : 1.0)
 
-                        // Apple Sign In Button
+                        // Apple Sign In Button - 自定义按钮确保一致性
                         if #available(iOS 13.0, *) {
-                            SignInWithAppleButton(
-                                .continue,
-                                onRequest: { request in
-                                    request.requestedScopes = [.fullName, .email]
-                                },
-                                onCompletion: { result in
-                                    handleAppleSignInResult(result)
+                            Button(action: handleAppleSignIn) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "apple.logo")
+                                        .font(.system(size: 20, weight: .medium))
+                                        .foregroundColor(.black)
+
+                                    Text("continue_with_apple")
+                                        .font(.system(size: 17, weight: .medium))
+                                        .foregroundColor(.black)
                                 }
-                            )
-                            .signInWithAppleButtonStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .cornerRadius(8)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(Color.white)
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.black.opacity(0.15), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding(.horizontal, 25)
@@ -136,10 +144,6 @@ struct AuthView: View {
 
                     // Email input section - 带右箭头按钮
                     VStack(spacing: 16) {
-                        Text("email_input_title")
-                            .font(.headline)
-                            .foregroundColor(.textPrimary)
-
                         HStack(spacing: 0) {
                             TextField("email_placeholder", text: $email)
                                 .keyboardType(.emailAddress)
