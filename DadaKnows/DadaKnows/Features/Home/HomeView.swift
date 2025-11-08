@@ -66,17 +66,8 @@ struct HomeView: View {
     // MARK: - Welcome Section
     private var welcomeSection: some View {
         VStack(spacing: 16) {
-            // App icon or character
-            ZStack {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Color.appPrimary)
-                    .frame(width: 100, height: 100)
-                    .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
-                
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 40, weight: .medium))
-                    .foregroundColor(.white)
-            }
+            // App logo - DadaKnows brand
+            DLogoView.large
             
             VStack(spacing: 8) {
                 Text(NSLocalizedString("你好，我是答答", comment: ""))

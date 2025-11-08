@@ -25,17 +25,8 @@ struct SplashView: View {
                 
                 // Logo area - iOS native style
                 VStack(spacing: 24) {
-                    // App icon - iOS native style
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .fill(Color.appPrimary)
-                            .frame(width: 120, height: 120)
-                            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                        
-                        Image(systemName: "brain.head.profile")
-                            .font(.system(size: 48, weight: .medium))
-                            .foregroundColor(.white)
-                    }
+                    // App icon - DadaKnows brand
+                    DLogoView.extraLarge
                     .scaleEffect(logoScale)
                     .opacity(logoOpacity)
                     

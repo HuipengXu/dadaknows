@@ -40,16 +40,7 @@ struct AuthView: View {
                     // Header - 我们的 logo 和 slogan
                     VStack(spacing: 24) {
                         // Logo - DadaKnows 品牌标识
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.appPrimary)
-                                .frame(width: 64, height: 64)
-                                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-
-                            Text("D")
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
-                        }
+                        DLogoView.medium
 
                         VStack(spacing: 8) {
                             Text("DadaKnows")
