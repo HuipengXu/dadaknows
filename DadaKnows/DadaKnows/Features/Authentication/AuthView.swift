@@ -355,8 +355,8 @@ struct AuthView: View {
             }
         }
         .alert(NSLocalizedString("错误", comment: ""), isPresented: $showAlert) {
-            Button(NSLocalizedString("确定", comment: "")) { 
-                authManager.errorMessage = nil
+            Button(NSLocalizedString("确定", comment: "")) {
+                authManager.clearError()
             }
         } message: {
             Text(authManager.errorMessage ?? "")
@@ -372,7 +372,8 @@ struct AuthView: View {
             ForgotPasswordView()
         }
         .onChange(of: authManager.errorMessage) { _, errorMessage in
-            showAlert = errorMessage != nil
+            // Only show alert for actual authentication failures, not user cancellations
+            showAlert = errorMessage != nil && authManager.authErrorType != .userCancelled
         }
         .onChange(of: authManager.successMessage) { _, successMessage in
             showSuccessAlert = successMessage != nil
@@ -435,6 +436,8 @@ struct AuthView: View {
     private func handleEmailSignIn() {
         guard !password.isEmpty else { return }
 
+        // Clear previous errors before starting new authentication
+        authManager.clearError()
         Task {
             do {
                 try await authManager.signInWithEmail(email: email, password: password)
@@ -447,6 +450,8 @@ struct AuthView: View {
     private func handleEmailSignUp() {
         guard isSignupFormValid else { return }
 
+        // Clear previous errors before starting new authentication
+        authManager.clearError()
         Task {
             do {
                 try await authManager.signUpWithEmail(email: email, password: password)
@@ -477,6 +482,8 @@ struct AuthView: View {
     }
     
     private func handleGoogleSignIn() {
+        // Clear previous errors before starting new authentication
+        authManager.clearError()
         Task {
             do {
                 try await authManager.signInWithGoogle()
@@ -487,6 +494,8 @@ struct AuthView: View {
     }
     
     private func handleAppleSignIn() {
+        // Clear previous errors before starting new authentication
+        authManager.clearError()
         Task {
             do {
                 try await authManager.signInWithApple()

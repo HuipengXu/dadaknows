@@ -24,6 +24,7 @@ class AuthManager: ObservableObject {
     @Published var isAppleLoading = false
     @Published var errorMessage: String?
     @Published var successMessage: String?
+    @Published var authErrorType: AuthErrorType?
     
     private let supabase = SupabaseClient.shared
     private var cancellables = Set<AnyCancellable>()
@@ -105,8 +106,8 @@ class AuthManager: ObservableObject {
     
     func signInWithEmail(email: String, password: String) async throws {
         isEmailLoading = true
-        errorMessage = nil
-        
+        clearError()
+
         defer {
             isEmailLoading = false
         }
@@ -129,9 +130,8 @@ class AuthManager: ObservableObject {
     
     func signUpWithEmail(email: String, password: String) async throws {
         isEmailLoading = true
-        errorMessage = nil
-        successMessage = nil
-        
+        clearError()
+
         defer {
             isEmailLoading = false
         }
@@ -163,8 +163,8 @@ class AuthManager: ObservableObject {
     
     func resetPassword(email: String) async throws {
         isEmailLoading = true
-        errorMessage = nil
-        
+        clearError()
+
         defer {
             isEmailLoading = false
         }
@@ -182,8 +182,8 @@ class AuthManager: ObservableObject {
     
     func signInWithGoogle() async throws {
         isGoogleLoading = true
-        errorMessage = nil
-        
+        clearError()
+
         defer {
             isGoogleLoading = false
         }
@@ -221,8 +221,8 @@ class AuthManager: ObservableObject {
     
     func signInWithApple() async throws {
         isAppleLoading = true
-        errorMessage = nil
-        
+        clearError()
+
         defer {
             isAppleLoading = false
         }
@@ -361,65 +361,114 @@ class AuthManager: ObservableObject {
     }
     
     // MARK: - Error Handling
-    
+
+    func clearError() {
+        errorMessage = nil
+        successMessage = nil
+        authErrorType = nil
+    }
+
     private func handleAuthError(_ error: Error) -> String {
         if let authError = error as? AuthError {
             switch authError {
             case .invalidCredentials:
+                authErrorType = .authenticationFailed
                 return "邮箱或密码错误"
             case .emailNotConfirmed:
+                authErrorType = .authenticationFailed
                 return "请先验证您的邮箱"
             case .userNotFound:
+                authErrorType = .authenticationFailed
                 return "用户不存在"
             case .weakPassword:
+                authErrorType = .authenticationFailed
                 return "密码强度不够，需要包含大写字母、小写字母、数字和符号，且至少8位"
             case .emailAlreadyRegistered:
+                authErrorType = .authenticationFailed
                 return "该邮箱已被注册"
             case .notAuthenticated:
+                authErrorType = .authenticationFailed
                 return "请先登录"
             case .noViewController:
+                authErrorType = .unknownError
                 return "无法获取视图控制器"
             case .noGoogleToken:
+                authErrorType = .authenticationFailed
                 return "Google登录失败"
             case .noAppleToken:
+                authErrorType = .authenticationFailed
                 return "Apple登录失败"
             case .userCanceled:
+                authErrorType = .userCancelled
                 return "用户取消了登录"
             case .authorizationFailed:
+                authErrorType = .authenticationFailed
                 return "Apple登录授权失败"
             case .invalidResponse:
+                authErrorType = .authenticationFailed
                 return "Apple登录响应无效"
             case .notHandled:
+                authErrorType = .authenticationFailed
                 return "Apple登录请求未处理"
             case .unknownError:
+                authErrorType = .unknownError
                 return "Apple登录发生未知错误"
             }
         }
-        
+
+        // Handle Google Sign-In cancellation
+        if error.localizedDescription.contains("canceled") ||
+           error.localizedDescription.contains("cancelled") ||
+           error.localizedDescription.contains("User cancelled") ||
+           error.localizedDescription.contains("The user canceled the sign-in flow") {
+            authErrorType = .userCancelled
+            return "用户取消了登录"
+        }
+
         // 处理Supabase特定错误
         let errorDescription = error.localizedDescription.lowercased()
-        
+
         if errorDescription.contains("password") && errorDescription.contains("weak") {
+            authErrorType = .authenticationFailed
             return "密码强度不够，需要包含大写字母、小写字母、数字和符号，且至少8位"
         }
-        
+
         if errorDescription.contains("email") && errorDescription.contains("already") {
+            authErrorType = .authenticationFailed
             return "该邮箱已被注册"
         }
-        
+
         if errorDescription.contains("invalid") && errorDescription.contains("credentials") {
+            authErrorType = .authenticationFailed
             return "邮箱或密码错误"
         }
-        
+
         if errorDescription.contains("email") && errorDescription.contains("not") && errorDescription.contains("confirmed") {
+            authErrorType = .authenticationFailed
             return "请先验证您的邮箱"
         }
-        
+
+        // Handle network errors
+        if errorDescription.contains("network") ||
+           errorDescription.contains("connection") ||
+           errorDescription.contains("timeout") {
+            authErrorType = .networkError
+        } else {
+            authErrorType = .unknownError
+        }
+
         return error.localizedDescription
     }
 }
 
 // MARK: - Supporting Types
+
+enum AuthErrorType {
+    case userCancelled
+    case authenticationFailed
+    case networkError
+    case unknownError
+}
 
 enum AuthError: Error {
     case invalidCredentials
@@ -463,7 +512,13 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         guard !hasCompleted else { return }
         hasCompleted = true
-        
+
+        // Debug logging to track actual error codes
+        print("Apple Sign-In error: \(error.localizedDescription)")
+        if let authError = error as? ASAuthorizationError {
+            print("ASAuthorizationError code: \(authError.code.rawValue)")
+        }
+
         // 检查用户是否取消了授权
         if let authError = error as? ASAuthorizationError {
             switch authError.code {
@@ -476,9 +531,13 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
             case .notHandled:
                 completion(.failure(AuthError.notHandled))
             case .unknown:
-                completion(.failure(AuthError.unknownError))
+                // This often occurs when user dismisses the dialog, treat as cancellation
+                print("Treating ASAuthorizationError.unknown as user cancellation")
+                completion(.failure(AuthError.userCanceled))
             case .notInteractive:
-                completion(.failure(AuthError.unknownError))
+                // This occurs when the flow cannot be completed interactively, treat as cancellation
+                print("Treating ASAuthorizationError.notInteractive as user cancellation")
+                completion(.failure(AuthError.userCanceled))
             @unknown default:
                 completion(.failure(error))
             }
