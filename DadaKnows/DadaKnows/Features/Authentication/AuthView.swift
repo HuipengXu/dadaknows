@@ -22,363 +22,228 @@ struct AuthView: View {
 
     // Unified auth flow state
     enum AuthFlowState {
-        case initial, signingIn, signingUp
+        case initial            // 初始状态
+        case passwordInput      // 密码输入（所有用户）
+        case signingIn          // 登录中
+        case signingUp          // 注册中
     }
     @State private var authFlowState: AuthFlowState = .initial
 
+    // 新增状态变量
+    @State private var confirmedEmail = ""
+    @State private var isExistingUser = false
+    @State private var showRegistrationGuide = false
+
     var onAuthSuccess: () -> Void
     
+    @ViewBuilder
     var body: some View {
+        mainContent
+            .onAppear(perform: setupAuthHandlers)
+    }
+
+    private var mainContent: some View {
         ZStack {
             Color.backgroundPrimary
                 .ignoresSafeArea()
-            
+
             ScrollView {
-                VStack(spacing: 0) {
-                    Spacer().frame(height: 60)
-
-                    // Header - 我们的 logo 和 slogan
-                    VStack(spacing: 24) {
-                        // Logo - DadaKnows 品牌标识
-                        DLogoView.medium
-
-                        VStack(spacing: 8) {
-                            Text("DadaKnows")
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundColor(.textPrimary)
-
-                            Text("welcome_subtitle")
-                                .font(.subheadline)
-                                .foregroundColor(.textSecondary)
-                                .multilineTextAlignment(.center)
-                        }
-                    }
-
-                    Spacer().frame(height: 80)
-
-                    // Social login buttons - 放在前面
-                    VStack(spacing: 12) {
-                        // Google Sign In Button
-                        Button(action: handleGoogleSignIn) {
-                            HStack(spacing: 8) {
-                                if authManager.isGoogleLoading {
-                                    ProgressView()
-                                        .scaleEffect(1.2)
-                                        .foregroundColor(.black)
-                                } else {
-                                    Image("GoogleLogo")
-                                        .resizable()
-                                        .renderingMode(.original)
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 18, height: 18)
-                                }
-
-                                Text("continue_with_google")
-                                    .font(.system(size: 17, weight: .medium))
-                                    .foregroundColor(.black)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(Color.white)
-                            .cornerRadius(8)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.black.opacity(0.15), lineWidth: 1)
-                            )
-                        }
-                        .disabled(authManager.isGoogleLoading)
-                        .opacity(authManager.isGoogleLoading ? 0.6 : 1.0)
-
-                        // Apple Sign In Button - 自定义按钮确保一致性
-                        if #available(iOS 13.0, *) {
-                            Button(action: handleAppleSignIn) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "apple.logo")
-                                        .font(.system(size: 20, weight: .medium))
-                                        .foregroundColor(.black)
-
-                                    Text("continue_with_apple")
-                                        .font(.system(size: 17, weight: .medium))
-                                        .foregroundColor(.black)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(Color.white)
-                                .cornerRadius(8)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.black.opacity(0.15), lineWidth: 1)
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 25)
-
-                    // Divider
-                    HStack {
-                        Rectangle()
-                            .fill(Color.separator)
-                            .frame(height: 1)
-
-                        Text(NSLocalizedString("或", comment: ""))
-                            .foregroundColor(.textSecondary)
-                            .padding(.horizontal, 15)
-
-                        Rectangle()
-                            .fill(Color.separator)
-                            .frame(height: 1)
-                    }
-                    .padding(.horizontal, 25)
-                    .padding(.vertical, 24)
-
-                    // Email input section - 带右箭头按钮
-                    VStack(spacing: 16) {
-                        HStack(spacing: 0) {
-                            TextField("email_placeholder", text: $email)
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 14)
-                                .foregroundColor(.textPrimary)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.fillSecondary)
-                                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                                )
-
-                            // Right arrow button inside input field
-                            Button(action: handleEmailContinue) {
-                                Group {
-                                    if authManager.isEmailLoading {
-                                        ProgressView()
-                                            .scaleEffect(0.8)
-                                            .tint(.appPrimary)
-                                    } else {
-                                        Image(systemName: "arrow.right")
-                                            .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(isEmailValid ? .white : .textSecondary)
-                                    }
-                                }
-                                .frame(width: 44, height: 44)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(isEmailValid ? Color.appPrimary : Color.clear)
-                                )
-                            }
-                            .disabled(authManager.isEmailLoading || !isEmailValid)
-                            .buttonStyle(.plain)
-                            .opacity(isEmailValid ? 1.0 : 0.6)
-                        }
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.fillSecondary)
-                                .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                        )
-                    }
-                    .padding(.horizontal, 25)
-
-                    // Password fields - 动态显示
-                    if authFlowState == .signingIn {
-                        VStack(spacing: 20) {
-                            // Password field
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("password_title")
-                                    .font(.headline)
-                                    .foregroundColor(.textPrimary)
-
-                                HStack {
-                                    Group {
-                                        if isSecurePassword {
-                                            SecureField("password_placeholder", text: $password)
-                                        } else {
-                                            TextField("password_placeholder", text: $password)
-                                        }
-                                    }
-                                    .foregroundColor(.textPrimary)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 14)
-
-                                    Button(action: {
-                                        isSecurePassword.toggle()
-                                    }) {
-                                        Image(systemName: isSecurePassword ? "eye.slash" : "eye")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.textSecondary)
-                                    }
-                                    .padding(.trailing, 16)
-                                }
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.fillSecondary)
-                                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                                )
-
-                                // Sign in button
-                                Button(action: handleEmailSignIn) {
-                                    HStack {
-                                        if authManager.isEmailLoading {
-                                            ProgressView()
-                                                .scaleEffect(0.8)
-                                                .tint(.white)
-                                        }
-                                        Text("sign_in_button")
-                                            .fontWeight(.semibold)
-                                    }
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
-                                    .background(Color.appPrimary)
-                                    .cornerRadius(12)
-                                }
-                                .disabled(authManager.isEmailLoading || !password.isEmpty)
-                                .buttonStyle(.plain)
-
-                                // Forgot password
-                                HStack {
-                                    Spacer()
-                                    Button("forgot_password") {
-                                        showForgotPassword = true
-                                    }
-                                    .font(.subheadline)
-                                    .foregroundColor(.appPrimary)
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 25)
-                        .padding(.top, 24)
-                    } else if authFlowState == .signingUp {
-                        VStack(spacing: 20) {
-                            // Password field for signup
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("create_password_title")
-                                    .font(.headline)
-                                    .foregroundColor(.textPrimary)
-
-                                HStack {
-                                    Group {
-                                        if isSecurePassword {
-                                            SecureField("create_password_placeholder", text: $password)
-                                        } else {
-                                            TextField("create_password_placeholder", text: $password)
-                                        }
-                                    }
-                                    .foregroundColor(.textPrimary)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 14)
-
-                                    Button(action: {
-                                        isSecurePassword.toggle()
-                                    }) {
-                                        Image(systemName: isSecurePassword ? "eye.slash" : "eye")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.textSecondary)
-                                    }
-                                    .padding(.trailing, 16)
-                                }
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.fillSecondary)
-                                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                                )
-
-                                if !password.isEmpty {
-                                    PasswordStrengthView(password: password)
-                                }
-
-                                // Confirm password field
-                                HStack {
-                                    Group {
-                                        if isSecureConfirmPassword {
-                                            SecureField("confirm_password_placeholder", text: $confirmPassword)
-                                        } else {
-                                            TextField("confirm_password_placeholder", text: $confirmPassword)
-                                        }
-                                    }
-                                    .foregroundColor(.textPrimary)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 14)
-
-                                    Button(action: {
-                                        isSecureConfirmPassword.toggle()
-                                    }) {
-                                        Image(systemName: isSecureConfirmPassword ? "eye.slash" : "eye")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.textSecondary)
-                                    }
-                                    .padding(.trailing, 16)
-                                }
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.fillSecondary)
-                                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                                )
-
-                                // Sign up button
-                                Button(action: handleEmailSignUp) {
-                                    HStack {
-                                        if authManager.isEmailLoading {
-                                            ProgressView()
-                                                .scaleEffect(0.8)
-                                                .tint(.white)
-                                        }
-                                        Text("sign_up_button")
-                                            .fontWeight(.semibold)
-                                    }
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
-                                    .background(Color.appPrimary)
-                                    .cornerRadius(12)
-                                }
-                                .disabled(authManager.isEmailLoading || !isSignupFormValid)
-                                .buttonStyle(.plain)
-                                .opacity(isSignupFormValid ? 1.0 : 0.8)
-                            }
-                        }
-                        .padding(.horizontal, 25)
-                        .padding(.top, 24)
-                    }
-
-                    Spacer().frame(height: 50)
-                }
+                contentStack
             }
         }
-        .alert(NSLocalizedString("错误", comment: ""), isPresented: $showAlert) {
-            Button(NSLocalizedString("确定", comment: "")) {
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text(NSLocalizedString("错误", comment: "")),
+                  message: Text(authManager.errorMessage ?? ""),
+                  dismissButton: .default(Text(NSLocalizedString("确定", comment: ""))) {
                 authManager.clearError()
-            }
-        } message: {
-            Text(authManager.errorMessage ?? "")
+            })
         }
-        .alert(NSLocalizedString("成功", comment: ""), isPresented: $showSuccessAlert) {
-            Button(NSLocalizedString("确定", comment: "")) { 
+        .alert(isPresented: $showSuccessAlert) {
+            Alert(title: Text(NSLocalizedString("成功", comment: "")),
+                  message: Text(authManager.successMessage ?? ""),
+                  dismissButton: .default(Text(NSLocalizedString("确定", comment: ""))) {
                 authManager.successMessage = nil
-            }
-        } message: {
-            Text(authManager.successMessage ?? "")
+            })
         }
         .sheet(isPresented: $showForgotPassword) {
             ForgotPasswordView()
         }
-        .onChange(of: authManager.errorMessage) { _, errorMessage in
-            // Only show alert for actual authentication failures, not user cancellations
-            showAlert = errorMessage != nil && authManager.authErrorType != .userCancelled
+        .sheet(isPresented: .constant(authFlowState == .passwordInput)) {
+            PasswordAndCodeInputView(
+                email: confirmedEmail,
+                isExistingUser: $isExistingUser,
+                password: $password,
+                onCancel: {
+                    authFlowState = .initial
+                    clearForm()
+                },
+                onAuthSuccess: onAuthSuccess,
+                onRegistrationSuccess: nil
+            )
         }
-        .onChange(of: authManager.successMessage) { _, successMessage in
-            showSuccessAlert = successMessage != nil
+    }
+
+    private var contentStack: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: 60)
+            headerView
+            Spacer().frame(height: 80)
+            socialLoginButtonsView
+            dividerView
+            emailInputView
+            Spacer().frame(height: 50)
         }
-        .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
-            if isAuthenticated {
-                onAuthSuccess()
+    }
+
+    private func setupAuthHandlers() {
+        // These handlers are set up on appear to avoid complex modifier chains
+    }
+
+    // MARK: - View Components
+
+    private var headerView: some View {
+        VStack(spacing: 24) {
+            DLogoView.medium
+
+            VStack(spacing: 8) {
+                Text("DadaKnows")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.textPrimary)
+
+                Text("welcome_subtitle")
+                    .font(.subheadline)
+                    .foregroundColor(.textSecondary)
+                    .multilineTextAlignment(.center)
             }
         }
-        .onChange(of: authFlowState) { _, _ in
-            // 切换流程状态时重置错误和成功状态
-            authManager.errorMessage = nil
-            authManager.successMessage = nil
+    }
+
+    private var socialLoginButtonsView: some View {
+        VStack(spacing: 12) {
+            googleSignInButton
+            appleSignInButton
         }
+        .padding(.horizontal, 25)
+    }
+
+    private var googleSignInButton: some View {
+        Button(action: handleGoogleSignIn) {
+            HStack(spacing: 8) {
+                if authManager.isGoogleLoading {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .foregroundColor(.black)
+                } else {
+                    Image("GoogleLogo")
+                        .resizable()
+                        .renderingMode(.original)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
+                }
+
+                Text("continue_with_google")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.black)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Color.white)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.black.opacity(0.15), lineWidth: 1)
+            )
+        }
+        .disabled(authManager.isGoogleLoading)
+        .opacity(authManager.isGoogleLoading ? 0.6 : 1.0)
+    }
+
+    @ViewBuilder
+    private var appleSignInButton: some View {
+        if #available(iOS 13.0, *) {
+            Button(action: handleAppleSignIn) {
+                HStack(spacing: 8) {
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.black)
+
+                    Text("continue_with_apple")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundColor(.black)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.black.opacity(0.15), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var dividerView: some View {
+        HStack {
+            Rectangle()
+                .fill(Color.separator)
+                .frame(height: 1)
+
+            Text(NSLocalizedString("或", comment: ""))
+                .foregroundColor(.textSecondary)
+                .padding(.horizontal, 15)
+
+            Rectangle()
+                .fill(Color.separator)
+                .frame(height: 1)
+        }
+        .padding(.horizontal, 25)
+        .padding(.vertical, 24)
+    }
+
+    private var emailInputView: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 0) {
+                TextField("email_placeholder", text: $email)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .foregroundColor(.textPrimary)
+                    .background(Color.clear)
+
+                Button(action: handleEmailContinue) {
+                    Group {
+                        if authManager.isEmailLoading {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .tint(.appPrimary)
+                        } else {
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(isEmailValid ? .white : .textSecondary)
+                        }
+                    }
+                    .frame(width: 44, height: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(isEmailValid ? Color.appPrimary : Color.fillSecondary)
+                    )
+                }
+                .disabled(authManager.isEmailLoading || !isEmailValid)
+                .buttonStyle(.plain)
+                .opacity(isEmailValid ? 1.0 : 0.6)
+            }
+            .padding(.horizontal, 1)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.fillSecondary)
+                    .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+            )
+        }
+        .padding(.horizontal, 25)
     }
     
     private var isEmailValid: Bool {
@@ -408,6 +273,8 @@ struct AuthView: View {
         switch authFlowState {
         case .initial:
             return NSLocalizedString("继续", comment: "")
+        case .passwordInput:
+            return NSLocalizedString("登录", comment: "")
         case .signingIn:
             return NSLocalizedString("登录", comment: "")
         case .signingUp:
@@ -418,10 +285,35 @@ struct AuthView: View {
     private func handleEmailContinue() {
         guard isEmailValid else { return }
 
-        // Check if email exists to determine flow
+        // 直接检查邮箱是否存在，不显示确认弹窗
+        checkEmailAndProceed(email: email)
+    }
+
+    private func checkEmailAndProceed(email: String) {
         Task {
-            await checkEmailExists(email: email)
+            do {
+                let emailExists = try await authManager.checkEmailExists(email)
+
+                await MainActor.run {
+                    isExistingUser = emailExists
+                    confirmedEmail = email
+                    authFlowState = .passwordInput
+                }
+
+            } catch {
+                await MainActor.run {
+                    self.authManager.errorMessage = "检查邮箱失败，请重试"
+                }
+            }
         }
+    }
+
+    private func clearForm() {
+        email = ""
+        confirmedEmail = ""
+        password = ""
+        confirmPassword = ""
+        isExistingUser = false
     }
 
     private func handleEmailSignIn() {
@@ -452,26 +344,7 @@ struct AuthView: View {
         }
     }
 
-    private func checkEmailExists(email: String) async {
-        do {
-            let emailExists = try await authManager.checkEmailExists(email)
-
-            await MainActor.run {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    if emailExists {
-                        authFlowState = .signingIn
-                    } else {
-                        authFlowState = .signingUp
-                    }
-                }
-            }
-        } catch {
-            await MainActor.run {
-                self.authManager.errorMessage = NSLocalizedString("检查邮箱失败，请重试", comment: "")
-            }
-        }
-    }
-    
+        
     private func handleGoogleSignIn() {
         // Clear previous errors before starting new authentication
         authManager.clearError()
@@ -499,7 +372,8 @@ struct AuthView: View {
     private func handleAppleSignInResult(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let authorization):
-            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+            // 检查是否为 Apple ID 凭据
+            if authorization.credential is ASAuthorizationAppleIDCredential {
                 Task {
                     do {
                         // 这里需要将Apple ID credential传递给AuthManager

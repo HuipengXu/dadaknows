@@ -640,6 +640,23 @@
         }
       }
     },
+    "continue_with_apple" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue with Apple"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Apple 登录"
+          }
+        }
+      }
+    },
     "continue_with_google" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -965,23 +982,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "忘记密码？"
-          }
-        }
-      }
-    },
-    "continue_with_apple" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continue with Apple"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 Apple 登录"
           }
         }
       }
@@ -2924,6 +2924,9 @@
         }
       }
     },
+    "创建账户" : {
+
+    },
     "删除" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3382,6 +3385,9 @@
           }
         }
       }
+    },
+    "密码" : {
+
     },
     "密码强度：一般" : {
       "extractionState" : "manual",
@@ -4284,9 +4290,6 @@
         }
       }
     },
-    "检查邮箱失败，请重试" : {
-
-    },
     "模型信息" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4354,6 +4357,9 @@
           }
         }
       }
+    },
+    "欢迎回来" : {
+
     },
     "正在下载... %lld%%" : {
       "extractionState" : "manual",
@@ -4745,6 +4751,9 @@
           }
         }
       }
+    },
+    "确认密码" : {
+
     },
     "离线模式" : {
       "extractionState" : "manual",
@@ -5239,6 +5248,9 @@
         }
       }
     },
+    "请再次输入密码" : {
+
+    },
     "请求超时，请检查网络连接。" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5289,6 +5301,21 @@
           }
         }
       }
+    },
+    "请设置密码完成注册" : {
+
+    },
+    "请输入6位验证码" : {
+
+    },
+    "请输入发送到您邮箱的验证码" : {
+
+    },
+    "请输入密码" : {
+
+    },
+    "请输入密码登录" : {
+
     },
     "请输入您的问题..." : {
       "extractionState" : "manual",
@@ -5374,6 +5401,9 @@
           }
         }
       }
+    },
+    "返回" : {
+
     },
     "还没有对话记录" : {
       "extractionState" : "manual",
@@ -5527,6 +5557,9 @@
           }
         }
       }
+    },
+    "重新发送验证码" : {
+
     },
     "重置密码" : {
       "extractionState" : "manual",
@@ -5697,6 +5730,15 @@
           }
         }
       }
+    },
+    "验证并完成注册" : {
+
+    },
+    "验证码" : {
+
+    },
+    "验证邮箱" : {
+
     },
     "高性能智能模型" : {
       "extractionState" : "manual",

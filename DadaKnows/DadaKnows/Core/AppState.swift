@@ -28,11 +28,48 @@ class AppState: ObservableObject {
     }
     
     func checkAuthenticationStatus() {
-        // Simulate auth check
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.isLoading = false
-            // For now, simulate unauthenticated state to show auth flow
-            self.isAuthenticated = false
+        Task {
+            do {
+                // 正确检查Supabase中的当前用户会话
+                let session = try await SupabaseClient.shared.supabase.auth.session
+
+                await MainActor.run {
+                    self.isLoading = false
+
+                    // 检查session是否有效
+                    if !session.accessToken.isEmpty && session.user.email != nil {
+                        // 用户已登录且有有效会话
+                        self.isAuthenticated = true
+                        AuthManager.shared.currentUser = session.user
+                        AuthManager.shared.isAuthenticated = true
+
+                        if Config.isDebug {
+                            print("✅ 用户已登录: \(session.user.email ?? "未知邮箱")")
+                        }
+                    } else {
+                        // 用户未登录或会话无效
+                        self.isAuthenticated = false
+                        AuthManager.shared.currentUser = nil
+                        AuthManager.shared.isAuthenticated = false
+
+                        if Config.isDebug {
+                            print("ℹ️ 用户未登录或会话已过期")
+                        }
+                    }
+                }
+
+            } catch {
+                await MainActor.run {
+                    self.isLoading = false
+                    self.isAuthenticated = false
+                    AuthManager.shared.currentUser = nil
+                    AuthManager.shared.isAuthenticated = false
+
+                    if Config.isDebug {
+                        print("⚠️ 检查认证状态失败: \(error)")
+                    }
+                }
+            }
         }
     }
     
