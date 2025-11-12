@@ -154,7 +154,7 @@ class AuthManager: ObservableObject {
             let user = session.user
             if user.emailConfirmedAt == nil {
                 // 需要邮箱验证 - 使用验证码方式
-                self.successMessage = "注册成功！请检查您的邮箱中的验证码完成注册。"
+                self.successMessage = "注册成功！验证码已发送到您的邮箱，有效期为10分钟。"
 
                 if Config.isDebug {
                     print("📧 验证码邮件已发送，用户ID: \(user.id)")
@@ -660,6 +660,17 @@ class AuthManager: ObservableObject {
         if errorDescription.contains("email") && errorDescription.contains("not") && errorDescription.contains("confirmed") {
             authErrorType = .authenticationFailed
             return "请先验证您的邮箱"
+        }
+
+        // Handle OTP expired error
+        if errorDescription.contains("token has expired") && errorDescription.contains("invalid") {
+            authErrorType = .authenticationFailed
+            return "验证码已过期，请重新发送验证码"
+        }
+
+        if errorDescription.contains("otp_expired") {
+            authErrorType = .authenticationFailed
+            return "验证码已过期，请重新发送验证码"
         }
 
         // Handle network errors

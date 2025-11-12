@@ -27,6 +27,9 @@ struct PasswordInputView: View {
     // 验证码相关状态
     @State private var verificationCode = ""
     @State private var showVerificationInput = false
+    @State private var otpExpirationTime: Date?
+    @State private var countdownTimer: Timer?
+    @State private var remainingTime: TimeInterval = 0
 
     var body: some View {
         NavigationView {
@@ -75,9 +78,63 @@ struct PasswordInputView: View {
         }
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if isAuthenticated {
+                stopCountdownTimer() // 验证成功后停止计时器
                 onAuthSuccess()
             }
         }
+        .onDisappear {
+            stopCountdownTimer() // 视图消失时停止计时器
+        }
+    }
+
+    // MARK: - Timer Management
+
+    private func startCountdownTimer() {
+        // 设置10分钟的过期时间
+        otpExpirationTime = Date().addingTimeInterval(10 * 60)
+        remainingTime = 10 * 60
+
+        // 停止之前的计时器
+        stopCountdownTimer()
+
+        // 启动新的计时器
+        countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            updateCountdown()
+        }
+    }
+
+    private func stopCountdownTimer() {
+        countdownTimer?.invalidate()
+        countdownTimer = nil
+    }
+
+    private func updateCountdown() {
+        guard let expirationTime = otpExpirationTime else { return }
+
+        let now = Date()
+        remainingTime = expirationTime.timeIntervalSince(now)
+
+        if remainingTime <= 0 {
+            stopCountdownTimer()
+            remainingTime = 0
+        }
+    }
+
+    private var countdownText: String {
+        let minutes = Int(remainingTime) / 60
+        let seconds = Int(remainingTime) % 60
+
+        if remainingTime <= 0 {
+            return "验证码已过期"
+        } else if remainingTime <= 120 {
+            return "验证码将在 \(minutes):\(String(format: "%02d", seconds)) 后过期"
+        } else {
+            return "剩余时间: \(minutes):\(String(format: "%02d", seconds))"
+        }
+    }
+
+    private var isCountdownUrgent: Bool {
+        return remainingTime <= 120 && remainingTime > 0
     }
 
     // MARK: - View Components
@@ -252,16 +309,29 @@ struct PasswordInputView: View {
                         .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
                 )
 
-                Text("验证码已发送到您的邮箱，请查收邮件")
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack {
+                    Text("验证码已发送到您的邮箱")
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
+
+                    Spacer()
+
+                    Text(countdownText)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(isCountdownUrgent ? .red : .textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
             }
 
             Button(action: {
                 Task {
                     do {
                         try await authManager.resendOTP(email: email)
+                        // 重新发送成功后重启计时器
+                        await MainActor.run {
+                            startCountdownTimer()
+                        }
                     } catch {
                         // 错误已在AuthManager中处理
                     }
@@ -354,8 +424,8 @@ struct PasswordInputView: View {
     }
 
     private var canVerifyCode: Bool {
-        // 限制验证码长度为6位
-        return verificationCode.count == 6
+        // 限制验证码长度为6位且未过期
+        return verificationCode.count == 6 && remainingTime > 0
     }
 
     private var canSubmit: Bool {
@@ -402,8 +472,9 @@ struct PasswordInputView: View {
 
                     await MainActor.run {
                         isLoading = false
-                        // 注册成功后显示验证码输入界面
+                        // 注册成功后显示验证码输入界面并启动计时器
                         showVerificationInput = true
+                        startCountdownTimer()
                     }
                 }
             } catch {
