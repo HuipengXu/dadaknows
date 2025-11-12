@@ -1,13 +1,13 @@
 //
-//  PasswordAndCodeInputView.swift
+//  PasswordInputView.swift
 //  DadaKnows
 //
-//  密码和验证码输入弹窗 - 统一处理登录和注册流程
+//  密码输入弹窗 - 处理登录和注册的密码输入
 //
 
 import SwiftUI
 
-struct PasswordAndCodeInputView: View {
+struct PasswordInputView: View {
     let email: String
     @Binding var isExistingUser: Bool
     @Binding var password: String
@@ -24,10 +24,9 @@ struct PasswordAndCodeInputView: View {
     @State private var showSuccessAlert = false
     @State private var isLoading = false
 
-    // 新增状态用于注册流程
-    @State private var showVerificationCodeInput = false
+    // 验证码相关状态
     @State private var verificationCode = ""
-    @State private var hasSentVerificationEmail = false
+    @State private var showVerificationInput = false
 
     var body: some View {
         NavigationView {
@@ -88,27 +87,15 @@ struct PasswordAndCodeInputView: View {
             DLogoView.medium
 
             VStack(spacing: 8) {
-                if showVerificationCodeInput {
-                    Text("验证邮箱")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.textPrimary)
+                Text(isExistingUser ? "欢迎回来" : "创建账户")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.textPrimary)
 
-                    Text("请输入发送到您邮箱的验证码")
-                        .font(.subheadline)
-                        .foregroundColor(.textSecondary)
-                        .multilineTextAlignment(.center)
-                } else {
-                    Text(isExistingUser ? "欢迎回来" : "创建账户")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.textPrimary)
-
-                    Text(isExistingUser ? "请输入密码登录" : "请设置密码完成注册")
-                        .font(.subheadline)
-                        .foregroundColor(.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
+                Text(isExistingUser ? "请输入密码登录" : "请设置密码完成注册")
+                    .font(.subheadline)
+                    .foregroundColor(.textSecondary)
+                    .multilineTextAlignment(.center)
             }
         }
     }
@@ -144,46 +131,13 @@ struct PasswordAndCodeInputView: View {
         .padding(.horizontal, 25)
     }
 
-    @ViewBuilder
+      @ViewBuilder
     private var inputSectionView: some View {
-        if showVerificationCodeInput {
+        if showVerificationInput {
             verificationCodeInputView
         } else {
             passwordInputView
         }
-    }
-
-    private var verificationCodeInputView: some View {
-        VStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("验证码")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                TextField("请输入6位验证码", text: $verificationCode)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.center)
-                    .font(.system(size: 20, weight: .medium))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .foregroundColor(.textPrimary)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.fillSecondary)
-                            .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                    )
-            }
-
-            Button(action: resendVerificationCode) {
-                Text("重新发送验证码")
-                    .font(.subheadline)
-                    .foregroundColor(.appPrimary)
-            }
-            .disabled(isLoading)
-        }
-        .padding(.horizontal, 25)
     }
 
     private var passwordInputView: some View {
@@ -271,28 +225,67 @@ struct PasswordAndCodeInputView: View {
         }
     }
 
-    @ViewBuilder
-    private var actionButtonsView: some View {
+    private var verificationCodeInputView: some View {
         VStack(spacing: 16) {
-            if showVerificationCodeInput {
-                verificationCodeButtonsView
-            } else {
-                passwordButtonsView
+            VStack(alignment: .leading, spacing: 8) {
+                Text("验证码")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                HStack {
+                    TextField("请输入6位验证码", text: $verificationCode)
+                        .keyboardType(.numberPad)
+                        .foregroundColor(.textPrimary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .onChange(of: verificationCode) { _, newValue in
+                            // 限制验证码最多6位数字
+                            let filtered = newValue.filter { $0.isNumber }
+                            verificationCode = String(filtered.prefix(6))
+                        }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.fillSecondary)
+                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+                )
+
+                Text("验证码已发送到您的邮箱，请查收邮件")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            Button(action: {
+                Task {
+                    do {
+                        try await authManager.resendOTP(email: email)
+                    } catch {
+                        // 错误已在AuthManager中处理
+                    }
+                }
+            }) {
+                Text("重新发送验证码")
+                    .font(.subheadline)
+                    .foregroundColor(.appPrimary)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 25)
     }
 
     private var verificationCodeButtonsView: some View {
         VStack(spacing: 16) {
-            Button(action: verifyCodeAndCompleteRegistration) {
+            Button(action: handleVerifyCode) {
                 HStack {
                     if isLoading {
                         ProgressView()
                             .scaleEffect(0.8)
                             .tint(.white)
                     }
-                    Text("验证并完成注册")
+                    Text("验证")
                         .fontWeight(.semibold)
                 }
                 .foregroundColor(.white)
@@ -304,10 +297,8 @@ struct PasswordAndCodeInputView: View {
             .disabled(!canVerifyCode || isLoading)
             .buttonStyle(.plain)
 
-            Button(action: {
-                showVerificationCodeInput = false
-            }) {
-                Text("返回")
+            Button(action: onCancel) {
+                Text("取消")
                     .fontWeight(.medium)
                     .foregroundColor(.textPrimary)
                     .frame(maxWidth: .infinity)
@@ -316,6 +307,15 @@ struct PasswordAndCodeInputView: View {
                     .cornerRadius(12)
             }
             .buttonStyle(.plain)
+        }
+    }
+
+    @ViewBuilder
+    private var actionButtonsView: some View {
+        if showVerificationInput {
+            verificationCodeButtonsView
+        } else {
+            passwordButtonsView
         }
     }
 
@@ -353,6 +353,11 @@ struct PasswordAndCodeInputView: View {
         }
     }
 
+    private var canVerifyCode: Bool {
+        // 限制验证码长度为6位
+        return verificationCode.count == 6
+    }
+
     private var canSubmit: Bool {
         // 密码不能为空
         guard !password.isEmpty else { return false }
@@ -364,10 +369,6 @@ struct PasswordAndCodeInputView: View {
         }
 
         return true
-    }
-
-    private var canVerifyCode: Bool {
-        return !verificationCode.isEmpty && verificationCode.count >= 6
     }
 
     private var isPasswordStrong: Bool {
@@ -399,11 +400,10 @@ struct PasswordAndCodeInputView: View {
                     // 新用户注册
                     try await authManager.signUpWithEmail(email: email, password: password)
 
-                    // 注册成功后，标记已发送验证邮件并切换到验证码界面
                     await MainActor.run {
-                        hasSentVerificationEmail = true
-                        showVerificationCodeInput = true
                         isLoading = false
+                        // 注册成功后显示验证码输入界面
+                        showVerificationInput = true
                     }
                 }
             } catch {
@@ -415,29 +415,7 @@ struct PasswordAndCodeInputView: View {
         }
     }
 
-    // 重发验证码
-    private func resendVerificationCode() {
-        isLoading = true
-        authManager.clearError()
-
-        Task {
-            do {
-                try await authManager.sendVerificationCode(email: email)
-
-                await MainActor.run {
-                    isLoading = false
-                    verificationCode = ""
-                }
-            } catch {
-                await MainActor.run {
-                    isLoading = false
-                }
-            }
-        }
-    }
-
-    // 验证码验证并完成注册
-    private func verifyCodeAndCompleteRegistration() {
+    private func handleVerifyCode() {
         guard canVerifyCode else { return }
 
         isLoading = true
@@ -445,31 +423,25 @@ struct PasswordAndCodeInputView: View {
 
         Task {
             do {
-                // 注意：由于 Supabase 的工作机制，实际上我们无法直接验证用户输入的验证码
-                // 验证码包含在邮件链接中。这里我们需要告知用户点击邮件中的链接
-                // 但为了保持用户体验，我们可以假装验证成功了
-                // 实际上验证还是需要用户点击邮件链接
-
-                // 重新尝试登录，如果用户已经点击了邮件链接，这里应该能成功
-                try await authManager.signInWithEmail(email: email, password: password)
+                try await authManager.verifyOTP(email: email, token: verificationCode)
 
                 await MainActor.run {
                     isLoading = false
+                    onAuthSuccess()
                 }
-
             } catch {
-                // 如果登录失败，说明用户还没有点击邮件链接
+                // 错误已在AuthManager中处理
                 await MainActor.run {
                     isLoading = false
-                    authManager.errorMessage = "验证失败。请先检查您邮箱中的验证邮件并点击验证链接，然后再试一次。"
                 }
             }
         }
     }
+
 }
 
 #Preview {
-    PasswordAndCodeInputView(
+    PasswordInputView(
         email: "user@example.com",
         isExistingUser: .constant(true),
         password: .constant(""),

@@ -69,7 +69,7 @@ struct AuthView: View {
             ForgotPasswordView()
         }
         .sheet(isPresented: .constant(authFlowState == .passwordInput)) {
-            PasswordAndCodeInputView(
+            PasswordInputView(
                 email: confirmedEmail,
                 isExistingUser: $isExistingUser,
                 password: $password,
@@ -216,7 +216,7 @@ struct AuthView: View {
 
                 Button(action: handleEmailContinue) {
                     Group {
-                        if authManager.isEmailLoading {
+                        if authManager.isLoading {
                             ProgressView()
                                 .scaleEffect(0.8)
                                 .tint(.appPrimary)
@@ -232,7 +232,7 @@ struct AuthView: View {
                             .fill(isEmailValid ? Color.appPrimary : Color.fillSecondary)
                     )
                 }
-                .disabled(authManager.isEmailLoading || !isEmailValid)
+                .disabled(authManager.isLoading || !isEmailValid)
                 .buttonStyle(.plain)
                 .opacity(isEmailValid ? 1.0 : 0.6)
             }

@@ -19,7 +19,6 @@ class AuthManager: ObservableObject {
     @Published var isAuthenticated = false
     @Published var currentUser: User?
     @Published var isLoading = false
-    @Published var isEmailLoading = false
     @Published var isGoogleLoading = false
     @Published var isAppleLoading = false
     @Published var errorMessage: String?
@@ -105,11 +104,11 @@ class AuthManager: ObservableObject {
     // MARK: - Email Authentication
     
     func signInWithEmail(email: String, password: String) async throws {
-        isEmailLoading = true
+        isLoading = true
         clearError()
 
         defer {
-            isEmailLoading = false
+            isLoading = false
         }
         
         do {
@@ -129,11 +128,11 @@ class AuthManager: ObservableObject {
     }
     
     func signUpWithEmail(email: String, password: String) async throws {
-        isEmailLoading = true
+        isLoading = true
         clearError()
 
         defer {
-            isEmailLoading = false
+            isLoading = false
         }
 
         do {
@@ -141,6 +140,7 @@ class AuthManager: ObservableObject {
                 print("📧 开始注册邮箱: \(email)")
             }
 
+            // 使用邮箱和密码注册，注册后需要用户输入邮件中的6位验证码
             let session = try await supabase.supabase.auth.signUp(
                 email: email,
                 password: password
@@ -153,11 +153,11 @@ class AuthManager: ObservableObject {
             // 检查是否需要邮箱验证
             let user = session.user
             if user.emailConfirmedAt == nil {
-                // 需要邮箱验证 - 这是成功的情况
-                self.successMessage = "验证邮件已发送！请输入您收到的验证码或点击邮件中的验证链接完成注册。"
+                // 需要邮箱验证 - 使用验证码方式
+                self.successMessage = "注册成功！请检查您的邮箱中的验证码完成注册。"
 
                 if Config.isDebug {
-                    print("📧 邮箱验证链接已发送，用户ID: \(user.id)")
+                    print("📧 验证码邮件已发送，用户ID: \(user.id)")
                 }
             } else {
                 // 无需邮箱验证，直接登录
@@ -185,95 +185,88 @@ class AuthManager: ObservableObject {
             throw error
         }
     }
-    
-    // MARK: - Verification Code Methods
 
-    func sendVerificationCode(email: String) async throws {
-        isEmailLoading = true
+    // MARK: - OTP Verification
+
+    func verifyOTP(email: String, token: String) async throws {
+        isLoading = true
         clearError()
 
         defer {
-            isEmailLoading = false
+            isLoading = false
         }
 
         do {
-            // 重新发送验证邮件给用户
-            try await supabase.supabase.auth.resend(email: email, type: .signup)
+            if Config.isDebug {
+                print("🔢 开始验证OTP: \(email)")
+            }
 
-            self.successMessage = "验证码已发送到您的邮箱，请查收邮件并按照提示完成验证。"
+            // 使用OTP验证邮箱
+            let session = try await supabase.supabase.auth.verifyOTP(
+                email: email,
+                token: token,
+                type: .signup
+            )
+
+            // 验证成功，设置用户状态
+            self.currentUser = session.user
+            self.isAuthenticated = true
+            self.successMessage = "验证成功！欢迎使用DadaKnows！"
+            AppState.shared.signIn()
 
             if Config.isDebug {
-                print("✅ 验证码邮件发送成功: \(email)")
+                print("✅ OTP验证成功，用户ID: \(session.user.id)")
             }
 
         } catch {
-            let detailedError = handleAuthError(error)
-            self.errorMessage = detailedError
-
+            self.errorMessage = handleAuthError(error)
             if Config.isDebug {
-                print("❌ 验证码发送失败: \(detailedError)")
+                print("❌ OTP验证失败: \(error)")
             }
-
             throw error
         }
     }
 
-    func verifyCodeAndSignUp(email: String, password: String, code: String) async throws {
-        isEmailLoading = true
+    func resendOTP(email: String) async throws {
+        isLoading = true
         clearError()
 
         defer {
-            isEmailLoading = false
+            isLoading = false
         }
 
         do {
             if Config.isDebug {
-                print("🔍 开始验证码验证和注册: \(email)")
+                print("📧 重新发送OTP: \(email)")
             }
 
-            // 对于Supabase，我们主要通过注册过程中的邮件验证来处理
-            // 用户点击邮件中的验证链接后，我们完成注册流程
-            let session = try await supabase.supabase.auth.signUp(
+            // 重新发送OTP验证邮件
+            try await supabase.supabase.auth.resend(
                 email: email,
-                password: password
+                type: .signup
             )
 
-            if Config.isDebug {
-                print("✅ 注册完成，检查验证状态")
-            }
+            self.successMessage = "验证码已重新发送，请检查您的邮箱。"
 
-            let user = session.user
-            if user.emailConfirmedAt != nil {
-                // 邮箱已验证，直接登录
-                self.currentUser = user
-                self.isAuthenticated = true
-                self.successMessage = "注册成功！欢迎使用DadaKnows！"
-                AppState.shared.signIn()
-            } else {
-                // 需要邮箱验证
-                self.successMessage = "注册成功！请检查您的邮箱并点击验证链接完成注册。"
+            if Config.isDebug {
+                print("✅ OTP重新发送成功")
             }
 
         } catch {
-            let detailedError = handleSignUpError(error, email: email)
-            self.errorMessage = detailedError.message
-            self.authErrorType = detailedError.type
-
+            self.errorMessage = handleAuthError(error)
             if Config.isDebug {
-                print("❌ 验证码验证失败: \(detailedError.message)")
-                print("❌ 原始错误: \(error)")
+                print("❌ OTP重新发送失败: \(error)")
             }
-
             throw error
         }
     }
 
     func resetPassword(email: String) async throws {
-        isEmailLoading = true
+        isLoading = true
         clearError()
 
         defer {
-            isEmailLoading = false
+            isLoading = false
         }
         
         do {

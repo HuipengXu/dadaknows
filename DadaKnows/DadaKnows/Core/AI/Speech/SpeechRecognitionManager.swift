@@ -330,7 +330,8 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
         stopAudioLevelMonitoring() // 确保之前的定时器已停止
 
         audioLevelTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            // 音量级别已在updateAudioLevel中更新
+            // 音量级别会在音频引擎的回调中更新
+            // 这里不需要手动更新
         }
     }
 
