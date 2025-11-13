@@ -31,6 +31,34 @@ struct PasswordInputView: View {
     @State private var countdownTimer: Timer?
     @State private var remainingTime: TimeInterval = 0
 
+    // 重新发送倒计时状态
+    @State private var resendCountdownTimer: Timer?
+    @State private var resendCooldownTime: TimeInterval = 0
+
+    // MARK: - Password Match State
+
+    private enum PasswordMatchState {
+        case empty
+        case matching
+        case notMatching
+
+        var iconName: String {
+            switch self {
+            case .empty: return ""
+            case .matching: return "checkmark.circle.fill"
+            case .notMatching: return "xmark.circle.fill"
+            }
+        }
+
+        var color: Color {
+            switch self {
+            case .empty: return .clear
+            case .matching: return .green
+            case .notMatching: return .red
+            }
+        }
+    }
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -82,8 +110,15 @@ struct PasswordInputView: View {
                 onAuthSuccess()
             }
         }
+        .onChange(of: confirmPassword) { _, _ in
+            // 确认密码变化时，状态会自动更新
+        }
+        .onChange(of: password) { _, _ in
+            // 原密码变化时，确认密码状态也需要更新
+        }
         .onDisappear {
             stopCountdownTimer() // 视图消失时停止计时器
+            stopResendCountdownTimer() // 视图消失时停止重新发送计时器
         }
     }
 
@@ -135,6 +170,57 @@ struct PasswordInputView: View {
 
     private var isCountdownUrgent: Bool {
         return remainingTime <= 120 && remainingTime > 0
+    }
+
+    // MARK: - Resend Timer Management
+
+    private func startResendCountdownTimer() {
+        // 设置30秒的冷却时间（比Supabase的限制稍长）
+        resendCooldownTime = 30
+
+        // 停止之前的计时器
+        stopResendCountdownTimer()
+
+        // 启动新的计时器
+        resendCountdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            updateResendCountdown()
+        }
+    }
+
+    private func stopResendCountdownTimer() {
+        resendCountdownTimer?.invalidate()
+        resendCountdownTimer = nil
+    }
+
+    private func updateResendCountdown() {
+        resendCooldownTime -= 1
+
+        if resendCooldownTime <= 0 {
+            stopResendCountdownTimer()
+            resendCooldownTime = 0
+        }
+    }
+
+    private var canResendOTP: Bool {
+        return resendCooldownTime <= 0
+    }
+
+    private var resendButtonText: String {
+        if resendCooldownTime > 0 {
+            return "重新发送(\(Int(resendCooldownTime))s)"
+        } else {
+            return "重新发送验证码"
+        }
+    }
+
+    private var passwordMatchState: PasswordMatchState {
+        if confirmPassword.isEmpty {
+            return .empty
+        }
+        if password == confirmPassword {
+            return .matching
+        }
+        return .notMatching
     }
 
     // MARK: - View Components
@@ -243,6 +329,14 @@ struct PasswordInputView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
 
+            // 状态指示器
+            if !confirmPassword.isEmpty {
+                Image(systemName: passwordMatchState.iconName)
+                    .foregroundColor(passwordMatchState.color)
+                    .font(.system(size: 16, weight: .medium))
+                    .animation(.easeInOut(duration: 0.3), value: passwordMatchState)
+            }
+
             Button(action: {
                 isSecureConfirmPassword.toggle()
             }) {
@@ -297,23 +391,27 @@ struct PasswordInputView: View {
             .frame(maxWidth: 300)
 
             Button(action: {
+                guard canResendOTP else { return }
+
                 Task {
                     do {
                         try await authManager.resendOTP(email: email)
-                        // 重新发送成功后重启计时器
+                        // 重新发送成功后重启计时器和冷却计时器
                         await MainActor.run {
                             startCountdownTimer()
+                            startResendCountdownTimer()
                         }
                     } catch {
                         // 错误已在AuthManager中处理
                     }
                 }
             }) {
-                Text("重新发送验证码")
+                Text(resendButtonText)
                     .font(.subheadline)
-                    .foregroundColor(.appPrimary)
+                    .foregroundColor(canResendOTP ? .appPrimary : .gray)
             }
             .buttonStyle(.plain)
+            .disabled(!canResendOTP || authManager.isLoading)
         }
     }
 
@@ -446,6 +544,7 @@ struct PasswordInputView: View {
                         // 注册成功后显示验证码输入界面并启动计时器
                         showVerificationInput = true
                         startCountdownTimer()
+                        startResendCountdownTimer() // 启动重新发送冷却计时器
                     }
                 }
             } catch {

@@ -5549,9 +5549,6 @@
         }
       }
     },
-    "重新发送验证码" : {
-
-    },
     "重置密码" : {
       "extractionState" : "manual",
       "localizations" : {

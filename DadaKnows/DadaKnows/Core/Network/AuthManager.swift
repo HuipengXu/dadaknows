@@ -253,7 +253,7 @@ class AuthManager: ObservableObject {
             }
 
         } catch {
-            self.errorMessage = handleAuthError(error)
+            self.errorMessage = handleResendOTPError(error)
             if Config.isDebug {
                 print("❌ OTP重新发送失败: \(error)")
             }
@@ -580,6 +580,23 @@ class AuthManager: ObservableObject {
             "注册过程中出现未知错误：\(error.localizedDescription)\n\n建议：\n• 检查网络连接\n• 稍后重试\n• 使用社交账号登录\n• 联系客服获取帮助",
             .unknownError
         )
+    }
+
+    private func handleResendOTPError(_ error: Error) -> String {
+        let errorDescription = error.localizedDescription.lowercased()
+
+        // 处理速率限制错误
+        if errorDescription.contains("over_email_send_rate_limit") {
+            return "发送过于频繁，请等待30秒后再试"
+        }
+
+        if errorDescription.contains("too") && errorDescription.contains("many") ||
+           errorDescription.contains("rate") && errorDescription.contains("limit") {
+            return "发送过于频繁，请稍等片刻后再试"
+        }
+
+        // 对于其他错误，使用通用的错误处理
+        return handleAuthError(error)
     }
 
     private func handleAuthError(_ error: Error) -> String {
