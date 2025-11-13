@@ -44,12 +44,18 @@ struct ForgotPasswordView: View {
                     
                     // Email input
                     VStack(spacing: 20) {
-                        CustomTextField(
-                            title: LocalizedStringKey("邮箱地址"),
-                            text: $email,
-                            keyboardType: .emailAddress
-                        )
-                        
+                        TextField("邮箱地址", text: $email)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.fillSecondary)
+                                    .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+                            )
+                            .frame(maxWidth: 300)
+
                         // Send button
                         Button(action: handleResetPassword) {
                             HStack {
@@ -62,15 +68,14 @@ struct ForgotPasswordView: View {
                                     .fontWeight(.semibold)
                             }
                             .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
+                            .frame(maxWidth: 300)
+                            .frame(height: 50)
                             .background(Color.vibrantOrange)
                             .cornerRadius(25)
                         }
                         .disabled(authManager.isLoading || email.isEmpty)
                         .opacity(email.isEmpty ? 0.6 : 1.0)
                     }
-                    .padding(.horizontal, 25)
                     
                     Spacer()
                 }

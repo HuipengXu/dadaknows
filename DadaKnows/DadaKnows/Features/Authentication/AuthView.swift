@@ -124,7 +124,7 @@ struct AuthView: View {
             googleSignInButton
             appleSignInButton
         }
-        .padding(.horizontal, 25)
+        .frame(maxWidth: 300)
     }
 
     private var googleSignInButton: some View {
@@ -146,7 +146,7 @@ struct AuthView: View {
                     .font(.system(size: 17, weight: .medium))
                     .foregroundColor(.black)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: 300)
             .frame(height: 50)
             .background(Color.white)
             .cornerRadius(8)
@@ -172,7 +172,7 @@ struct AuthView: View {
                         .font(.system(size: 17, weight: .medium))
                         .foregroundColor(.black)
                 }
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: 300)
                 .frame(height: 50)
                 .background(Color.white)
                 .cornerRadius(8)
@@ -199,14 +199,14 @@ struct AuthView: View {
                 .fill(Color.separator)
                 .frame(height: 1)
         }
-        .padding(.horizontal, 25)
+        .frame(maxWidth: 300)
         .padding(.vertical, 24)
     }
 
     private var emailInputView: some View {
         VStack(spacing: 16) {
             HStack(spacing: 0) {
-                TextField("email_placeholder", text: $email)
+                TextField("个人或工作邮箱", text: $email)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
                     .padding(.horizontal, 16)
@@ -243,7 +243,7 @@ struct AuthView: View {
                     .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
             )
         }
-        .padding(.horizontal, 25)
+        .frame(maxWidth: 300)
     }
     
     private var isEmailValid: Bool {

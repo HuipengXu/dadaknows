@@ -158,34 +158,26 @@ struct PasswordInputView: View {
     }
 
     private var emailDisplayView: some View {
-        VStack(spacing: 12) {
-            Text("邮箱地址")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        HStack {
+            Image(systemName: "envelope.fill")
+                .font(.system(size: 16))
+                .foregroundColor(.appPrimary)
 
-            HStack {
-                Image(systemName: "envelope.fill")
-                    .font(.system(size: 16))
-                    .foregroundColor(.appPrimary)
+            Text(email)
+                .font(.system(size: 16))
+                .foregroundColor(.textPrimary)
+                .multilineTextAlignment(.leading)
 
-                Text(email)
-                    .font(.system(size: 16))
-                    .foregroundColor(.textPrimary)
-                    .multilineTextAlignment(.leading)
-
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.fillSecondary)
-                    .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-            )
+            Spacer()
         }
-        .padding(.horizontal, 25)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.fillSecondary)
+                .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+        )
+        .frame(maxWidth: 300)
     }
 
       @ViewBuilder
@@ -199,66 +191,12 @@ struct PasswordInputView: View {
 
     private var passwordInputView: some View {
         VStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("密码")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                HStack {
-                    Group {
-                        if isSecurePassword {
-                            SecureField("请输入密码", text: $password)
-                        } else {
-                            TextField("请输入密码", text: $password)
-                        }
-                    }
-                    .foregroundColor(.textPrimary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-
-                    Button(action: {
-                        isSecurePassword.toggle()
-                    }) {
-                        Image(systemName: isSecurePassword ? "eye.slash" : "eye")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.textSecondary)
-                    }
-                    .padding(.trailing, 16)
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.fillSecondary)
-                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                )
-
-                if !isExistingUser && !password.isEmpty {
-                    PasswordStrengthView(password: password)
-                }
-            }
-
-            if !isExistingUser {
-                confirmPasswordInputView
-            }
-        }
-        .padding(.horizontal, 25)
-    }
-
-    private var confirmPasswordInputView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("确认密码")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
             HStack {
                 Group {
-                    if isSecureConfirmPassword {
-                        SecureField("请再次输入密码", text: $confirmPassword)
+                    if isSecurePassword {
+                        SecureField("请输入密码", text: $password)
                     } else {
-                        TextField("请再次输入密码", text: $confirmPassword)
+                        TextField("请输入密码", text: $password)
                     }
                 }
                 .foregroundColor(.textPrimary)
@@ -266,9 +204,9 @@ struct PasswordInputView: View {
                 .padding(.vertical, 14)
 
                 Button(action: {
-                    isSecureConfirmPassword.toggle()
+                    isSecurePassword.toggle()
                 }) {
-                    Image(systemName: isSecureConfirmPassword ? "eye.slash" : "eye")
+                    Image(systemName: isSecurePassword ? "eye.slash" : "eye")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.textSecondary)
                 }
@@ -279,50 +217,84 @@ struct PasswordInputView: View {
                     .fill(Color.fillSecondary)
                     .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
             )
+            .frame(maxWidth: 300)
+
+            if !isExistingUser && !password.isEmpty {
+                PasswordStrengthView(password: password)
+                    .frame(maxWidth: 300)
+            }
+
+            if !isExistingUser {
+                confirmPasswordInputView
+            }
         }
+    }
+
+    private var confirmPasswordInputView: some View {
+        HStack {
+            Group {
+                if isSecureConfirmPassword {
+                    SecureField("请再次输入密码", text: $confirmPassword)
+                } else {
+                    TextField("请再次输入密码", text: $confirmPassword)
+                }
+            }
+            .foregroundColor(.textPrimary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+
+            Button(action: {
+                isSecureConfirmPassword.toggle()
+            }) {
+                Image(systemName: isSecureConfirmPassword ? "eye.slash" : "eye")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.textSecondary)
+            }
+            .padding(.trailing, 16)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.fillSecondary)
+                .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+        )
+        .frame(maxWidth: 300)
     }
 
     private var verificationCodeInputView: some View {
         VStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("验证码")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                HStack {
-                    TextField("请输入6位验证码", text: $verificationCode)
-                        .keyboardType(.numberPad)
-                        .foregroundColor(.textPrimary)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .onChange(of: verificationCode) { _, newValue in
-                            // 限制验证码最多6位数字
-                            let filtered = newValue.filter { $0.isNumber }
-                            verificationCode = String(filtered.prefix(6))
-                        }
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.fillSecondary)
-                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                )
-
-                HStack {
-                    Text("验证码已发送到您的邮箱")
-                        .font(.caption)
-                        .foregroundColor(.textSecondary)
-
-                    Spacer()
-
-                    Text(countdownText)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(isCountdownUrgent ? .red : .textSecondary)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                }
+            HStack {
+                TextField("请输入6位验证码", text: $verificationCode)
+                    .keyboardType(.numberPad)
+                    .foregroundColor(.textPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .onChange(of: verificationCode) { _, newValue in
+                        // 限制验证码最多6位数字
+                        let filtered = newValue.filter { $0.isNumber }
+                        verificationCode = String(filtered.prefix(6))
+                    }
             }
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.fillSecondary)
+                    .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+            )
+            .frame(maxWidth: 300)
+
+            HStack {
+                Text("验证码已发送到您的邮箱")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+
+                Spacer()
+
+                Text(countdownText)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(isCountdownUrgent ? .red : .textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .frame(maxWidth: 300)
 
             Button(action: {
                 Task {
@@ -343,7 +315,6 @@ struct PasswordInputView: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 25)
     }
 
     private var verificationCodeButtonsView: some View {
@@ -359,7 +330,7 @@ struct PasswordInputView: View {
                         .fontWeight(.semibold)
                 }
                 .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: 300)
                 .frame(height: 50)
                 .background(canVerifyCode ? Color.appPrimary : Color.gray)
                 .cornerRadius(12)
@@ -371,7 +342,7 @@ struct PasswordInputView: View {
                 Text("取消")
                     .fontWeight(.medium)
                     .foregroundColor(.textPrimary)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: 300)
                     .frame(height: 50)
                     .background(Color.fillSecondary)
                     .cornerRadius(12)
@@ -402,7 +373,7 @@ struct PasswordInputView: View {
                         .fontWeight(.semibold)
                 }
                 .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: 300)
                 .frame(height: 50)
                 .background(canSubmit ? Color.appPrimary : Color.gray)
                 .cornerRadius(12)
@@ -414,7 +385,7 @@ struct PasswordInputView: View {
                 Text("取消")
                     .fontWeight(.medium)
                     .foregroundColor(.textPrimary)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: 300)
                     .frame(height: 50)
                     .background(Color.fillSecondary)
                     .cornerRadius(12)
