@@ -43,12 +43,15 @@ struct AuthView: View {
     }
 
     private var mainContent: some View {
-        ZStack {
-            Color.backgroundPrimary
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            ZStack {
+                Color.backgroundPrimary
+                    .ignoresSafeArea()
 
-            ScrollView {
-                contentStack
+                ScrollView {
+                    contentStack(geometry: geometry)
+                }
+                .padding(ResponsiveLayoutHelper.getContentPadding(geometry))
             }
         }
         .alert(isPresented: $showAlert) {
@@ -83,16 +86,17 @@ struct AuthView: View {
         }
     }
 
-    private var contentStack: some View {
+    private func contentStack(geometry: GeometryProxy) -> some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: 60)
-            headerView
-            Spacer().frame(height: 80)
-            socialLoginButtonsView
-            dividerView
-            emailInputView
-            Spacer().frame(height: 50)
+            Spacer().frame(height: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 40))
+            headerView(geometry: geometry)
+            Spacer().frame(height: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 60))
+            socialLoginButtonsView(geometry: geometry)
+            dividerView(geometry: geometry)
+            emailInputView(geometry: geometry)
+            Spacer().frame(height: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 40))
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func setupAuthHandlers() {
@@ -101,35 +105,34 @@ struct AuthView: View {
 
     // MARK: - View Components
 
-    private var headerView: some View {
-        VStack(spacing: 24) {
-            DLogoView.medium
+    private func headerView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 24)) {
+            DLogoView.responsive(size: ResponsiveLayoutHelper.getLogoSize(geometry))
 
-            VStack(spacing: 8) {
+            VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 8)) {
                 Text("DadaKnows")
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(.system(size: ResponsiveLayoutHelper.getTitleFontSize(geometry), weight: .bold))
                     .foregroundColor(.textPrimary)
 
                 Text("welcome_subtitle")
-                    .font(.subheadline)
+                    .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry), weight: .regular))
                     .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
             }
         }
     }
 
-    private var socialLoginButtonsView: some View {
-        VStack(spacing: 12) {
-            googleSignInButton
-            appleSignInButton
+    private func socialLoginButtonsView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 12)) {
+            googleSignInButton(geometry: geometry)
+            appleSignInButton(geometry: geometry)
         }
-        .frame(maxWidth: 300)
+        .frame(maxWidth: ResponsiveLayoutHelper.getContentMaxWidth(geometry))
     }
 
-    private var googleSignInButton: some View {
+    private func googleSignInButton(geometry: GeometryProxy) -> some View {
         Button(action: handleGoogleSignIn) {
-            HStack(spacing: 8) {
+            HStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 8)) {
                 if authManager.isGoogleLoading {
                     ProgressView()
                         .scaleEffect(1.2)
@@ -139,19 +142,19 @@ struct AuthView: View {
                         .resizable()
                         .renderingMode(.original)
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 18),
+                               height: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 18))
                 }
 
                 Text("continue_with_google")
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry), weight: .medium))
                     .foregroundColor(.black)
             }
-            .frame(maxWidth: 300)
-            .frame(height: 50)
+            .responsiveButtonSize(geometry)
             .background(Color.white)
-            .cornerRadius(8)
+            .cornerRadius(ResponsiveLayoutHelper.getCornerRadius(geometry, base: 8))
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: ResponsiveLayoutHelper.getCornerRadius(geometry, base: 8))
                     .stroke(Color.black.opacity(0.15), lineWidth: 1)
             )
         }
@@ -160,24 +163,23 @@ struct AuthView: View {
     }
 
     @ViewBuilder
-    private var appleSignInButton: some View {
+    private func appleSignInButton(geometry: GeometryProxy) -> some View {
         if #available(iOS 13.0, *) {
             Button(action: handleAppleSignIn) {
-                HStack(spacing: 8) {
+                HStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 8)) {
                     Image(systemName: "apple.logo")
-                        .font(.system(size: 20, weight: .medium))
+                        .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry) + 3, weight: .medium))
                         .foregroundColor(.black)
 
                     Text("continue_with_apple")
-                        .font(.system(size: 17, weight: .medium))
+                        .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry), weight: .medium))
                         .foregroundColor(.black)
                 }
-                .frame(maxWidth: 300)
-                .frame(height: 50)
+                .responsiveButtonSize(geometry)
                 .background(Color.white)
-                .cornerRadius(8)
+                .cornerRadius(ResponsiveLayoutHelper.getCornerRadius(geometry, base: 8))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: ResponsiveLayoutHelper.getCornerRadius(geometry, base: 8))
                         .stroke(Color.black.opacity(0.15), lineWidth: 1)
                 )
             }
@@ -185,7 +187,7 @@ struct AuthView: View {
         }
     }
 
-    private var dividerView: some View {
+    private func dividerView(geometry: GeometryProxy) -> some View {
         HStack {
             Rectangle()
                 .fill(Color.separator)
@@ -193,24 +195,25 @@ struct AuthView: View {
 
             Text(NSLocalizedString("或", comment: ""))
                 .foregroundColor(.textSecondary)
-                .padding(.horizontal, 15)
+                .padding(.horizontal, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 15))
 
             Rectangle()
                 .fill(Color.separator)
                 .frame(height: 1)
         }
-        .frame(maxWidth: 300)
-        .padding(.vertical, 24)
+        .frame(maxWidth: ResponsiveLayoutHelper.getContentMaxWidth(geometry))
+        .padding(.vertical, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 24))
     }
 
-    private var emailInputView: some View {
-        VStack(spacing: 16) {
+    private func emailInputView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16)) {
             HStack(spacing: 0) {
                 TextField("个人或工作邮箱", text: $email)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
+                    .padding(.horizontal, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16))
+                    .padding(.vertical, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 14))
+                    .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
                     .foregroundColor(.textPrimary)
                     .background(Color.clear)
 
@@ -222,13 +225,14 @@ struct AuthView: View {
                                 .tint(.appPrimary)
                         } else {
                             Image(systemName: "arrow.right")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry), weight: .semibold))
                                 .foregroundColor(isEmailValid ? .white : .textSecondary)
                         }
                     }
-                    .frame(width: 44, height: 44)
+                    .frame(width: ResponsiveLayoutHelper.getButtonHeight(geometry),
+                           height: ResponsiveLayoutHelper.getButtonHeight(geometry))
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: ResponsiveLayoutHelper.getCornerRadius(geometry, base: 10))
                             .fill(isEmailValid ? Color.appPrimary : Color.fillSecondary)
                     )
                 }
@@ -238,12 +242,12 @@ struct AuthView: View {
             }
             .padding(.horizontal, 1)
             .background(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: ResponsiveLayoutHelper.getCornerRadius(geometry, base: 10))
                     .fill(Color.fillSecondary)
                     .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
             )
         }
-        .frame(maxWidth: 300)
+        .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
     }
     
     private var isEmailValid: Bool {

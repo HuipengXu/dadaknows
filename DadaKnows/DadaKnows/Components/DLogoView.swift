@@ -49,6 +49,11 @@ extension DLogoView {
     static var extraLarge: DLogoView {
         DLogoView(size: 120)
     }
+
+    /// 创建响应式Logo，根据传入的尺寸自动调整
+    static func responsive(size: CGFloat, shadowEnabled: Bool = true) -> DLogoView {
+        DLogoView(size: size, shadowEnabled: shadowEnabled)
+    }
 }
 
 // MARK: - Conditional View Modifier

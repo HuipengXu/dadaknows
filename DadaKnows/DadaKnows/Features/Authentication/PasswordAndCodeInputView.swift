@@ -60,30 +60,33 @@ struct PasswordInputView: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                Spacer()
+        GeometryReader { geometry in
+            NavigationView {
+                VStack(spacing: 0) {
+                    Spacer()
 
-                headerView
+                    headerView(geometry: geometry)
 
-                Spacer().frame(height: 40)
+                    Spacer().frame(height: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 30))
 
-                emailDisplayView
+                    emailDisplayView(geometry: geometry)
 
-                Spacer().frame(height: 24)
+                    Spacer().frame(height: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 20))
 
-                inputSectionView
+                    inputSectionView(geometry: geometry)
 
-                Spacer()
+                    Spacer()
 
-                actionButtonsView
+                    actionButtonsView(geometry: geometry)
 
-                Spacer().frame(height: 50)
+                    Spacer().frame(height: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 40))
+                }
+                .background(Color.backgroundPrimary)
+                .navigationBarHidden(true)
+                .padding(ResponsiveLayoutHelper.getContentPadding(geometry))
             }
-            .background(Color.backgroundPrimary)
-            .navigationBarHidden(true)
+            .navigationViewStyle(StackNavigationViewStyle())
         }
-        .navigationViewStyle(StackNavigationViewStyle())
         .alert("错误", isPresented: $showAlert) {
             Button("确定") {
                 authManager.clearError()
@@ -225,58 +228,57 @@ struct PasswordInputView: View {
 
     // MARK: - View Components
 
-    private var headerView: some View {
-        VStack(spacing: 24) {
-            DLogoView.medium
+    private func headerView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 20)) {
+            DLogoView.responsive(size: ResponsiveLayoutHelper.getLogoSize(geometry))
 
-            VStack(spacing: 8) {
+            VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 8)) {
                 Text(isExistingUser ? "欢迎回来" : "创建账户")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry) + 4, weight: .bold))
                     .foregroundColor(.textPrimary)
 
                 Text(isExistingUser ? "请输入密码登录" : "请设置密码完成注册")
-                    .font(.subheadline)
+                    .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry), weight: .regular))
                     .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
             }
         }
     }
 
-    private var emailDisplayView: some View {
+    private func emailDisplayView(geometry: GeometryProxy) -> some View {
         HStack {
             Image(systemName: "envelope.fill")
-                .font(.system(size: 16))
+                .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
                 .foregroundColor(.appPrimary)
 
             Text(email)
-                .font(.system(size: 16))
+                .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
                 .foregroundColor(.textPrimary)
                 .multilineTextAlignment(.leading)
 
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.horizontal, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16))
+        .padding(.vertical, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 14))
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: ResponsiveLayoutHelper.getCornerRadius(geometry, base: 10))
                 .fill(Color.fillSecondary)
                 .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
         )
-        .frame(maxWidth: 300)
+        .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
     }
 
       @ViewBuilder
-    private var inputSectionView: some View {
+    private func inputSectionView(geometry: GeometryProxy) -> some View {
         if showVerificationInput {
-            verificationCodeInputView
+            verificationCodeInputView(geometry: geometry)
         } else {
-            passwordInputView
+            passwordInputView(geometry: geometry)
         }
     }
 
-    private var passwordInputView: some View {
-        VStack(spacing: 16) {
+    private func passwordInputView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16)) {
             HStack {
                 Group {
                     if isSecurePassword {
@@ -285,38 +287,39 @@ struct PasswordInputView: View {
                         TextField("请输入密码", text: $password)
                     }
                 }
+                .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
                 .foregroundColor(.textPrimary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .padding(.horizontal, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16))
+                .padding(.vertical, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 14))
 
                 Button(action: {
                     isSecurePassword.toggle()
                 }) {
                     Image(systemName: isSecurePassword ? "eye.slash" : "eye")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry), weight: .medium))
                         .foregroundColor(.textSecondary)
                 }
-                .padding(.trailing, 16)
+                .padding(.trailing, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16))
             }
             .background(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: ResponsiveLayoutHelper.getCornerRadius(geometry, base: 10))
                     .fill(Color.fillSecondary)
                     .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
             )
-            .frame(maxWidth: 300)
+            .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
 
             if !isExistingUser && !password.isEmpty {
                 PasswordStrengthView(password: password)
-                    .frame(maxWidth: 300)
+                    .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
             }
 
             if !isExistingUser {
-                confirmPasswordInputView
+                confirmPasswordInputView(geometry: geometry)
             }
         }
     }
 
-    private var confirmPasswordInputView: some View {
+    private func confirmPasswordInputView(geometry: GeometryProxy) -> some View {
         HStack {
             Group {
                 if isSecureConfirmPassword {
@@ -325,15 +328,16 @@ struct PasswordInputView: View {
                     TextField("请再次输入密码", text: $confirmPassword)
                 }
             }
+            .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
             .foregroundColor(.textPrimary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.horizontal, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16))
+            .padding(.vertical, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 14))
 
             // 状态指示器
             if !confirmPassword.isEmpty {
                 Image(systemName: passwordMatchState.iconName)
                     .foregroundColor(passwordMatchState.color)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry), weight: .medium))
                     .animation(.easeInOut(duration: 0.3), value: passwordMatchState)
             }
 
@@ -341,27 +345,28 @@ struct PasswordInputView: View {
                 isSecureConfirmPassword.toggle()
             }) {
                 Image(systemName: isSecureConfirmPassword ? "eye.slash" : "eye")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry), weight: .medium))
                     .foregroundColor(.textSecondary)
             }
-            .padding(.trailing, 16)
+            .padding(.trailing, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16))
         }
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: ResponsiveLayoutHelper.getCornerRadius(geometry, base: 10))
                 .fill(Color.fillSecondary)
                 .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
         )
-        .frame(maxWidth: 300)
+        .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
     }
 
-    private var verificationCodeInputView: some View {
-        VStack(spacing: 16) {
+    private func verificationCodeInputView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16)) {
             HStack {
                 TextField("请输入6位验证码", text: $verificationCode)
                     .keyboardType(.numberPad)
+                    .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
                     .foregroundColor(.textPrimary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
+                    .padding(.horizontal, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16))
+                    .padding(.vertical, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 14))
                     .onChange(of: verificationCode) { _, newValue in
                         // 限制验证码最多6位数字
                         let filtered = newValue.filter { $0.isNumber }
@@ -369,26 +374,26 @@ struct PasswordInputView: View {
                     }
             }
             .background(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: ResponsiveLayoutHelper.getCornerRadius(geometry, base: 10))
                     .fill(Color.fillSecondary)
                     .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
             )
-            .frame(maxWidth: 300)
+            .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
 
             HStack {
                 Text("验证码已发送到您的邮箱")
-                    .font(.caption)
+                    .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry) - 2))
                     .foregroundColor(.textSecondary)
 
                 Spacer()
 
                 Text(countdownText)
-                    .font(.caption)
+                    .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry) - 2))
                     .fontWeight(.medium)
                     .foregroundColor(isCountdownUrgent ? .red : .textSecondary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            .frame(maxWidth: 300)
+            .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
 
             Button(action: {
                 guard canResendOTP else { return }
@@ -407,7 +412,7 @@ struct PasswordInputView: View {
                 }
             }) {
                 Text(resendButtonText)
-                    .font(.subheadline)
+                    .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry)))
                     .foregroundColor(canResendOTP ? .appPrimary : .gray)
             }
             .buttonStyle(.plain)
@@ -415,8 +420,8 @@ struct PasswordInputView: View {
         }
     }
 
-    private var verificationCodeButtonsView: some View {
-        VStack(spacing: 16) {
+    private func verificationCodeButtonsView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16)) {
             Button(action: handleVerifyCode) {
                 HStack {
                     if isLoading {
@@ -426,12 +431,12 @@ struct PasswordInputView: View {
                     }
                     Text("验证")
                         .fontWeight(.semibold)
+                        .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry)))
                 }
                 .foregroundColor(.white)
-                .frame(maxWidth: 300)
-                .frame(height: 50)
+                .responsiveButtonSize(geometry)
                 .background(canVerifyCode ? Color.appPrimary : Color.gray)
-                .cornerRadius(12)
+                .cornerRadius(ResponsiveLayoutHelper.getCornerRadius(geometry, base: 12))
             }
             .disabled(!canVerifyCode || isLoading)
             .buttonStyle(.plain)
@@ -439,27 +444,27 @@ struct PasswordInputView: View {
             Button(action: onCancel) {
                 Text("取消")
                     .fontWeight(.medium)
+                    .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry)))
                     .foregroundColor(.textPrimary)
-                    .frame(maxWidth: 300)
-                    .frame(height: 50)
+                    .responsiveButtonSize(geometry)
                     .background(Color.fillSecondary)
-                    .cornerRadius(12)
+                    .cornerRadius(ResponsiveLayoutHelper.getCornerRadius(geometry, base: 12))
             }
             .buttonStyle(.plain)
         }
     }
 
     @ViewBuilder
-    private var actionButtonsView: some View {
+    private func actionButtonsView(geometry: GeometryProxy) -> some View {
         if showVerificationInput {
-            verificationCodeButtonsView
+            verificationCodeButtonsView(geometry: geometry)
         } else {
-            passwordButtonsView
+            passwordButtonsView(geometry: geometry)
         }
     }
 
-    private var passwordButtonsView: some View {
-        VStack(spacing: 16) {
+    private func passwordButtonsView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16)) {
             Button(action: handleSubmit) {
                 HStack {
                     if isLoading {
@@ -469,12 +474,12 @@ struct PasswordInputView: View {
                     }
                     Text(isExistingUser ? "登录" : "注册")
                         .fontWeight(.semibold)
+                        .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry)))
                 }
                 .foregroundColor(.white)
-                .frame(maxWidth: 300)
-                .frame(height: 50)
+                .responsiveButtonSize(geometry)
                 .background(canSubmit ? Color.appPrimary : Color.gray)
-                .cornerRadius(12)
+                .cornerRadius(ResponsiveLayoutHelper.getCornerRadius(geometry, base: 12))
             }
             .disabled(!canSubmit || isLoading)
             .buttonStyle(.plain)
@@ -482,11 +487,11 @@ struct PasswordInputView: View {
             Button(action: onCancel) {
                 Text("取消")
                     .fontWeight(.medium)
+                    .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry)))
                     .foregroundColor(.textPrimary)
-                    .frame(maxWidth: 300)
-                    .frame(height: 50)
+                    .responsiveButtonSize(geometry)
                     .background(Color.fillSecondary)
-                    .cornerRadius(12)
+                    .cornerRadius(ResponsiveLayoutHelper.getCornerRadius(geometry, base: 12))
             }
             .buttonStyle(.plain)
         }
