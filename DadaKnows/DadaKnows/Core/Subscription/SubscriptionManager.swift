@@ -232,21 +232,52 @@ class SubscriptionManager: ObservableObject {
     
     private var dailyQuestionCount: Int {
         get {
-            let today = Calendar.current.startOfDay(for: Date())
-            let lastResetDate = UserDefaults.standard.object(forKey: "lastQuestionCountReset") as? Date ?? Date.distantPast
-            
-            if Calendar.current.startOfDay(for: lastResetDate) < today {
-                // 新的一天，重置计数
-                UserDefaults.standard.set(0, forKey: "dailyQuestionCount")
-                UserDefaults.standard.set(today, forKey: "lastQuestionCountReset")
-                return 0
-            }
-            
+            // 检查是否需要重置（24小时后重置逻辑）
+            checkAndResetDailyCountIfNeeded()
             return UserDefaults.standard.integer(forKey: "dailyQuestionCount")
         }
         set {
+            let oldValue = dailyQuestionCount
             UserDefaults.standard.set(newValue, forKey: "dailyQuestionCount")
+
+            // 如果用户刚刚达到每日限制（2次），记录限制到达时间
+            if newValue >= Config.dailyFreeQuestionLimit && oldValue < Config.dailyFreeQuestionLimit {
+                UserDefaults.standard.set(Date(), forKey: "lastDailyLimitReachedTime")
+            }
         }
+    }
+
+    /// 检查并重置每日计数（如果距离上次限制达到已超过24小时）
+    private func checkAndResetDailyCountIfNeeded() {
+        guard let limitReachedTime = UserDefaults.standard.object(forKey: "lastDailyLimitReachedTime") as? Date else {
+            // 如果从未达到过限制，使用旧的午夜重置逻辑
+            let today = Calendar.current.startOfDay(for: Date())
+            let lastResetDate = UserDefaults.standard.object(forKey: "lastQuestionCountReset") as? Date ?? Date.distantPast
+
+            if Calendar.current.startOfDay(for: lastResetDate) < today {
+                UserDefaults.standard.set(0, forKey: "dailyQuestionCount")
+                UserDefaults.standard.set(today, forKey: "lastQuestionCountReset")
+            }
+            return
+        }
+
+        // 24小时后重置逻辑
+        let resetTime = Calendar.current.date(byAdding: .hour, value: 24, to: limitReachedTime) ?? limitReachedTime
+        if Date() >= resetTime {
+            UserDefaults.standard.set(0, forKey: "dailyQuestionCount")
+            UserDefaults.standard.removeObject(forKey: "lastDailyLimitReachedTime")
+        }
+    }
+
+    /// 获取下次重置时间（24小时后）
+    func getNextResetTime() -> Date? {
+        guard let limitReachedTime = UserDefaults.standard.object(forKey: "lastDailyLimitReachedTime") as? Date else {
+            // 如果从未达到限制，返回今天午夜
+            return Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date())
+        }
+
+        // 返回24小时后的时间
+        return Calendar.current.date(byAdding: .hour, value: 24, to: limitReachedTime)
     }
     
     /// 检查是否可以提问（考虑日限制和月限制）

@@ -9,10 +9,12 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var aiManager = AIManager.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var question = ""
     @State private var selectedAge = 5
     @State private var isAsking = false
     @State private var showChat = false
+    @State private var showLimitReachedSheet = false
     
     let ageRanges = [
         (2, NSLocalizedString("2-3岁", comment: "")),
@@ -31,16 +33,16 @@ struct HomeView: View {
                         VStack(spacing: 32) {
                             // Welcome section
                             welcomeSection
-                            
+
                             // Question input section
                             questionInputSection
-                            
+
                             // Age selector section
                             ageSelectionSection
-                            
+
                             // Ask button
                             askButtonSection
-                            
+
                             Spacer(minLength: 100)
                         }
                         .padding(.horizontal, 20)
@@ -60,6 +62,9 @@ struct HomeView: View {
                 },
                 historicalSession: nil
             )
+        }
+        .sheet(isPresented: $showLimitReachedSheet) {
+            LimitReachedSheet()
         }
     }
     
@@ -82,7 +87,7 @@ struct HomeView: View {
         }
         .padding(.top, 20)
     }
-    
+
     // MARK: - Question Input Section
     private var questionInputSection: some View {
         VStack(spacing: 0) {
@@ -175,9 +180,20 @@ struct HomeView: View {
     
     private func askQuestion() {
         guard isFormValid else { return }
-        
+
+        // Check if user can ask more questions
+        if !subscriptionManager.canAskQuestionSync() {
+            showLimitReachedSheet = true
+            return
+        }
+
         isAsking = true
-        
+
+        // Increment usage count for free users
+        if !subscriptionManager.isProMember {
+            subscriptionManager.incrementQuestionCount()
+        }
+
         // Simulate brief thinking animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             isAsking = false

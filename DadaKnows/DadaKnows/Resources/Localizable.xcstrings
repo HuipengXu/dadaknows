@@ -45,6 +45,19 @@
         }
       }
     },
+    "%d分钟后" : {
+
+    },
+    "%d小时%d分钟后" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$d小时%2$d分钟后"
+          }
+        }
+      }
+    },
     "%lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2533,6 +2546,9 @@
         }
       }
     },
+    "下次重置时间" : {
+
+    },
     "下载中" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2740,6 +2756,12 @@
         }
       }
     },
+    "今日免费提问已用完" : {
+
+    },
+    "今日提问已用完" : {
+
+    },
     "你好，我是答答" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2791,6 +2813,9 @@
         }
       }
     },
+    "使用本地大模型" : {
+
+    },
     "使用本地设备模型" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2841,6 +2866,9 @@
           }
         }
       }
+    },
+    "免费用户每天可提问2次" : {
+
     },
     "全部" : {
       "extractionState" : "manual",
@@ -3150,6 +3178,12 @@
           }
         }
       }
+    },
+    "升级到Pro会员" : {
+
+    },
+    "即将重置" : {
+
     },
     "历史" : {
       "extractionState" : "manual",
@@ -3695,6 +3729,9 @@
         }
       }
     },
+    "想要继续使用答答？选择以下方式：" : {
+
+    },
     "意见反馈" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3899,6 +3936,9 @@
         }
       }
     },
+    "无限使用 • 离线可用 • 保护隐私" : {
+
+    },
     "无限次提问，更多功能" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3915,6 +3955,9 @@
           }
         }
       }
+    },
+    "明天" : {
+
     },
     "昨天" : {
       "extractionState" : "manual",
@@ -4480,6 +4523,9 @@
         }
       }
     },
+    "每月3000次提问 • 优先响应" : {
+
+    },
     "没有找到相关记录" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4768,6 +4814,9 @@
           }
         }
       }
+    },
+    "稍后再说" : {
+
     },
     "立即同步" : {
       "extractionState" : "manual",
@@ -5395,6 +5444,9 @@
           }
         }
       }
+    },
+    "还有%@" : {
+
     },
     "还没有对话记录" : {
       "extractionState" : "manual",

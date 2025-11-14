@@ -99,7 +99,7 @@ struct ChatView: View {
                                 .background(Color.backgroundTertiary)
                             }
                         }
-                        
+
                         // Input field and buttons
                         InputAreaView(
                             currentQuestion: $currentQuestion,
@@ -180,7 +180,7 @@ struct ChatView: View {
         !aiManager.isLoading &&
         subscriptionManager.canAskQuestionSync()
     }
-    
+
     private func sendQuestion() {
         guard canSendQuestion else { return }
         
