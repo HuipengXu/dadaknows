@@ -243,6 +243,13 @@ class SubscriptionManager: ObservableObject {
             // 如果用户刚刚达到每日限制（2次），记录限制到达时间
             if newValue >= Config.dailyFreeQuestionLimit && oldValue < Config.dailyFreeQuestionLimit {
                 UserDefaults.standard.set(Date(), forKey: "lastDailyLimitReachedTime")
+                if Config.isDebug {
+                    print("📊 SubscriptionManager: 用户达到每日限制，记录限制到达时间")
+                }
+            }
+
+            if Config.isDebug {
+                print("📊 SubscriptionManager: 每日计数更新 \(oldValue) -> \(newValue)")
             }
         }
     }
@@ -266,6 +273,9 @@ class SubscriptionManager: ObservableObject {
         if Date() >= resetTime {
             UserDefaults.standard.set(0, forKey: "dailyQuestionCount")
             UserDefaults.standard.removeObject(forKey: "lastDailyLimitReachedTime")
+            if Config.isDebug {
+                print("📊 SubscriptionManager: 24小时限制已过期，重置每日计数")
+            }
         }
     }
 

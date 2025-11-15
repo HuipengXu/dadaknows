@@ -189,11 +189,6 @@ struct HomeView: View {
 
         isAsking = true
 
-        // Increment usage count for free users
-        if !subscriptionManager.isProMember {
-            subscriptionManager.incrementQuestionCount()
-        }
-
         // Simulate brief thinking animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             isAsking = false
