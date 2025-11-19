@@ -24,6 +24,7 @@ class AuthManager: ObservableObject {
     @Published var errorMessage: String?
     @Published var successMessage: String?
     @Published var authErrorType: AuthErrorType?
+    @Published var isRecoveryInProgress = false
     
     private let supabase = SupabaseClient.shared
     private var cancellables = Set<AnyCancellable>()
@@ -47,19 +48,33 @@ class AuthManager: ObservableObject {
     private func handleAuthStateChange(_ event: AuthChangeEvent, session: Session?) async {
         switch event {
         case .signedIn:
-            // 使用传入的session或获取当前session
-            if let session = session {
-                self.currentUser = session.user
-                self.isAuthenticated = true
-                AppState.shared.signIn()
+            // 恢复流程中仅同步用户，不触发全局登录
+            if isRecoveryInProgress {
+                if let session = session {
+                    self.currentUser = session.user
+                } else {
+                    do {
+                        let currentSession = try await supabase.supabase.auth.session
+                        self.currentUser = currentSession.user
+                    } catch {
+                        print("获取session失败: \(error)")
+                    }
+                }
             } else {
-                do {
-                    let currentSession = try await supabase.supabase.auth.session
-                    self.currentUser = currentSession.user
+                // 非恢复流程：正常登录
+                if let session = session {
+                    self.currentUser = session.user
                     self.isAuthenticated = true
                     AppState.shared.signIn()
-                } catch {
-                    print("获取session失败: \(error)")
+                } else {
+                    do {
+                        let currentSession = try await supabase.supabase.auth.session
+                        self.currentUser = currentSession.user
+                        self.isAuthenticated = true
+                        AppState.shared.signIn()
+                    } catch {
+                        print("获取session失败: \(error)")
+                    }
                 }
             }
             
@@ -257,6 +272,56 @@ class AuthManager: ObservableObject {
             if Config.isDebug {
                 print("❌ OTP重新发送失败: \(error)")
             }
+            throw error
+        }
+    }
+
+    func verifyRecoveryOTP(email: String, token: String) async throws {
+        isLoading = true
+        clearError()
+
+        defer { isLoading = false }
+
+        do {
+            isRecoveryInProgress = true
+            let session = try await supabase.supabase.auth.verifyOTP(
+                email: email,
+                token: token,
+                type: .recovery
+            )
+            if Config.isDebug {
+                print("✅ verifyRecoveryOTP success. User: \(session.user.id)")
+            }
+            self.currentUser = session.user
+        } catch {
+            self.errorMessage = handleAuthError(error)
+            throw error
+        }
+    }
+
+    func updatePassword(newPassword: String) async throws {
+        guard !newPassword.isEmpty else { throw AuthError.weakPassword }
+        isLoading = true
+        clearError()
+
+        defer { isLoading = false }
+
+        do {
+            // 检查当前会话状态
+            if Config.isDebug {
+                let session = try? await supabase.supabase.auth.session
+                print("🔐 updatePassword - Current Session: \(session?.user.id.uuidString ?? "nil")")
+            }
+
+            let updatedUser = try await supabase.supabase.auth.update(
+                user: UserAttributes(password: newPassword)
+            )
+            self.currentUser = updatedUser
+            self.successMessage = "密码已更新"
+            isRecoveryInProgress = false
+        } catch {
+            print("❌ updatePassword error: \(error)")
+            self.errorMessage = handleAuthError(error)
             throw error
         }
     }
@@ -699,7 +764,7 @@ class AuthManager: ObservableObject {
             authErrorType = .unknownError
         }
 
-        return error.localizedDescription
+        return error.localizedDescription + " (\(error))"
     }
 }
 
@@ -783,6 +848,18 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
             case .matchedExcludedCredential:
                 // This occurs when the credential is excluded by the app configuration
                 print("Treating ASAuthorizationError.matchedExcludedCredential as cancellation")
+                completion(.failure(AuthError.userCanceled))
+            case .credentialImport:
+                print("ASAuthorizationError.credentialImport")
+                completion(.failure(AuthError.userCanceled))
+            case .credentialExport:
+                print("ASAuthorizationError.credentialExport")
+                completion(.failure(AuthError.userCanceled))
+            case .preferSignInWithApple:
+                print("ASAuthorizationError.preferSignInWithApple")
+                completion(.failure(AuthError.userCanceled))
+            case .deviceNotConfiguredForPasskeyCreation:
+                print("ASAuthorizationError.deviceNotConfiguredForPasskeyCreation")
                 completion(.failure(AuthError.userCanceled))
             @unknown default:
                 completion(.failure(error))

@@ -23,6 +23,7 @@ struct PasswordInputView: View {
     @State private var showAlert = false
     @State private var showSuccessAlert = false
     @State private var isLoading = false
+    @State private var showForgotPassword = false
 
     // 验证码相关状态
     @State private var verificationCode = ""
@@ -87,6 +88,9 @@ struct PasswordInputView: View {
             }
             .navigationViewStyle(StackNavigationViewStyle())
         }
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView(prefilledEmail: email)
+        }
         .alert("错误", isPresented: $showAlert) {
             Button("确定") {
                 authManager.clearError()
@@ -108,7 +112,7 @@ struct PasswordInputView: View {
             showSuccessAlert = successMessage != nil
         }
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
-            if isAuthenticated {
+            if isAuthenticated && !showForgotPassword {
                 stopCountdownTimer() // 验证成功后停止计时器
                 onAuthSuccess()
             }
@@ -307,6 +311,20 @@ struct PasswordInputView: View {
                     .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
             )
             .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
+            
+            // 忘记密码链接 - 仅对已存在用户显示
+            if isExistingUser {
+                HStack {
+                    Spacer()
+                    Button(action: { showForgotPassword = true }) {
+                        Text("忘记密码?")
+                            .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry) - 1))
+                            .foregroundColor(.appPrimary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
+            }
 
             if !isExistingUser && !password.isEmpty {
                 PasswordStrengthView(password: password)

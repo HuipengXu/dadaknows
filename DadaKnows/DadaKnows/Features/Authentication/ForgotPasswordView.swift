@@ -12,73 +12,93 @@ struct ForgotPasswordView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var email = ""
+    @State private var verificationCode = ""
+    @State private var showVerificationInput = false
+    @State private var otpExpirationTime: Date?
+    @State private var countdownTimer: Timer?
+    @State private var remainingTime: TimeInterval = 0
+    @State private var resendCountdownTimer: Timer?
+    @State private var resendCooldownTime: TimeInterval = 0
+    @State private var newPassword = ""
+    @State private var confirmNewPassword = ""
+    @State private var isSecureNewPassword = true
+    @State private var isSecureConfirmNewPassword = true
+    @State private var isLoading = false
     @State private var showSuccessAlert = false
     @State private var showErrorAlert = false
+    @State private var isOTPVerified = false
+
+    init(prefilledEmail: String? = nil) {
+        _email = State(initialValue: prefilledEmail ?? "")
+    }
+
+    // MARK: - Password Reset Steps
+    private enum ResetStep {
+        case enterEmail
+        case verifyCode
+        case setNewPassword
+    }
     
+    @State private var currentStep: ResetStep = .enterEmail
+
     var body: some View {
         NavigationView {
             ZStack {
                 Color.creamYellow
                     .ignoresSafeArea()
                 
-                VStack(spacing: 30) {
-                    Spacer().frame(height: 40)
+                VStack(spacing: 24) {
+                    Spacer().frame(height: 20)
                     
                     // Header
-                    VStack(spacing: 15) {
+                    VStack(spacing: 12) {
                         Image(systemName: "lock.rotation")
                             .font(.system(size: 50, weight: .light))
                             .foregroundColor(.vibrantOrange)
                         
-                        Text(NSLocalizedString("重置密码", comment: ""))
+                        Text(NSLocalizedString("忘记密码", comment: ""))
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.darkGray)
                         
-                        Text(NSLocalizedString("输入您的邮箱地址，我们将发送重置密码的链接", comment: ""))
+                        Text(stepDescription)
                             .font(.subheadline)
                             .foregroundColor(.lightGray)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, 32)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .padding(.bottom, 8)
                     
-                    // Email input
-                    VStack(spacing: 20) {
-                        TextField("邮箱地址", text: $email)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.fillSecondary)
-                                    .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
-                            )
-                            .frame(maxWidth: 300)
-
-                        // Send button
-                        Button(action: handleResetPassword) {
-                            HStack {
-                                if authManager.isLoading {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                        .foregroundColor(.white)
-                                }
-                                Text(NSLocalizedString("发送重置链接", comment: ""))
-                                    .fontWeight(.semibold)
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: 300)
-                            .frame(height: 50)
-                            .background(Color.vibrantOrange)
-                            .cornerRadius(25)
+                    // Step Indicator
+                    HStack(spacing: 8) {
+                        ForEach(0..<3) { index in
+                            Circle()
+                                .fill(index <= stepIndex ? Color.vibrantOrange : Color.gray.opacity(0.3))
+                                .frame(width: 8, height: 8)
                         }
-                        .disabled(authManager.isLoading || email.isEmpty)
-                        .opacity(email.isEmpty ? 0.6 : 1.0)
                     }
+                    .padding(.bottom, 16)
+                    
+                    // Content based on current step
+                    Group {
+                        switch currentStep {
+                        case .enterEmail:
+                            emailStepView
+                        case .verifyCode:
+                            verificationStepView
+                        case .setNewPassword:
+                            passwordStepView
+                        }
+                    }
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        removal: .move(edge: .leading).combined(with: .opacity)
+                    ))
                     
                     Spacer()
                 }
+                .padding(.horizontal, 24)
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -90,14 +110,14 @@ struct ForgotPasswordView: View {
                     .foregroundColor(.vibrantOrange)
                 }
             }
-            .alert(NSLocalizedString("发送成功", comment: ""), isPresented: $showSuccessAlert) {
+            .alert(NSLocalizedString("成功", comment: ""), isPresented: $showSuccessAlert) {
                 Button(NSLocalizedString("确定", comment: "")) {
                     dismiss()
                 }
             } message: {
-                Text(NSLocalizedString("重置密码的链接已发送到您的邮箱，请查收", comment: ""))
+                Text("密码已成功重置，请使用新密码登录")
             }
-            .alert(NSLocalizedString("发送失败", comment: ""), isPresented: $showErrorAlert) {
+            .alert(NSLocalizedString("错误", comment: ""), isPresented: $showErrorAlert) {
                 Button(NSLocalizedString("确定", comment: "")) {
                     authManager.errorMessage = nil
                 }
@@ -107,23 +127,413 @@ struct ForgotPasswordView: View {
             .onChange(of: authManager.errorMessage) {
                 showErrorAlert = authManager.errorMessage != nil
             }
+            .onDisappear {
+                stopCountdownTimer()
+                stopResendCountdownTimer()
+            }
         }
     }
     
-    private func handleResetPassword() {
+    // MARK: - Step Views
+    
+    private var emailStepView: some View {
+        VStack(spacing: 20) {
+            TextField("邮箱地址", text: $email)
+                .keyboardType(.emailAddress)
+                .autocapitalization(.none)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.fillSecondary)
+                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+                )
+                .frame(maxWidth: 320)
+
+            Button(action: handleSendOTP) {
+                HStack {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .foregroundColor(.white)
+                    }
+                    Text(NSLocalizedString("发送验证码", comment: ""))
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: 320)
+                .frame(height: 50)
+                .background(email.isEmpty || isLoading ? Color.gray : Color.vibrantOrange)
+                .cornerRadius(25)
+            }
+            .disabled(isLoading || email.isEmpty)
+            .opacity(email.isEmpty ? 0.6 : 1.0)
+        }
+    }
+    
+    private var verificationStepView: some View {
+        VStack(spacing: 20) {
+            // Email display
+            HStack {
+                Image(systemName: "envelope.fill")
+                    .foregroundColor(.vibrantOrange)
+                Text(email)
+                    .font(.subheadline)
+                    .foregroundColor(.darkGray)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.fillSecondary.opacity(0.5))
+            )
+            .frame(maxWidth: 320)
+            
+            TextField("请输入6位验证码", text: $verificationCode)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .font(.system(size: 24, weight: .medium, design: .rounded))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.fillSecondary)
+                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+                )
+                .frame(maxWidth: 320)
+                .onChange(of: verificationCode) { _, newValue in
+                    let filtered = newValue.filter { $0.isNumber }
+                    verificationCode = String(filtered.prefix(6))
+                }
+
+            VStack(spacing: 8) {
+                Text(countdownText)
+                    .font(.caption)
+                    .foregroundColor(isCountdownUrgent ? .red : .lightGray)
+                
+                Button(action: handleResendOTP) {
+                    Text(resendButtonText)
+                        .font(.subheadline)
+                        .foregroundColor(canResendOTP ? .vibrantOrange : .gray)
+                }
+                .disabled(!canResendOTP || isLoading)
+            }
+            .frame(maxWidth: 320)
+
+            Button(action: handleVerifyRecoveryCode) {
+                HStack {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .foregroundColor(.white)
+                    }
+                    Text("验证并继续")
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: 320)
+                .frame(height: 50)
+                .background(canVerifyCode ? Color.vibrantOrange : Color.gray)
+                .cornerRadius(25)
+            }
+            .disabled(!canVerifyCode || isLoading)
+        }
+    }
+    
+    private var passwordStepView: some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 16) {
+                HStack {
+                    Group {
+                        if isSecureNewPassword {
+                            SecureField("新密码", text: $newPassword)
+                        } else {
+                            TextField("新密码", text: $newPassword)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    
+                    Button(action: { isSecureNewPassword.toggle() }) {
+                        Image(systemName: isSecureNewPassword ? "eye.slash" : "eye")
+                            .foregroundColor(.lightGray)
+                    }
+                    .padding(.trailing, 16)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.fillSecondary)
+                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+                )
+                .frame(maxWidth: 320)
+
+                HStack {
+                    Group {
+                        if isSecureConfirmNewPassword {
+                            SecureField("确认新密码", text: $confirmNewPassword)
+                        } else {
+                            TextField("确认新密码", text: $confirmNewPassword)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    
+                    Button(action: { isSecureConfirmNewPassword.toggle() }) {
+                        Image(systemName: isSecureConfirmNewPassword ? "eye.slash" : "eye")
+                            .foregroundColor(.lightGray)
+                    }
+                    .padding(.trailing, 16)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.fillSecondary)
+                        .stroke(Color.separator.opacity(0.3), lineWidth: 0.5)
+                )
+                .frame(maxWidth: 320)
+            }
+            
+            // Password requirements
+            if !newPassword.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    passwordRequirementRow("至少8个字符", met: newPassword.count >= 8)
+                    passwordRequirementRow("包含大写字母", met: newPassword.range(of: "[A-Z]", options: .regularExpression) != nil)
+                    passwordRequirementRow("包含小写字母", met: newPassword.range(of: "[a-z]", options: .regularExpression) != nil)
+                    passwordRequirementRow("包含数字", met: newPassword.range(of: "[0-9]", options: .regularExpression) != nil)
+                    passwordRequirementRow("包含特殊符号", met: newPassword.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil)
+                }
+                .font(.caption)
+                .padding(.horizontal)
+                .frame(maxWidth: 320)
+            }
+
+            Button(action: handleUpdatePassword) {
+                HStack {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .foregroundColor(.white)
+                    }
+                    Text("更新密码")
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: 320)
+                .frame(height: 50)
+                .background(canUpdatePassword ? Color.vibrantOrange : Color.gray)
+                .cornerRadius(25)
+            }
+            .disabled(!canUpdatePassword || isLoading)
+        }
+    }
+    
+    private func passwordRequirementRow(_ text: String, met: Bool) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: met ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(met ? .green : .gray.opacity(0.5))
+                .font(.system(size: 12))
+            Text(text)
+                .foregroundColor(met ? .darkGray : .lightGray)
+        }
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var stepIndex: Int {
+        switch currentStep {
+        case .enterEmail: return 0
+        case .verifyCode: return 1
+        case .setNewPassword: return 2
+        }
+    }
+    
+    private var stepDescription: String {
+        switch currentStep {
+        case .enterEmail:
+            return "输入您的邮箱地址，我们将发送验证码"
+        case .verifyCode:
+            return "请输入发送到您邮箱的6位验证码"
+        case .setNewPassword:
+            return "请设置您的新密码"
+        }
+    }
+    
+    private var canVerifyCode: Bool {
+        return verificationCode.count == 6 && remainingTime > 0
+    }
+
+    private var canResendOTP: Bool {
+        return resendCooldownTime <= 0
+    }
+
+    private var resendButtonText: String {
+        if resendCooldownTime > 0 { return "重新发送(\(Int(resendCooldownTime))s)" } else { return "重新发送验证码" }
+    }
+
+    private var countdownText: String {
+        let minutes = Int(remainingTime) / 60
+        let seconds = Int(remainingTime) % 60
+        if remainingTime <= 0 { return "验证码已过期" }
+        if remainingTime <= 120 { return "验证码将在 \(minutes):\(String(format: "%02d", seconds)) 后过期" }
+        return "剩余时间: \(minutes):\(String(format: "%02d", seconds))"
+    }
+
+    private var isCountdownUrgent: Bool {
+        return remainingTime <= 120 && remainingTime > 0
+    }
+
+    private var canUpdatePassword: Bool {
+        guard !newPassword.isEmpty && newPassword == confirmNewPassword else { return false }
+        return validatePasswordStrength(newPassword)
+    }
+
+    private func validatePasswordStrength(_ password: String) -> Bool {
+        let hasLowercase = password.range(of: "[a-z]", options: .regularExpression) != nil
+        let hasUppercase = password.range(of: "[A-Z]", options: .regularExpression) != nil
+        let hasDigits = password.range(of: "[0-9]", options: .regularExpression) != nil
+        let hasSymbols = password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil
+        let hasMinLength = password.count >= 8
+        return hasLowercase && hasUppercase && hasDigits && hasSymbols && hasMinLength
+    }
+
+    private func startCountdownTimer() {
+        otpExpirationTime = Date().addingTimeInterval(10 * 60)
+        remainingTime = 10 * 60
+        stopCountdownTimer()
+        countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            updateCountdown()
+        }
+    }
+
+    private func stopCountdownTimer() {
+        countdownTimer?.invalidate()
+        countdownTimer = nil
+    }
+
+    private func updateCountdown() {
+        guard let expirationTime = otpExpirationTime else { return }
+        let now = Date()
+        remainingTime = expirationTime.timeIntervalSince(now)
+        if remainingTime <= 0 {
+            stopCountdownTimer()
+            remainingTime = 0
+        }
+    }
+
+    private func startResendCountdownTimer() {
+        resendCooldownTime = 30
+        stopResendCountdownTimer()
+        resendCountdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            updateResendCountdown()
+        }
+    }
+
+    private func stopResendCountdownTimer() {
+        resendCountdownTimer?.invalidate()
+        resendCountdownTimer = nil
+    }
+
+    private func updateResendCountdown() {
+        resendCooldownTime -= 1
+        if resendCooldownTime <= 0 {
+            stopResendCountdownTimer()
+            resendCooldownTime = 0
+        }
+    }
+
+    private var isVerifiedStage: Bool {
+        return isOTPVerified
+    }
+
+    private func handleSendOTP() {
         guard !email.isEmpty else { return }
-        
+        isLoading = true
+        authManager.clearError()
         Task {
             do {
                 try await authManager.resetPassword(email: email)
-                showSuccessAlert = true
+                await MainActor.run {
+                    isLoading = false
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        currentStep = .verifyCode
+                    }
+                    showVerificationInput = true
+                    startCountdownTimer()
+                    startResendCountdownTimer()
+                }
             } catch {
-                // 错误已在AuthManager中处理
+                await MainActor.run {
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    private func handleResendOTP() {
+        guard canResendOTP else { return }
+        isLoading = true
+        authManager.clearError()
+        Task {
+            do {
+                try await authManager.resetPassword(email: email)
+                await MainActor.run {
+                    isLoading = false
+                    startCountdownTimer()
+                    startResendCountdownTimer()
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    private func handleVerifyRecoveryCode() {
+        guard canVerifyCode else { return }
+        isLoading = true
+        authManager.clearError()
+        Task {
+            do {
+                try await authManager.verifyRecoveryOTP(email: email, token: verificationCode)
+                await MainActor.run {
+                    isLoading = false
+                    isOTPVerified = true
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        currentStep = .setNewPassword
+                    }
+                    showVerificationInput = false
+                    stopCountdownTimer()
+                    stopResendCountdownTimer()
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    private func handleUpdatePassword() {
+        guard canUpdatePassword else { return }
+        isLoading = true
+        authManager.clearError()
+        Task {
+            do {
+                try await authManager.updatePassword(newPassword: newPassword)
+                await MainActor.run {
+                    isLoading = false
+                    showSuccessAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    showErrorAlert = true
+                }
             }
         }
     }
 }
 
 #Preview {
-    ForgotPasswordView()
+    ForgotPasswordView(prefilledEmail: "user@example.com")
 }

@@ -25,7 +25,8 @@ class SupabaseClient: ObservableObject {
             fatalError("Supabase配置验证失败，请检查API密钥")
         }
         
-        // 初始化 Supabase 客户端 - 添加依赖后取消注释
+        // 初始化 Supabase 客户端
+        // Supabase Swift SDK 默认已启用会话持久化
         supabase = Supabase.SupabaseClient(
             supabaseURL: URL(string: supabaseURL)!,
             supabaseKey: supabaseKey
