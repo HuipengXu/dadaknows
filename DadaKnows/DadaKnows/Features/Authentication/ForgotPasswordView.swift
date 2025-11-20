@@ -24,6 +24,7 @@ struct ForgotPasswordView: View {
     @State private var isSecureNewPassword = true
     @State private var isSecureConfirmNewPassword = true
     @State private var isLoading = false
+    @State private var isResendingOTP = false
     @State private var showSuccessAlert = false
     @State private var showErrorAlert = false
     @State private var isOTPVerified = false
@@ -212,11 +213,18 @@ struct ForgotPasswordView: View {
                     .foregroundColor(isCountdownUrgent ? .red : .lightGray)
                 
                 Button(action: handleResendOTP) {
-                    Text(resendButtonText)
-                        .font(.subheadline)
-                        .foregroundColor(canResendOTP ? .vibrantOrange : .gray)
+                    HStack(spacing: 4) {
+                        if isResendingOTP {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .tint(.vibrantOrange)
+                        }
+                        Text(resendButtonText)
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(canResendOTP && !isResendingOTP ? .vibrantOrange : .gray)
                 }
-                .disabled(!canResendOTP || isLoading)
+                .disabled(!canResendOTP || isResendingOTP)
             }
             .frame(maxWidth: 320)
 
@@ -470,19 +478,19 @@ struct ForgotPasswordView: View {
 
     private func handleResendOTP() {
         guard canResendOTP else { return }
-        isLoading = true
+        isResendingOTP = true
         authManager.clearError()
         Task {
             do {
                 try await authManager.resetPassword(email: email)
                 await MainActor.run {
-                    isLoading = false
+                    isResendingOTP = false
                     startCountdownTimer()
                     startResendCountdownTimer()
                 }
             } catch {
                 await MainActor.run {
-                    isLoading = false
+                    isResendingOTP = false
                 }
             }
         }
