@@ -11,6 +11,7 @@ import SwiftUI
 struct LimitReachedSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var aiManager = AIManager.shared
     @State private var showSubscriptionView = false
     @State private var showLocalModelView = false
 
@@ -61,7 +62,7 @@ struct LimitReachedSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 32) {
+                VStack(spacing: 20) {
                     // Icon and title section
                     headerSection
 
@@ -90,7 +91,7 @@ struct LimitReachedSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.fraction(0.9), .large])
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showSubscriptionView) {
             ProSubscriptionView()
@@ -98,15 +99,25 @@ struct LimitReachedSheet: View {
         .sheet(isPresented: $showLocalModelView) {
             ModelSettingsView()
         }
+        .onChange(of: subscriptionManager.isProMember) { newValue in
+            if newValue {
+                dismiss()
+            }
+        }
+        .onChange(of: aiManager.useGeminiModel) { newValue in
+            if !newValue {
+                dismiss()
+            }
+        }
     }
 
     // MARK: - Header Section
 
     private var headerSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             // 使用SF Symbols图标
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
+                .font(.system(size: 40))
                 .foregroundColor(.orange)
 
             VStack(spacing: 8) {
@@ -189,7 +200,7 @@ struct LimitReachedSheet: View {
             optionButton(
                 title: NSLocalizedString("使用本地大模型", comment: ""),
                 subtitle: NSLocalizedString("无限使用 • 离线可用 • 保护隐私", comment: ""),
-                iconName: "iphone.and.arrow.down",
+                iconName: "brain.head.profile",
                 iconColor: .green,
                 backgroundColor: Color.green.opacity(0.1),
                 action: {
@@ -235,7 +246,7 @@ struct LimitReachedSheet: View {
                     .font(.system(size: 14))
                     .foregroundColor(.textTertiary)
             }
-            .padding(16)
+            .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(backgroundColor)

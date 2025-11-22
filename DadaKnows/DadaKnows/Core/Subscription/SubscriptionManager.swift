@@ -323,10 +323,21 @@ class SubscriptionManager: ObservableObject {
         return dailyQuestionCount < Config.dailyFreeQuestionLimit
     }
     
+    private var lastIncrementTime: Date?
+    
     /// 增加使用次数（仅用于免费用户的日计数）
     func incrementQuestionCount() {
         if !isProMember {
+            // 防止重复计数（1秒内多次调用只算一次）
+            if let lastTime = lastIncrementTime, Date().timeIntervalSince(lastTime) < 1.0 {
+                if Config.isDebug {
+                    print("⚠️ SubscriptionManager: 忽略重复计数调用")
+                }
+                return
+            }
+            
             dailyQuestionCount += 1
+            lastIncrementTime = Date()
         }
     }
     

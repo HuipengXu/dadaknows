@@ -144,42 +144,40 @@ struct ModelConfig {
     // MARK: - 用户提示文案
     
     /// 首次下载提示文案
-    static let downloadPromptTitle = "🤖 正在准备你的专属AI伙伴\"答答\""
+    static var downloadPromptTitle: String {
+        NSLocalizedString("download_prompt_title", comment: "")
+    }
     
     /// 首次下载提示详细说明
-    static let downloadPromptMessage = """
-        首次使用需要下载AI模型文件（约 \(totalSizeFormatted)）。
-        
-        建议在WiFi环境下进行。下载过程支持暂停和后台继续。
-        
-        模型将存储在设备本地，后续使用完全离线，保护你的隐私。
-        """
+    static var downloadPromptMessage: String {
+        String(format: NSLocalizedString("download_prompt_message", comment: ""), totalSizeFormatted)
+    }
     
     /// 存储空间不足提示
     static func insufficientStorageMessage(available: Int64) -> String {
         let availableFormatted = ByteCountFormatter.string(fromByteCount: available, countStyle: .file)
-        return """
-            存储空间不足。当前可用 \(availableFormatted)，需要 \(requiredTotalSpaceFormatted)。
-            
-            请清理设备存储空间后重试。
-            """
+        return String(format: NSLocalizedString("insufficient_storage_message", comment: ""), availableFormatted, requiredTotalSpaceFormatted)
     }
     
     /// 校验失败提示
-    static let checksumFailureMessage = """
-        模型文件下载不完整或已损坏。
-        
-        这可能是网络不稳定导致的。请删除后重新下载。
-        """
+    static var checksumFailureMessage: String {
+        NSLocalizedString("checksum_failure_message", comment: "")
+    }
     
     /// 下载进度提示
-    static let downloadingMessage = "正在下载模型文件..."
+    static var downloadingMessage: String {
+        NSLocalizedString("downloading_message", comment: "")
+    }
     
     /// 加载模型提示
-    static let loadingMessage = "正在加载模型到内存..."
+    static var loadingMessage: String {
+        NSLocalizedString("loading_message", comment: "")
+    }
     
     /// 模型准备就绪提示
-    static let readyMessage = "✅ AI伙伴\"答答\"已准备就绪！"
+    static var readyMessage: String {
+        NSLocalizedString("ready_message", comment: "")
+    }
 }
 
 // MARK: - 调试辅助

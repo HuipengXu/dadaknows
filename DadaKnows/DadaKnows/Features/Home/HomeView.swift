@@ -11,7 +11,7 @@ struct HomeView: View {
     @StateObject private var aiManager = AIManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var question = ""
-    @State private var selectedAge = 5
+    @State private var selectedAge = 6
     @State private var isAsking = false
     @State private var showChat = false
     @State private var showLimitReachedSheet = false
