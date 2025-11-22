@@ -221,17 +221,26 @@ struct ChatBubbleView: View {
                     .padding(.top, 4) // Align with text top
             }
             
+
+            
             VStack(alignment: chat.isFromUser ? .trailing : .leading, spacing: 4) {
-                Text(chat.message)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(chat.isFromUser ? Color.userMessageBackground : 
-                                  (chat.isError ? Color.statusError : Color.aiMessageBackground))
-                    )
-                    .foregroundColor(chat.isFromUser ? .white : (chat.isError ? .white : .textPrimary))
-                    .font(.body)
+                if chat.isThinking, let thought = chat.thought, !thought.isEmpty {
+                    ThinkingView(content: thought)
+                        .padding(.bottom, 4)
+                }
+                
+                if !chat.message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(chat.message)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(chat.isFromUser ? Color.userMessageBackground :
+                                      (chat.isError ? Color.statusError : Color.aiMessageBackground))
+                        )
+                        .foregroundColor(chat.isFromUser ? .white : (chat.isError ? .white : .textPrimary))
+                        .font(.body)
+                }
                 
                 Text(chat.timestamp, style: .time)
                     .font(.caption2)

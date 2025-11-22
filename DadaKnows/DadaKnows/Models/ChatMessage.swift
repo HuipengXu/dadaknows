@@ -5,15 +5,19 @@ import SwiftUI
 public struct ChatMessage: Identifiable {
     public let id: UUID
     public var message: String
+    public var thought: String?
     public let isFromUser: Bool
     public let timestamp: Date
     public var isError: Bool
+    public var isThinking: Bool
 
-    public init(id: UUID = UUID(), message: String, isFromUser: Bool, timestamp: Date = Date(), isError: Bool = false) {
+    public init(id: UUID = UUID(), message: String, thought: String? = nil, isFromUser: Bool, timestamp: Date = Date(), isError: Bool = false, isThinking: Bool = false) {
         self.id = id
         self.message = message
+        self.thought = thought
         self.isFromUser = isFromUser
         self.timestamp = timestamp
         self.isError = isError
+        self.isThinking = isThinking
     }
 }

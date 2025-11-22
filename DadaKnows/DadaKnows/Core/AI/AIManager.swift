@@ -396,17 +396,123 @@ extension AIManager {
                 targetAge: targetAge,
                 conversationHistory: chatHistory.isEmpty ? nil : chatHistory
             )
+            var parserState: StreamParserState = .idle
+            var buffer = ""
+            
             for try await chunk in stream {
-                if isFirstChunk {
-                    // On the first chunk, create the AI message
-                    chatHistory.append(ChatMessage(id: responseId, message: chunk, isFromUser: false))
-                    isFirstChunk = false
-                } else {
-                    // For subsequent chunks, append to the existing message
-                    if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
-                        chatHistory[index].message += chunk
+                // Append chunk to buffer
+                buffer += chunk
+                
+                var processedBuffer = ""
+                var remainingBuffer = buffer
+                
+                while !remainingBuffer.isEmpty {
+                    switch parserState {
+                    case .idle:
+                        if let range = remainingBuffer.range(of: "<think>") {
+                            // Found start tag
+                            let prefix = remainingBuffer[..<range.lowerBound]
+                            if !prefix.isEmpty {
+                                // Append content before tag to message
+                                if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                                    chatHistory[index].message += String(prefix)
+                                } else {
+                                    chatHistory.append(ChatMessage(id: responseId, message: String(prefix), isFromUser: false))
+                                }
+                            }
+                            
+                            // Switch to thinking state
+                            parserState = .thinking
+                            // Update UI state
+                            if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                                chatHistory[index].isThinking = true
+                            } else {
+                                chatHistory.append(ChatMessage(id: responseId, message: "", isFromUser: false, isThinking: true))
+                            }
+                            
+                            remainingBuffer = String(remainingBuffer[range.upperBound...])
+                        } else {
+                            // No start tag found yet
+                            // Check if buffer ends with partial tag
+                            if "<think>".hasPrefix(remainingBuffer) || remainingBuffer.hasSuffix("<") || remainingBuffer.hasSuffix("<t") || remainingBuffer.hasSuffix("<th") || remainingBuffer.hasSuffix("<thi") || remainingBuffer.hasSuffix("<thin") || remainingBuffer.hasSuffix("<think") {
+                                // Wait for more data
+                                processedBuffer = "" // Don't process partial tag
+                                break // Break inner loop to get more data
+                            } else {
+                                // Safe to append everything
+                                if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                                    var textToAppend = remainingBuffer
+                                    // If the message is currently empty, trim leading whitespace from the new content
+                                    if chatHistory[index].message.isEmpty {
+                                        textToAppend = textToAppend.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    }
+                                    chatHistory[index].message += textToAppend
+                                } else {
+                                    // New message
+                                    let textToAppend = remainingBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    chatHistory.append(ChatMessage(id: responseId, message: textToAppend, isFromUser: false))
+                                }
+                                remainingBuffer = ""
+                            }
+                        }
+                        
+                    case .thinking:
+                        if let range = remainingBuffer.range(of: "</think>") {
+                            // Found end tag
+                            let thoughtContent = remainingBuffer[..<range.lowerBound]
+                            if !thoughtContent.isEmpty {
+                                if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                                    chatHistory[index].thought = (chatHistory[index].thought ?? "") + String(thoughtContent)
+                                }
+                            }
+                            
+                            // Switch back to idle (answering)
+                            parserState = .idle
+                            // Update UI state
+                            if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                                chatHistory[index].isThinking = false
+                            }
+                            
+                            var remainingAfterTag = String(remainingBuffer[range.upperBound...])
+                            // Aggressively trim leading newlines and whitespace
+                            remainingAfterTag = remainingAfterTag.trimmingCharacters(in: .whitespacesAndNewlines)
+                            remainingBuffer = remainingAfterTag
+                        } else {
+                            // No end tag found yet
+                            // Check for partial end tag
+                            let endTag = "</think>"
+                            var partialMatch = false
+                            for i in 1..<endTag.count {
+                                let suffix = String(endTag.prefix(i))
+                                if remainingBuffer.hasSuffix(suffix) {
+                                    partialMatch = true
+                                    // Append everything BEFORE the partial match
+                                    let safeContent = remainingBuffer.dropLast(i)
+                                    if !safeContent.isEmpty {
+                                        if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                                            chatHistory[index].thought = (chatHistory[index].thought ?? "") + String(safeContent)
+                                        }
+                                    }
+                                    remainingBuffer = suffix // Keep suffix in buffer
+                                    break
+                                }
+                            }
+                            
+                            if partialMatch {
+                                break // Break inner loop to get more data
+                            } else {
+                                // Safe to append everything
+                                if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
+                                    chatHistory[index].thought = (chatHistory[index].thought ?? "") + remainingBuffer
+                                }
+                                remainingBuffer = ""
+                            }
+                        }
                     }
                 }
+                
+                // Update buffer for next iteration
+                buffer = remainingBuffer
             }
 
             let finalAnswer = self.currentResponse
@@ -490,4 +596,9 @@ enum AIError: LocalizedError {
             return NSLocalizedString("您本月的3000次问答额度已用完，请下月再来或切换到本地模型使用。", comment: "")
         }
     }
+}
+
+enum StreamParserState {
+    case idle
+    case thinking
 }
