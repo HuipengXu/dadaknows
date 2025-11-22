@@ -118,16 +118,15 @@ struct ForgotPasswordView: View {
             } message: {
                 Text("密码已成功重置，请使用新密码登录")
             }
-            .alert(NSLocalizedString("错误", comment: ""), isPresented: $showErrorAlert) {
+            .alert(NSLocalizedString("成功", comment: ""), isPresented: $showSuccessAlert) {
                 Button(NSLocalizedString("确定", comment: "")) {
-                    authManager.errorMessage = nil
+                    dismiss()
                 }
             } message: {
-                Text(authManager.errorMessage ?? "")
+                Text("密码已成功重置，请使用新密码登录")
             }
-            .onChange(of: authManager.errorMessage) {
-                showErrorAlert = authManager.errorMessage != nil
-            }
+            // 使用 Toast 替代 Alert 显示错误，停留时间更长 (5秒)
+            .toast(message: $authManager.errorMessage, type: .error, duration: 5.0)
             .onDisappear {
                 stopCountdownTimer()
                 stopResendCountdownTimer()
@@ -169,6 +168,18 @@ struct ForgotPasswordView: View {
             }
             .disabled(isLoading || email.isEmpty)
             .opacity(email.isEmpty ? 0.6 : 1.0)
+            
+            // 剩余尝试次数提示
+            if !email.isEmpty {
+                HStack(spacing: 4) {
+                    Image(systemName: "info.circle")
+                        .font(.caption)
+                        .foregroundColor(.lightGray)
+                    Text(rateLimitInfoText)
+                        .font(.caption)
+                        .foregroundColor(.lightGray)
+                }
+            }
         }
     }
     
@@ -365,6 +376,17 @@ struct ForgotPasswordView: View {
         }
     }
     
+    private var rateLimitInfoText: String {
+        let remaining = OTPRateLimiter.shared.getRemainingAttempts(for: email)
+        if remaining == 3 {
+            return "5分钟内最多发送3次验证码"
+        } else if remaining > 0 {
+            return "剩余 \(remaining) 次发送机会（5分钟内）"
+        } else {
+            return "已达发送上限，请稍后再试"
+        }
+    }
+    
     private var canVerifyCode: Bool {
         return verificationCode.count == 6 && remainingTime > 0
     }
@@ -427,8 +449,8 @@ struct ForgotPasswordView: View {
         }
     }
 
-    private func startResendCountdownTimer() {
-        resendCooldownTime = 30
+    private func startResendCountdownTimer(duration: TimeInterval = 60) {
+        resendCooldownTime = duration
         stopResendCountdownTimer()
         resendCountdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             updateResendCountdown()
@@ -491,6 +513,13 @@ struct ForgotPasswordView: View {
             } catch {
                 await MainActor.run {
                     isResendingOTP = false
+                    
+                    // 如果是速率限制错误，自动重新开始倒计时
+                    if let authError = error as? AuthError, 
+                       case .rateLimitExceeded(let waitTime) = authError,
+                       let time = waitTime {
+                        startResendCountdownTimer(duration: TimeInterval(time))
+                    }
                 }
             }
         }

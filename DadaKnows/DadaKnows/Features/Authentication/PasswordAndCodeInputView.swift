@@ -91,22 +91,17 @@ struct PasswordInputView: View {
         .sheet(isPresented: $showForgotPassword) {
             ForgotPasswordView(prefilledEmail: email)
         }
-        .alert("错误", isPresented: $showAlert) {
-            Button("确定") {
-                authManager.clearError()
-            }
-        } message: {
-            Text(authManager.errorMessage ?? "")
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView(prefilledEmail: email)
         }
+        // 使用 Toast 替代 Alert 显示错误，停留时间更长 (5秒)
+        .toast(message: $authManager.errorMessage, type: .error, duration: 5.0)
         .alert("成功", isPresented: $showSuccessAlert) {
             Button("确定") {
                 authManager.successMessage = nil
             }
         } message: {
             Text(authManager.successMessage ?? "")
-        }
-        .onChange(of: authManager.errorMessage) { _, errorMessage in
-            showAlert = errorMessage != nil && authManager.authErrorType != .userCancelled
         }
         .onChange(of: authManager.successMessage) { _, successMessage in
             showSuccessAlert = successMessage != nil
@@ -181,13 +176,13 @@ struct PasswordInputView: View {
 
     // MARK: - Resend Timer Management
 
-    private func startResendCountdownTimer() {
-        // 设置30秒的冷却时间（比Supabase的限制稍长）
-        resendCooldownTime = 30
-
+    private func startResendCountdownTimer(duration: TimeInterval = 60) {
+        // 设置冷却时间（默认60秒，或根据服务器返回的时间）
+        resendCooldownTime = duration
+        
         // 停止之前的计时器
         stopResendCountdownTimer()
-
+        
         // 启动新的计时器
         resendCountdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             updateResendCountdown()
@@ -426,6 +421,14 @@ struct PasswordInputView: View {
                         }
                     } catch {
                         // 错误已在AuthManager中处理
+                        await MainActor.run {
+                            // 如果是速率限制错误，自动重新开始倒计时
+                            if let authError = error as? AuthError,
+                               case .rateLimitExceeded(let waitTime) = authError,
+                               let time = waitTime {
+                                startResendCountdownTimer(duration: TimeInterval(time))
+                            }
+                        }
                     }
                 }
             }) {

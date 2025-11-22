@@ -249,6 +249,14 @@ class AuthManager: ObservableObject {
         defer {
             isLoading = false
         }
+        
+        // 检查发送频率限制
+        let rateLimitCheck = await OTPRateLimiter.shared.canSendOTP(for: email)
+        guard rateLimitCheck.canSend else {
+            self.errorMessage = rateLimitCheck.message
+            self.errorMessage = rateLimitCheck.message
+            throw AuthError.rateLimitExceeded(waitTime: Int(rateLimitCheck.remainingTime))
+        }
 
         do {
             if Config.isDebug {
@@ -260,6 +268,9 @@ class AuthManager: ObservableObject {
                 email: email,
                 type: .signup
             )
+            
+            // 成功发送后记录到频率限制器
+            await OTPRateLimiter.shared.recordSend(for: email)
 
             self.successMessage = "验证码已重新发送，请检查您的邮箱。"
 
@@ -268,7 +279,14 @@ class AuthManager: ObservableObject {
             }
 
         } catch {
-            self.errorMessage = handleResendOTPError(error)
+            let result = handleResendOTPError(error)
+            self.errorMessage = result.message
+            
+            if let waitTime = result.waitTime {
+                await OTPRateLimiter.shared.updateCooldown(for: email, seconds: waitTime)
+                throw AuthError.rateLimitExceeded(waitTime: waitTime)
+            }
+            
             if Config.isDebug {
                 print("❌ OTP重新发送失败: \(error)")
             }
@@ -334,11 +352,28 @@ class AuthManager: ObservableObject {
             isLoading = false
         }
         
+        // 检查发送频率限制
+        let rateLimitCheck = await OTPRateLimiter.shared.canSendOTP(for: email)
+        guard rateLimitCheck.canSend else {
+            self.errorMessage = rateLimitCheck.message
+            self.errorMessage = rateLimitCheck.message
+            throw AuthError.rateLimitExceeded(waitTime: Int(rateLimitCheck.remainingTime))
+        }
+        
         do {
             try await supabase.supabase.auth.resetPasswordForEmail(email)
-            // 成功发送重置邮件
+            // 成功发送重置邮件，记录到频率限制器
+            await OTPRateLimiter.shared.recordSend(for: email)
         } catch {
-            self.errorMessage = handleAuthError(error)
+        } catch {
+            let result = handleResendOTPError(error)
+            self.errorMessage = result.message
+            
+            if let waitTime = result.waitTime {
+                await OTPRateLimiter.shared.updateCooldown(for: email, seconds: waitTime)
+                throw AuthError.rateLimitExceeded(waitTime: waitTime)
+            }
+            
             throw error
         }
     }
@@ -647,21 +682,69 @@ class AuthManager: ObservableObject {
         )
     }
 
-    private func handleResendOTPError(_ error: Error) -> String {
+    /// 从错误消息中提取等待时间（秒）
+    /// 从错误消息中提取等待时间（秒）
+    private func extractWaitTimeFromError(_ error: Error) -> Int? {
+        // 检查 localizedDescription 和 debugDescription
+        let errorString = error.localizedDescription
+        let debugString = String(describing: error)
+        
+        // 匹配 "after X seconds" 或 "after X second" 模式
+        let pattern = "after\\s+(\\d+)\\s+seconds?"
+        
+        // 尝试从 localizedDescription 提取
+        if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+            let nsString = errorString as NSString
+            let results = regex.matches(in: errorString, range: NSRange(location: 0, length: nsString.length))
+            
+            if let match = results.first, match.numberOfRanges > 1 {
+                let numberRange = match.range(at: 1)
+                let numberString = nsString.substring(with: numberRange)
+                return Int(numberString)
+            }
+        }
+        
+        // 尝试从 debugDescription 提取
+        if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+            let nsString = debugString as NSString
+            let results = regex.matches(in: debugString, range: NSRange(location: 0, length: nsString.length))
+            
+            if let match = results.first, match.numberOfRanges > 1 {
+                let numberRange = match.range(at: 1)
+                let numberString = nsString.substring(with: numberRange)
+                return Int(numberString)
+            }
+        }
+        
+        return nil
+    }
+    
+    private func handleResendOTPError(_ error: Error) -> (message: String, waitTime: Int?) {
         let errorDescription = error.localizedDescription.lowercased()
+        let debugDescription = String(describing: error).lowercased()
 
-        // 处理速率限制错误
-        if errorDescription.contains("over_email_send_rate_limit") {
-            return "发送过于频繁，请等待30秒后再试"
+        // 处理速率限制错误，尝试提取实际等待时间
+        // 检查 localizedDescription 和 debugDescription
+        if errorDescription.contains("over_email_send_rate_limit") ||
+           debugDescription.contains("over_email_send_rate_limit") ||
+           (errorDescription.contains("rate") && errorDescription.contains("limit")) ||
+           (errorDescription.contains("security") && errorDescription.contains("purposes") && errorDescription.contains("after")) {
+            
+            if let waitTime = extractWaitTimeFromError(error) {
+                return ("发送过于频繁，请等待 \(waitTime) 秒后再试", waitTime)
+            }
+            return ("发送过于频繁，请稍后再试", nil)
         }
 
-        if errorDescription.contains("too") && errorDescription.contains("many") ||
-           errorDescription.contains("rate") && errorDescription.contains("limit") {
-            return "发送过于频繁，请稍等片刻后再试"
+        if errorDescription.contains("too") && errorDescription.contains("many") {
+            if let waitTime = extractWaitTimeFromError(error) {
+                return ("发送过于频繁，请等待 \(waitTime) 秒后再试", waitTime)
+            }
+            return ("发送过于频繁，请稍等片刻后再试", nil)
         }
 
         // 对于其他错误，使用通用的错误处理
-        return handleAuthError(error)
+        return (handleAuthError(error), nil)
     }
 
     private func handleAuthError(_ error: Error) -> String {
@@ -706,6 +789,12 @@ class AuthManager: ObservableObject {
             case .notHandled:
                 authErrorType = .authenticationFailed
                 return "Apple登录请求未处理"
+            case .rateLimitExceeded(let waitTime):
+                authErrorType = .authenticationFailed
+                if let time = waitTime {
+                    return "发送过于频繁，请等待 \(time) 秒后再试"
+                }
+                return "发送过于频繁，请稍后再试"
             case .unknownError:
                 authErrorType = .unknownError
                 return "Apple登录发生未知错误"
@@ -764,7 +853,7 @@ class AuthManager: ObservableObject {
             authErrorType = .unknownError
         }
 
-        return error.localizedDescription + " (\(error))"
+        return "发生未知错误，请稍后再试"
     }
 }
 
@@ -791,6 +880,7 @@ enum AuthError: Error {
     case authorizationFailed
     case invalidResponse
     case notHandled
+    case rateLimitExceeded(waitTime: Int?)
     case unknownError
 }
 
