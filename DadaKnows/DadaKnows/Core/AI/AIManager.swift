@@ -71,10 +71,16 @@ class AIManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     private init() {
-        // 从UserDefaults加载保存的模型选择（默认使用本地模型）
-        self.useGeminiModel = UserDefaults.standard.bool(forKey: "useGeminiModel")
-        
-        // 如果设备不支持本地模型，自动切换到Gemini
+        // 从UserDefaults加载保存的模型选择（默认使用云端模型）
+        if UserDefaults.standard.object(forKey: "useGeminiModel") != nil {
+            self.useGeminiModel = UserDefaults.standard.bool(forKey: "useGeminiModel")
+        } else {
+            // 首次启动，默认使用云端模型
+            self.useGeminiModel = true
+            UserDefaults.standard.set(true, forKey: "useGeminiModel")
+        }
+
+        // 如果设备不支持本地模型，确保使用Gemini
         if !useGeminiModel && !localAIManager.isAvailable {
             useGeminiModel = true
             if Config.isDebug {
@@ -136,6 +142,22 @@ class AIManager: ObservableObject {
             guard localAIManager.isAvailable else {
                 throw AIError.localModelNotAvailable
             }
+
+            // 检查本地模型是否已下载并准备好使用
+            guard localAIManager.modelStatus.isReady else {
+                // 根据具体状态给出不同的错误提示
+                switch localAIManager.modelStatus {
+                case .notDownloaded:
+                    throw AIError.localModelNotDownloaded
+                case .downloading, .paused, .extracting:
+                    throw AIError.localModelNotAvailable
+                case .error(_):
+                    throw AIError.localModelNotAvailable
+                case .ready:
+                    // 理论上不会走到这里，因为上面已经检查过 isReady
+                    throw AIError.localModelNotAvailable
+                }
+            }
             
             // 使用本地模型生成回答
             let localStream = localAIManager.askQuestion(
@@ -156,8 +178,13 @@ class AIManager: ObservableObject {
             await MainActor.run {
                 self.isLoading = false
             }
-            
+
         } catch {
+            // 智能错误恢复：如果是本地模型相关错误，自动切换到云端模型
+            if let aiError = error as? AIError {
+                await handleLocalModelError(aiError)
+            }
+
             await MainActor.run {
                 self.error = error
                 self.isLoading = false
@@ -316,14 +343,53 @@ class AIManager: ObservableObject {
             }
             return false
         }
-        
+
         useGeminiModel = enabled
         return true
+    }
+
+    /// 检查本地模型是否可以使用（已下载且设备支持）
+    var isLocalModelReady: Bool {
+        return localAIManager.isAvailable && localAIManager.modelStatus.isReady
+    }
+
+    /// 获取本地模型的完整状态信息
+    func getLocalModelStatusInfo() -> (isSupported: Bool, isDownloaded: Bool, status: ModelStorageStatus) {
+        return (
+            isSupported: localAIManager.isAvailable,
+            isDownloaded: localAIManager.modelStatus.isReady,
+            status: localAIManager.modelStatus
+        )
     }
     
     /// 获取本地模型的可用性状态
     func getLocalModelStatus() -> LocalAIAvailabilityStatus {
         return localAIManager.getAvailabilityStatus()
+    }
+
+    // MARK: - Error Recovery
+
+    /// 处理本地模型错误，智能切换到云端模型
+    private func handleLocalModelError(_ error: AIError) async {
+        // 只处理本地模型相关的错误
+        switch error {
+        case .localModelNotDownloaded, .localModelDeleted, .localModelNotAvailable:
+            break // 继续处理这些错误
+        default:
+            return // 其他错误不处理
+        }
+
+        // 如果当前已经在使用云端模型，不需要切换
+        guard !useGeminiModel else {
+            return
+        }
+
+        // 自动切换到云端模型
+        useGeminiModel = true
+
+        if Config.isDebug {
+            print("🔄 AIManager: 检测到本地模型错误，自动切换到云端模型 - \(error.localizedDescription)")
+        }
     }
     
     /// 检查是否可以使用本地模型
@@ -578,6 +644,8 @@ enum AIError: LocalizedError {
     case streamingError
     case rateLimitExceeded
     case localModelNotAvailable
+    case localModelNotDownloaded
+    case localModelDeleted
     case monthlyLimitExceeded
     
     var errorDescription: String? {
@@ -591,7 +659,11 @@ enum AIError: LocalizedError {
         case .rateLimitExceeded:
             return NSLocalizedString("已达到使用限制，请稍后再试", comment: "")
         case .localModelNotAvailable:
-            return NSLocalizedString("本地模型不可用，请切换到云端模型或等待模型下载完成", comment: "")
+            return NSLocalizedString("本地模型不可用，请切换到云端模型", comment: "")
+        case .localModelNotDownloaded:
+            return NSLocalizedString("本地模型未下载，请先下载模型后再使用", comment: "")
+        case .localModelDeleted:
+            return NSLocalizedString("本地模型已被删除，已自动切换到云端模型", comment: "")
         case .monthlyLimitExceeded:
             return NSLocalizedString("您本月的3000次问答额度已用完，请下月再来或切换到本地模型使用。", comment: "")
         }

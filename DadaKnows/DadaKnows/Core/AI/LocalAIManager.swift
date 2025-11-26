@@ -49,6 +49,7 @@ class LocalAIManager: ObservableObject {
     private let mlxManager = MLXManager.shared
     private let storageManager = MLXStorageManager.shared
     private let downloadManager = ModelDownloadManager.shared
+    // private let aiManager = AIManager.shared // Removed to avoid circular dependency
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -498,6 +499,15 @@ class LocalAIManager: ObservableObject {
         // 3. 在主线程更新状态
         await MainActor.run {
             updateModelStatus()
+
+            // 4. 检查是否需要自动切换到云端模型
+            // 如果用户当前正在使用本地模型，但模型已被删除，自动切换到云端模型
+            if !AIManager.shared.useGeminiModel {
+                AIManager.shared.useGeminiModel = true
+                if Config.isDebug {
+                    print("🔄 LocalAI: 本地模型已删除，自动切换到云端模型")
+                }
+            }
         }
         
         if Config.isDebug {

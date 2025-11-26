@@ -57,7 +57,7 @@ class DataManager: ObservableObject {
         // Chat实体
         let chatEntity = NSEntityDescription()
         chatEntity.name = "Chat"
-        chatEntity.managedObjectClassName = "Chat"
+        chatEntity.managedObjectClassName = NSStringFromClass(NSManagedObject.self)
         
         let chatIdAttribute = NSAttributeDescription()
         chatIdAttribute.name = "id"
@@ -94,12 +94,22 @@ class DataManager: ObservableObject {
         createdAtAttribute.attributeType = .dateAttributeType
         createdAtAttribute.isOptional = true
         
-        chatEntity.properties = [chatIdAttribute, questionAttribute, answerAttribute, targetAgeAttribute, languageAttribute, userFeedbackAttribute, createdAtAttribute]
+        // Set properties safely - ensure all attributes are valid before assignment
+        let chatProperties: [NSPropertyDescription] = [
+            chatIdAttribute, 
+            questionAttribute, 
+            answerAttribute, 
+            targetAgeAttribute, 
+            languageAttribute, 
+            userFeedbackAttribute, 
+            createdAtAttribute
+        ]
+        chatEntity.properties = chatProperties
         
         // UserSettings实体
         let userSettingsEntity = NSEntityDescription()
         userSettingsEntity.name = "UserSettings"
-        userSettingsEntity.managedObjectClassName = "UserSettings"
+        userSettingsEntity.managedObjectClassName = NSStringFromClass(NSManagedObject.self)
         
         let preferredLanguageAttribute = NSAttributeDescription()
         preferredLanguageAttribute.name = "preferredLanguage"

@@ -24,6 +24,9 @@ struct ModelSettingsView: View {
     @State private var showingDownloadError = false
     @State private var refreshCount = 0
     @State private var showingBackgroundDownloadInfo = false
+    @State private var showingLocalModelNotDownloadedAlert = false
+    @State private var showingDeleteSuccessAlert = false
+    @State private var wasUsingLocalModelBeforeDelete = false
     
     // Timer to refresh status during download
     private let statusRefreshTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
@@ -33,16 +36,12 @@ struct ModelSettingsView: View {
             List {
                 // Model Selection Section
                 modelSelectionSection
-                
-                // Model Information Section  
-                if !aiManager.useGeminiModel {
-                    modelInformationSection
-                }
-                
-                // Storage Management Section
-                if !aiManager.useGeminiModel {
-                    storageManagementSection
-                }
+
+                // Model Information Section - always visible
+                modelInformationSection
+
+                // Storage Management Section - always visible for local model info
+                storageManagementSection
             }
             .listStyle(.insetGrouped)
             .navigationTitle(NSLocalizedString("model_settings", comment: ""))
@@ -128,6 +127,25 @@ struct ModelSettingsView: View {
                 Text(NSLocalizedString("模型正在后台下载中。您可以关闭此页面，下载将继续进行。下载完成后模型将自动可用。", comment: ""))
             } else {
                 Text(NSLocalizedString("模型正在后台解压中。此过程会继续在后台进行，完成后模型将自动可用。", comment: ""))
+            }
+        }
+        .alert(NSLocalizedString("本地模型未下载", comment: ""), isPresented: $showingLocalModelNotDownloadedAlert) {
+            Button(NSLocalizedString("下载模型", comment: "")) {
+                Task {
+                    await performDownloadModel()
+                }
+            }
+            Button(NSLocalizedString("取消", comment: ""), role: .cancel) { }
+        } message: {
+            Text(NSLocalizedString("本地模型需要先下载才能使用。本地模型可以离线使用，保护您的隐私，且无使用次数限制。", comment: ""))
+        }
+        .alert(NSLocalizedString("删除成功", comment: ""), isPresented: $showingDeleteSuccessAlert) {
+            Button(NSLocalizedString("好的", comment: "")) { }
+        } message: {
+            if wasUsingLocalModelBeforeDelete {
+                Text(NSLocalizedString("本地模型已删除，已自动切换到云端模型。您可以随时重新下载本地模型。", comment: ""))
+            } else {
+                Text(NSLocalizedString("本地模型已删除，存储空间已释放。您可以随时重新下载本地模型。", comment: ""))
             }
         }
     }
@@ -262,13 +280,22 @@ struct ModelSettingsView: View {
                 
                 // Status indicators
                 HStack(spacing: 12) {
-                    Label(NSLocalizedString("works_offline", comment: ""), systemImage: "airplane")
-                        .font(.caption)
-                        .foregroundColor(.statusSuccess)
-                    
-                    Label(NSLocalizedString("privacy_focused", comment: ""), systemImage: "lock.shield")
-                        .font(.caption)
-                        .foregroundColor(.statusSuccess)
+                    if aiManager.isLocalModelReady {
+                        Label(NSLocalizedString("works_offline", comment: ""), systemImage: "airplane")
+                            .font(.caption)
+                            .foregroundColor(.statusSuccess)
+
+                        Label(NSLocalizedString("privacy_focused", comment: ""), systemImage: "lock.shield")
+                            .font(.caption)
+                            .foregroundColor(.statusSuccess)
+                    } else {
+                        Label(localAIManager.modelStatus.isProcessing ?
+                             NSLocalizedString("downloading", comment: "") :
+                             NSLocalizedString("not_downloaded", comment: ""),
+                             systemImage: localAIManager.modelStatus.icon)
+                            .font(.caption)
+                            .foregroundColor(.statusWarning)
+                    }
                 }
             }
             
@@ -516,9 +543,27 @@ struct ModelSettingsView: View {
     }
     
     private func selectLocalModel() {
-        let localStatus = aiManager.getLocalModelStatus()
-        if localStatus.isSupported {
-            _ = aiManager.switchToGemini(false)
+        let modelStatusInfo = aiManager.getLocalModelStatusInfo()
+
+        // 检查设备是否支持本地模型
+        if !modelStatusInfo.isSupported {
+            if Config.isDebug {
+                print("⚠️ ModelSettings: 设备不支持本地模型")
+            }
+            return
+        }
+
+        // 检查模型是否已下载
+        if !modelStatusInfo.isDownloaded {
+            // 显示下载提示对话框
+            showingLocalModelNotDownloadedAlert = true
+            return
+        }
+
+        // 模型已下载且设备支持，切换到本地模型
+        let success = aiManager.switchToGemini(false)
+        if Config.isDebug {
+            print("🔄 ModelSettings: 切换到本地模型 \(success ? "成功" : "失败")")
         }
     }
     
@@ -550,22 +595,34 @@ struct ModelSettingsView: View {
     
     /// 执行异步删除模型操作
     private func performDeleteModel() async {
+        // 记录删除前是否在使用本地模型
+        let wasUsingLocalModel = !aiManager.useGeminiModel
+        let wasUsingLocalModelSnapshot = aiManager.useGeminiModel
+
         await MainActor.run {
             isDeletingModel = true
             deleteError = nil
+            wasUsingLocalModelBeforeDelete = !wasUsingLocalModelSnapshot
         }
-        
+
         do {
             // 在后台线程执行删除操作，避免阻塞UI
             try await Task.detached(priority: .userInitiated) {
                 try await localAIManager.deleteModel()
             }.value
-            
+
             await MainActor.run {
                 isDeletingModel = false
+
+                // 检查是否发生了自动切换
+                let autoSwitched = wasUsingLocalModel && aiManager.useGeminiModel
+
                 if Config.isDebug {
-                    print("🗑️ ModelSettings: 模型已删除")
+                    print("🗑️ ModelSettings: 模型已删除，自动切换: \(autoSwitched ? "是" : "否")")
                 }
+
+                // 显示删除成功提示
+                showingDeleteSuccessAlert = true
             }
             
         } catch {
