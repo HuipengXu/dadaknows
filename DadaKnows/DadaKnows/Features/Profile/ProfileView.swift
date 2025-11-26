@@ -247,6 +247,7 @@ struct ProfileView: View {
                             .font(.caption)
                             .foregroundColor(.textTertiary)
                     }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             } else {
@@ -362,6 +363,7 @@ struct ProfileView: View {
                         .font(.caption)
                         .foregroundColor(.textTertiary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             
@@ -385,6 +387,7 @@ struct ProfileView: View {
                         .font(.caption)
                         .foregroundColor(.textTertiary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             
@@ -408,6 +411,7 @@ struct ProfileView: View {
                         .font(.caption)
                         .foregroundColor(.textTertiary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
@@ -431,6 +435,7 @@ struct ProfileView: View {
                         .font(.caption)
                         .foregroundColor(.textTertiary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             
@@ -449,6 +454,7 @@ struct ProfileView: View {
                         .font(.caption)
                         .foregroundColor(.textTertiary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
@@ -493,6 +499,7 @@ struct ProfileView: View {
                         .font(.caption)
                         .foregroundColor(.textTertiary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             
@@ -511,6 +518,7 @@ struct ProfileView: View {
                         .font(.caption)
                         .foregroundColor(.textTertiary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
@@ -530,6 +538,7 @@ struct ProfileView: View {
                     
                     Spacer()
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
