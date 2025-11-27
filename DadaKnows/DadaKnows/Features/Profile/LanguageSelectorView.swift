@@ -43,6 +43,7 @@ struct LanguageSelectorView: View {
                                     .fontWeight(.semibold)
                             }
                         }
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
