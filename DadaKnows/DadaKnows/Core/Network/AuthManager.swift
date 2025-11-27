@@ -414,6 +414,16 @@ class AuthManager: ObservableObject {
             AppState.shared.signIn()
             
         } catch {
+            // 检查是否是用户主动取消登录
+            let errorDesc = error.localizedDescription
+            if errorDesc.contains("canceled") || 
+               errorDesc.contains("cancelled") || 
+               errorDesc.contains("User cancelled") ||
+               errorDesc.contains("The user canceled the sign-in flow") {
+                // 用户取消是正常操作，不设置错误消息
+                return
+            }
+            
             self.errorMessage = handleAuthError(error)
             throw error
         }
@@ -473,6 +483,12 @@ class AuthManager: ObservableObject {
             AppState.shared.signIn()
             
         } catch {
+            // 如果用户主动取消登录，不显示错误提示
+            if let authError = error as? AuthError, case .userCanceled = authError {
+                // 用户取消是正常操作，不设置错误消息
+                return
+            }
+            
             self.errorMessage = handleAuthError(error)
             throw error
         }
