@@ -55,16 +55,16 @@ struct AuthView: View {
             }
         }
         .alert(isPresented: $showAlert) {
-            Alert(title: Text(NSLocalizedString("错误", comment: "")),
+            Alert(title: Text(NSLocalizedString("error", comment: "")),
                   message: Text(authManager.errorMessage ?? ""),
-                  dismissButton: .default(Text(NSLocalizedString("确定", comment: ""))) {
+                  dismissButton: .default(Text(NSLocalizedString("ok", comment: ""))) {
                 authManager.clearError()
             })
         }
         .alert(isPresented: $showSuccessAlert) {
-            Alert(title: Text(NSLocalizedString("成功", comment: "")),
+            Alert(title: Text(NSLocalizedString("success", comment: "")),
                   message: Text(authManager.successMessage ?? ""),
-                  dismissButton: .default(Text(NSLocalizedString("确定", comment: ""))) {
+                  dismissButton: .default(Text(NSLocalizedString("ok", comment: ""))) {
                 authManager.successMessage = nil
             })
         }
@@ -193,7 +193,7 @@ struct AuthView: View {
                 .fill(Color.separator)
                 .frame(height: 1)
 
-            Text(NSLocalizedString("或", comment: ""))
+            Text(NSLocalizedString("or", comment: ""))
                 .foregroundColor(.textSecondary)
                 .padding(.horizontal, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 15))
 
@@ -208,7 +208,7 @@ struct AuthView: View {
     private func emailInputView(geometry: GeometryProxy) -> some View {
         VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16)) {
             HStack(spacing: 0) {
-                TextField("个人或工作邮箱", text: $email)
+                TextField(NSLocalizedString("email_placeholder", comment: ""), text: $email)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
                     .padding(.horizontal, ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16))
@@ -276,13 +276,13 @@ struct AuthView: View {
     private func buttonText() -> String {
         switch authFlowState {
         case .initial:
-            return NSLocalizedString("继续", comment: "")
+            return NSLocalizedString("continue", comment: "")
         case .passwordInput:
-            return NSLocalizedString("登录", comment: "")
+            return NSLocalizedString("login", comment: "")
         case .signingIn:
-            return NSLocalizedString("登录", comment: "")
+            return NSLocalizedString("login", comment: "")
         case .signingUp:
-            return NSLocalizedString("注册", comment: "")
+            return NSLocalizedString("sign_up", comment: "")
         }
     }
 
@@ -306,7 +306,7 @@ struct AuthView: View {
 
             } catch {
                 await MainActor.run {
-                    self.authManager.errorMessage = "检查邮箱失败，请重试"
+                    self.authManager.errorMessage = NSLocalizedString("error_email_check_failed", comment: "")
                 }
             }
         }
@@ -529,23 +529,23 @@ struct PasswordStrengthView: View {
             if !password.isEmpty {
                 VStack(alignment: .leading, spacing: 2) {
                     PasswordRequirement(
-                        text: NSLocalizedString("至少8位字符", comment: ""),
+                        text: NSLocalizedString("password_requirement_length", comment: ""),
                         isMet: password.count >= 8
                     )
                     PasswordRequirement(
-                        text: NSLocalizedString("包含小写字母 (a-z)", comment: ""),
+                        text: NSLocalizedString("password_requirement_lowercase", comment: ""),
                         isMet: password.range(of: "[a-z]", options: .regularExpression) != nil
                     )
                     PasswordRequirement(
-                        text: NSLocalizedString("包含大写字母 (A-Z)", comment: ""),
+                        text: NSLocalizedString("password_requirement_uppercase", comment: ""),
                         isMet: password.range(of: "[A-Z]", options: .regularExpression) != nil
                     )
                     PasswordRequirement(
-                        text: NSLocalizedString("包含数字 (0-9)", comment: ""),
+                        text: NSLocalizedString("password_requirement_number", comment: ""),
                         isMet: password.range(of: "[0-9]", options: .regularExpression) != nil
                     )
                     PasswordRequirement(
-                        text: NSLocalizedString("包含特殊符号 (!@#$%等)", comment: ""),
+                        text: NSLocalizedString("password_requirement_special", comment: ""),
                         isMet: password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil
                     )
                 }
@@ -570,10 +570,10 @@ struct PasswordStrengthView: View {
     private var strengthText: String {
         switch passwordStrength {
         case 0: return ""
-        case 1: return NSLocalizedString("密码强度：弱", comment: "")
-        case 2: return NSLocalizedString("密码强度：一般", comment: "")
-        case 3: return NSLocalizedString("密码强度：较强", comment: "")
-        case 4: return NSLocalizedString("密码强度：强", comment: "")
+        case 1: return NSLocalizedString("password_strength_weak", comment: "")
+        case 2: return NSLocalizedString("password_strength_fair", comment: "")
+        case 3: return NSLocalizedString("password_strength_good", comment: "")
+        case 4: return NSLocalizedString("password_strength_strong", comment: "")
         default: return ""
         }
     }

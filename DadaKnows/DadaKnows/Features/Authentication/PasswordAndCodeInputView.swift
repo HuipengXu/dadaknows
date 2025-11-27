@@ -96,8 +96,8 @@ struct PasswordInputView: View {
         }
         // 使用 Toast 替代 Alert 显示错误，停留时间更长 (5秒)
         .toast(message: $authManager.errorMessage, type: .error, duration: 5.0)
-        .alert("成功", isPresented: $showSuccessAlert) {
-            Button("确定") {
+        .alert(NSLocalizedString("success", comment: ""), isPresented: $showSuccessAlert) {
+            Button(NSLocalizedString("ok", comment: "")) {
                 authManager.successMessage = nil
             }
         } message: {
@@ -162,11 +162,11 @@ struct PasswordInputView: View {
         let seconds = Int(remainingTime) % 60
 
         if remainingTime <= 0 {
-            return "验证码已过期"
+            return NSLocalizedString("verification_code_expired", comment: "")
         } else if remainingTime <= 120 {
-            return "验证码将在 \(minutes):\(String(format: "%02d", seconds)) 后过期"
+            return String.localizedStringWithFormat(NSLocalizedString("verification_code_expires_soon", comment: ""), minutes, seconds)
         } else {
-            return "剩余时间: \(minutes):\(String(format: "%02d", seconds))"
+            return String.localizedStringWithFormat(NSLocalizedString("verification_time_remaining", comment: ""), minutes, seconds)
         }
     }
 
@@ -209,9 +209,9 @@ struct PasswordInputView: View {
 
     private var resendButtonText: String {
         if resendCooldownTime > 0 {
-            return "重新发送(\(Int(resendCooldownTime))s)"
+            return String.localizedStringWithFormat(NSLocalizedString("resend_code_cooldown", comment: ""), Int(resendCooldownTime))
         } else {
-            return "重新发送验证码"
+            return NSLocalizedString("resend_verification_code", comment: "")
         }
     }
 
@@ -232,11 +232,11 @@ struct PasswordInputView: View {
             DLogoView.responsive(size: ResponsiveLayoutHelper.getLogoSize(geometry))
 
             VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 8)) {
-                Text(isExistingUser ? "欢迎回来" : "创建账户")
+                Text(isExistingUser ? NSLocalizedString("welcome_back", comment: "") : NSLocalizedString("create_account", comment: ""))
                     .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry) + 4, weight: .bold))
                     .foregroundColor(.textPrimary)
 
-                Text(isExistingUser ? "请输入密码登录" : "请设置密码完成注册")
+                Text(isExistingUser ? NSLocalizedString("enter_password_to_login", comment: "") : NSLocalizedString("set_password_to_register", comment: ""))
                     .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry), weight: .regular))
                     .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
@@ -281,9 +281,9 @@ struct PasswordInputView: View {
             HStack {
                 Group {
                     if isSecurePassword {
-                        SecureField("请输入密码", text: $password)
+                        SecureField(NSLocalizedString("password_placeholder", comment: ""), text: $password)
                     } else {
-                        TextField("请输入密码", text: $password)
+                        TextField(NSLocalizedString("password_placeholder", comment: ""), text: $password)
                     }
                 }
                 .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
@@ -312,7 +312,7 @@ struct PasswordInputView: View {
                 HStack {
                     Spacer()
                     Button(action: { showForgotPassword = true }) {
-                        Text("忘记密码?")
+                        Text(NSLocalizedString("forgot_password", comment: ""))
                             .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry) - 1))
                             .foregroundColor(.appPrimary)
                     }
@@ -336,9 +336,9 @@ struct PasswordInputView: View {
         HStack {
             Group {
                 if isSecureConfirmPassword {
-                    SecureField("请再次输入密码", text: $confirmPassword)
+                    SecureField(NSLocalizedString("confirm_password_placeholder", comment: ""), text: $confirmPassword)
                 } else {
-                    TextField("请再次输入密码", text: $confirmPassword)
+                    TextField(NSLocalizedString("confirm_password_placeholder", comment: ""), text: $confirmPassword)
                 }
             }
             .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
@@ -374,7 +374,7 @@ struct PasswordInputView: View {
     private func verificationCodeInputView(geometry: GeometryProxy) -> some View {
         VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 16)) {
             HStack {
-                TextField("请输入6位验证码", text: $verificationCode)
+                TextField(NSLocalizedString("verification_code_placeholder", comment: ""), text: $verificationCode)
                     .keyboardType(.numberPad)
                     .font(.system(size: ResponsiveLayoutHelper.getInputFieldFontSize(geometry)))
                     .foregroundColor(.textPrimary)
@@ -394,7 +394,7 @@ struct PasswordInputView: View {
             .frame(maxWidth: ResponsiveLayoutHelper.getInputFieldMaxWidth(geometry))
 
             HStack {
-                Text("验证码已发送到您的邮箱")
+                Text(NSLocalizedString("verification_code_sent", comment: ""))
                     .font(.system(size: ResponsiveLayoutHelper.getSubtitleFontSize(geometry) - 2))
                     .foregroundColor(.textSecondary)
 
@@ -450,7 +450,7 @@ struct PasswordInputView: View {
                             .scaleEffect(0.8)
                             .tint(.white)
                     }
-                    Text("验证")
+                    Text(NSLocalizedString("verify", comment: ""))
                         .fontWeight(.semibold)
                         .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry)))
                 }
@@ -463,7 +463,7 @@ struct PasswordInputView: View {
             .buttonStyle(.plain)
 
             Button(action: onCancel) {
-                Text("取消")
+                Text(NSLocalizedString("cancel", comment: ""))
                     .fontWeight(.medium)
                     .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry)))
                     .foregroundColor(.textPrimary)
@@ -493,7 +493,7 @@ struct PasswordInputView: View {
                             .scaleEffect(0.8)
                             .tint(.white)
                     }
-                    Text(isExistingUser ? "登录" : "注册")
+                    Text(isExistingUser ? NSLocalizedString("login", comment: "") : NSLocalizedString("sign_up", comment: ""))
                         .fontWeight(.semibold)
                         .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry)))
                 }
@@ -506,7 +506,7 @@ struct PasswordInputView: View {
             .buttonStyle(.plain)
 
             Button(action: onCancel) {
-                Text("取消")
+                Text(NSLocalizedString("cancel", comment: ""))
                     .fontWeight(.medium)
                     .font(.system(size: ResponsiveLayoutHelper.getButtonFontSize(geometry)))
                     .foregroundColor(.textPrimary)

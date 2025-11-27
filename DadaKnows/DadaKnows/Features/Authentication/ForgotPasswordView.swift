@@ -57,7 +57,7 @@ struct ForgotPasswordView: View {
                             .font(.system(size: 50, weight: .light))
                             .foregroundColor(.vibrantOrange)
                         
-                        Text(NSLocalizedString("忘记密码", comment: ""))
+                        Text(NSLocalizedString("forgot_password_title", comment: ""))
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.darkGray)
@@ -116,14 +116,14 @@ struct ForgotPasswordView: View {
                     dismiss()
                 }
             } message: {
-                Text("密码已成功重置，请使用新密码登录")
+                Text(NSLocalizedString("password_reset_success", comment: ""))
             }
             .alert(NSLocalizedString("成功", comment: ""), isPresented: $showSuccessAlert) {
                 Button(NSLocalizedString("确定", comment: "")) {
                     dismiss()
                 }
             } message: {
-                Text("密码已成功重置，请使用新密码登录")
+                Text(NSLocalizedString("password_reset_success", comment: ""))
             }
             // 使用 Toast 替代 Alert 显示错误，停留时间更长 (5秒)
             .toast(message: $authManager.errorMessage, type: .error, duration: 5.0)
@@ -138,7 +138,7 @@ struct ForgotPasswordView: View {
     
     private var emailStepView: some View {
         VStack(spacing: 20) {
-            TextField("邮箱地址", text: $email)
+            TextField(NSLocalizedString("email_address_placeholder", comment: ""), text: $email)
                 .keyboardType(.emailAddress)
                 .autocapitalization(.none)
                 .padding(.horizontal, 16)
@@ -157,7 +157,7 @@ struct ForgotPasswordView: View {
                             .scaleEffect(0.8)
                             .foregroundColor(.white)
                     }
-                    Text(NSLocalizedString("发送验证码", comment: ""))
+                    Text(NSLocalizedString("send_verification_code", comment: ""))
                         .fontWeight(.semibold)
                 }
                 .foregroundColor(.white)
@@ -201,7 +201,7 @@ struct ForgotPasswordView: View {
             )
             .frame(maxWidth: 320)
             
-            TextField("请输入6位验证码", text: $verificationCode)
+            TextField(NSLocalizedString("verification_code_placeholder", comment: ""), text: $verificationCode)
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.center)
                 .font(.system(size: 24, weight: .medium, design: .rounded))
@@ -246,7 +246,7 @@ struct ForgotPasswordView: View {
                             .scaleEffect(0.8)
                             .foregroundColor(.white)
                     }
-                    Text("验证并继续")
+                    Text(NSLocalizedString("verify_and_continue", comment: ""))
                         .fontWeight(.semibold)
                 }
                 .foregroundColor(.white)
@@ -265,9 +265,9 @@ struct ForgotPasswordView: View {
                 HStack {
                     Group {
                         if isSecureNewPassword {
-                            SecureField("新密码", text: $newPassword)
+                            SecureField(NSLocalizedString("new_password_placeholder", comment: ""), text: $newPassword)
                         } else {
-                            TextField("新密码", text: $newPassword)
+                            TextField(NSLocalizedString("new_password_placeholder", comment: ""), text: $newPassword)
                         }
                     }
                     .padding(.horizontal, 16)
@@ -289,9 +289,9 @@ struct ForgotPasswordView: View {
                 HStack {
                     Group {
                         if isSecureConfirmNewPassword {
-                            SecureField("确认新密码", text: $confirmNewPassword)
+                            SecureField(NSLocalizedString("confirm_new_password_placeholder", comment: ""), text: $confirmNewPassword)
                         } else {
-                            TextField("确认新密码", text: $confirmNewPassword)
+                            TextField(NSLocalizedString("confirm_new_password_placeholder", comment: ""), text: $confirmNewPassword)
                         }
                     }
                     .padding(.horizontal, 16)
@@ -314,11 +314,11 @@ struct ForgotPasswordView: View {
             // Password requirements
             if !newPassword.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    passwordRequirementRow("至少8个字符", met: newPassword.count >= 8)
-                    passwordRequirementRow("包含大写字母", met: newPassword.range(of: "[A-Z]", options: .regularExpression) != nil)
-                    passwordRequirementRow("包含小写字母", met: newPassword.range(of: "[a-z]", options: .regularExpression) != nil)
-                    passwordRequirementRow("包含数字", met: newPassword.range(of: "[0-9]", options: .regularExpression) != nil)
-                    passwordRequirementRow("包含特殊符号", met: newPassword.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil)
+                    passwordRequirementRow(NSLocalizedString("password_req_min_chars", comment: ""), met: newPassword.count >= 8)
+                    passwordRequirementRow(NSLocalizedString("password_req_uppercase", comment: ""), met: newPassword.range(of: "[A-Z]", options: .regularExpression) != nil)
+                    passwordRequirementRow(NSLocalizedString("password_req_lowercase", comment: ""), met: newPassword.range(of: "[a-z]", options: .regularExpression) != nil)
+                    passwordRequirementRow(NSLocalizedString("password_req_number", comment: ""), met: newPassword.range(of: "[0-9]", options: .regularExpression) != nil)
+                    passwordRequirementRow(NSLocalizedString("password_req_special", comment: ""), met: newPassword.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil)
                 }
                 .font(.caption)
                 .padding(.horizontal)
@@ -332,7 +332,7 @@ struct ForgotPasswordView: View {
                             .scaleEffect(0.8)
                             .foregroundColor(.white)
                     }
-                    Text("更新密码")
+                    Text(NSLocalizedString("update_password", comment: ""))
                         .fontWeight(.semibold)
                 }
                 .foregroundColor(.white)
@@ -368,22 +368,22 @@ struct ForgotPasswordView: View {
     private var stepDescription: String {
         switch currentStep {
         case .enterEmail:
-            return "输入您的邮箱地址，我们将发送验证码"
+            return NSLocalizedString("forgot_password_step1_desc", comment: "")
         case .verifyCode:
-            return "请输入发送到您邮箱的6位验证码"
+            return NSLocalizedString("forgot_password_step2_desc", comment: "")
         case .setNewPassword:
-            return "请设置您的新密码"
+            return NSLocalizedString("forgot_password_step3_desc", comment: "")
         }
     }
     
     private var rateLimitInfoText: String {
         let remaining = OTPRateLimiter.shared.getRemainingAttempts(for: email)
         if remaining == 3 {
-            return "5分钟内最多发送3次验证码"
+            return NSLocalizedString("rate_limit_info_full", comment: "")
         } else if remaining > 0 {
-            return "剩余 \(remaining) 次发送机会（5分钟内）"
+            return String.localizedStringWithFormat(NSLocalizedString("rate_limit_info_remaining", comment: ""), remaining)
         } else {
-            return "已达发送上限，请稍后再试"
+            return NSLocalizedString("rate_limit_info_exceeded", comment: "")
         }
     }
     
@@ -396,15 +396,15 @@ struct ForgotPasswordView: View {
     }
 
     private var resendButtonText: String {
-        if resendCooldownTime > 0 { return "重新发送(\(Int(resendCooldownTime))s)" } else { return "重新发送验证码" }
+        if resendCooldownTime > 0 { return String.localizedStringWithFormat(NSLocalizedString("resend_code_cooldown", comment: ""), Int(resendCooldownTime)) } else { return NSLocalizedString("resend_verification_code", comment: "") }
     }
 
     private var countdownText: String {
         let minutes = Int(remainingTime) / 60
         let seconds = Int(remainingTime) % 60
-        if remainingTime <= 0 { return "验证码已过期" }
-        if remainingTime <= 120 { return "验证码将在 \(minutes):\(String(format: "%02d", seconds)) 后过期" }
-        return "剩余时间: \(minutes):\(String(format: "%02d", seconds))"
+        if remainingTime <= 0 { return NSLocalizedString("verification_code_expired", comment: "") }
+        if remainingTime <= 120 { return String.localizedStringWithFormat(NSLocalizedString("verification_code_expires_soon", comment: ""), minutes, seconds) }
+        return String.localizedStringWithFormat(NSLocalizedString("verification_time_remaining", comment: ""), minutes, seconds)
     }
 
     private var isCountdownUrgent: Bool {

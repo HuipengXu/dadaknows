@@ -602,6 +602,23 @@
         }
       }
     },
+    "confirm_new_password_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm new password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认新密码"
+          }
+        }
+      }
+    },
     "confirm_password" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -670,6 +687,23 @@
         }
       }
     },
+    "continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
+          }
+        }
+      }
+    },
     "continue_with_apple" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -700,6 +734,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 Google 登录"
+          }
+        }
+      }
+    },
+    "create_account" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create Account"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建账户"
           }
         }
       }
@@ -982,6 +1033,23 @@
         }
       }
     },
+    "email_address_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email address"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "邮箱地址"
+          }
+        }
+      }
+    },
     "email_input_title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1033,6 +1101,23 @@
         }
       }
     },
+    "enter_password_to_login" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter your password to login"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入密码登录"
+          }
+        }
+      }
+    },
     "error" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1050,6 +1135,23 @@
         }
       }
     },
+    "error_email_check_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to check email, please try again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查邮箱失败，请重试"
+          }
+        }
+      }
+    },
     "forgot_password" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1063,6 +1165,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "忘记密码？"
+          }
+        }
+      }
+    },
+    "forgot_password_step1_desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your email address and we'll send you a verification code"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入您的邮箱地址，我们将发送验证码"
+          }
+        }
+      }
+    },
+    "forgot_password_step2_desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter the 6-digit code sent to your email"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入发送到您邮箱的6位验证码"
+          }
+        }
+      }
+    },
+    "forgot_password_step3_desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please set your new password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请设置您的新密码"
+          }
+        }
+      }
+    },
+    "forgot_password_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forgot Password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忘记密码"
           }
         }
       }
@@ -1373,6 +1543,23 @@
         }
       }
     },
+    "login" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Login"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录"
+          }
+        }
+      }
+    },
     "model_information" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1526,6 +1713,23 @@
         }
       }
     },
+    "new_password_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新密码"
+          }
+        }
+      }
+    },
     "not_downloaded" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1577,6 +1781,40 @@
         }
       }
     },
+    "ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确定"
+          }
+        }
+      }
+    },
+    "or" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "或"
+          }
+        }
+      }
+    },
     "password" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1607,6 +1845,261 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "输入您的密码"
+          }
+        }
+      }
+    },
+    "password_req_lowercase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contains lowercase"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含小写字母"
+          }
+        }
+      }
+    },
+    "password_req_min_chars" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At least 8 characters"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少8个字符"
+          }
+        }
+      }
+    },
+    "password_req_number" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contains number"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含数字"
+          }
+        }
+      }
+    },
+    "password_req_special" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contains special character"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含特殊符号"
+          }
+        }
+      }
+    },
+    "password_req_uppercase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contains uppercase"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含大写字母"
+          }
+        }
+      }
+    },
+    "password_requirement_length" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At least 8 characters"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少8位字符"
+          }
+        }
+      }
+    },
+    "password_requirement_lowercase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contains lowercase (a-z)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含小写字母 (a-z)"
+          }
+        }
+      }
+    },
+    "password_requirement_number" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contains number (0-9)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含数字 (0-9)"
+          }
+        }
+      }
+    },
+    "password_requirement_special" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contains special character (!@#$% etc)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含特殊符号 (!@#$%等)"
+          }
+        }
+      }
+    },
+    "password_requirement_uppercase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contains uppercase (A-Z)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含大写字母 (A-Z)"
+          }
+        }
+      }
+    },
+    "password_reset_success" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password reset successfully, please login with new password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码已成功重置，请使用新密码登录"
+          }
+        }
+      }
+    },
+    "password_strength_fair" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password Strength: Fair"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码强度：一般"
+          }
+        }
+      }
+    },
+    "password_strength_good" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password Strength: Good"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码强度：较强"
+          }
+        }
+      }
+    },
+    "password_strength_strong" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password Strength: Strong"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码强度：强"
+          }
+        }
+      }
+    },
+    "password_strength_weak" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password Strength: Weak"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码强度：弱"
           }
         }
       }
@@ -1832,6 +2325,57 @@
         }
       }
     },
+    "rate_limit_info_exceeded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate limit reached, please try later"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已达发送上限，请稍后再试"
+          }
+        }
+      }
+    },
+    "rate_limit_info_full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximum 3 codes per 5 minutes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5分钟内最多发送3次验证码"
+          }
+        }
+      }
+    },
+    "rate_limit_info_remaining" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d attempts remaining (5 min)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剩余 %d 次发送机会（5分钟内）"
+          }
+        }
+      }
+    },
     "rate_on_app_store" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1934,6 +2478,40 @@
         }
       }
     },
+    "resend_code_cooldown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resend (%ds)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新发送(%ds)"
+          }
+        }
+      }
+    },
+    "resend_verification_code" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resend Code"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新发送验证码"
+          }
+        }
+      }
+    },
     "resume" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2015,6 +2593,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "省%@"
+          }
+        }
+      }
+    },
+    "send_verification_code" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send Code"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送验证码"
+          }
+        }
+      }
+    },
+    "set_password_to_register" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please set a password to complete registration"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请设置密码完成注册"
           }
         }
       }
@@ -2359,6 +2971,23 @@
         }
       }
     },
+    "success" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Success"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成功"
+          }
+        }
+      }
+    },
     "support_development" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2512,6 +3141,23 @@
         }
       }
     },
+    "update_password" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update Password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新密码"
+          }
+        }
+      }
+    },
     "upgrade_required" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2580,6 +3226,125 @@
         }
       }
     },
+    "verification_code_expired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verification code expired"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证码已过期"
+          }
+        }
+      }
+    },
+    "verification_code_expires_soon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code expires in %d:%02d"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证码将在 %d:%02d 后过期"
+          }
+        }
+      }
+    },
+    "verification_code_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter 6-digit code"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入6位验证码"
+          }
+        }
+      }
+    },
+    "verification_code_sent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verification code sent to your email"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证码已发送到您的邮箱"
+          }
+        }
+      }
+    },
+    "verification_time_remaining" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time remaining: %d:%02d"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剩余时间: %d:%02d"
+          }
+        }
+      }
+    },
+    "verify" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verify"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证"
+          }
+        }
+      }
+    },
+    "verify_and_continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verify and Continue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证并继续"
+          }
+        }
+      }
+    },
     "voice_permission_message" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2610,6 +3375,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "voice_recognition_permission"
+          }
+        }
+      }
+    },
+    "welcome_back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome Back"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "欢迎回来"
           }
         }
       }
@@ -2772,9 +3554,6 @@
           }
         }
       }
-    },
-    "个人或工作邮箱" : {
-
     },
     "中文（简体）" : {
       "extractionState" : "manual",
@@ -3076,9 +3855,6 @@
           }
         }
       }
-    },
-    "创建账户" : {
-
     },
     "删除" : {
       "extractionState" : "manual",
@@ -3395,9 +4171,6 @@
         }
       }
     },
-    "发送验证码" : {
-
-    },
     "取消" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3550,9 +4323,6 @@
           }
         }
       }
-    },
-    "密码已成功重置，请使用新密码登录" : {
-
     },
     "密码强度：一般" : {
       "extractionState" : "manual",
@@ -3791,12 +4561,6 @@
           }
         }
       }
-    },
-    "忘记密码" : {
-
-    },
-    "忘记密码?" : {
-
     },
     "恢复购买" : {
       "extractionState" : "manual",
@@ -4056,9 +4820,6 @@
         }
       }
     },
-    "新密码" : {
-
-    },
     "无问题内容" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4149,9 +4910,6 @@
           }
         }
       }
-    },
-    "更新密码" : {
-
     },
     "月度3000次" : {
       "extractionState" : "manual",
@@ -4565,9 +5323,6 @@
         }
       }
     },
-    "欢迎回来" : {
-
-    },
     "正在下载... %lld%%" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4961,9 +5716,6 @@
           }
         }
       }
-    },
-    "确认新密码" : {
-
     },
     "离线模式" : {
       "extractionState" : "manual",
@@ -5461,9 +6213,6 @@
         }
       }
     },
-    "请再次输入密码" : {
-
-    },
     "请求超时，请检查网络连接。" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5514,18 +6263,6 @@
           }
         }
       }
-    },
-    "请设置密码完成注册" : {
-
-    },
-    "请输入6位验证码" : {
-
-    },
-    "请输入密码" : {
-
-    },
-    "请输入密码登录" : {
-
     },
     "请输入您的问题..." : {
       "extractionState" : "manual",
@@ -5937,15 +6674,6 @@
           }
         }
       }
-    },
-    "验证" : {
-
-    },
-    "验证并继续" : {
-
-    },
-    "验证码已发送到您的邮箱" : {
-
     },
     "高性能智能模型" : {
       "extractionState" : "manual",
