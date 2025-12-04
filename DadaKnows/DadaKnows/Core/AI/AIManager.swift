@@ -101,8 +101,16 @@ class AIManager: ObservableObject {
             Task {
                 // 根据当前模型选择处理方式
                 if self.useGeminiModel {
-                    // 使用Gemini模型，计入使用次数
-                    self.subscriptionManager.incrementQuestionCount()
+                    // 使用Gemini模型，根据用户类型计入不同计数
+                    if self.subscriptionManager.isProMember {
+                        // Pro用户：增加月度使用次数
+                        self.subscriptionManager.incrementMonthlyUsage()
+                        print("📊 Pro用户月度使用次数 +1，当前: \(self.subscriptionManager.monthlyUsageCount)")
+                    } else {
+                        // 免费用户：增加日使用次数
+                        self.subscriptionManager.incrementQuestionCount()
+                        print("📊 免费用户日使用次数 +1")
+                    }
                     await self.processWithCloudModel(
                         question: question,
                         targetAge: targetAge,
@@ -208,11 +216,22 @@ class AIManager: ObservableObject {
                 self.currentResponse = ""
                 self.error = nil
             }
-            
+
+            if Config.isDebug {
+                print("🤖 AIManager: 开始处理云端模型请求，用户类型: \(subscriptionManager.isProMember ? "Pro" : "免费")")
+            }
+
             // Pro用户检查月度限制
             if subscriptionManager.isProMember {
                 let canAsk = await subscriptionManager.canAskQuestion()
+                let remaining = subscriptionManager.monthlyRemaining
+                if Config.isDebug {
+                    print("📊 AIManager: Pro用户额度检查 - 剩余: \(remaining)，当前已用: \(subscriptionManager.monthlyUsageCount)")
+                }
                 if !canAsk {
+                    if Config.isDebug {
+                        print("❌ AIManager: Pro用户月度额度已用完")
+                    }
                     throw AIError.monthlyLimitExceeded
                 }
             }
@@ -278,6 +297,14 @@ class AIManager: ObservableObject {
                     )
                 }
                 self.isLoading = false
+            }
+            
+            // 成功获取回答后，从服务器获取最新使用次数（仅限Pro用户）
+            // 注意：服务器端的 ask-dada 函数已经增加了计数，这里只需要同步即可
+            if await MainActor.run(body: { self.subscriptionManager.isProMember }) {
+                // 延迟一小段时间确保服务器端已完成计数更新
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5秒
+                await subscriptionManager.fetchMonthlyUsage()
             }
         } catch {
             await MainActor.run {

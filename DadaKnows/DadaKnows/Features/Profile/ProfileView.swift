@@ -38,9 +38,10 @@ struct ProfileView: View {
                 // User profile section with email
                 userProfileSection
                 
-                // Pro membership section
-                proMembershipSection
-                    
+                // Subscription management section (for all users)
+                subscriptionManagementSection
+                
+
                 // App settings section
                 appSettingsSection
                 
@@ -107,11 +108,8 @@ struct ProfileView: View {
     // MARK: - User Profile Section
     private var userProfileSection: some View {
         Section {
-            // User info with edit button - 现代化设计
-            Button(action: { 
-                editingUsername = userService.currentUsername
-                showingEditProfile = true 
-            }) {
+            // User info with navigation to detail page
+            NavigationLink(destination: UserInfoView()) {
                 HStack(spacing: 16) {
                     // 现代化头像
                     ZStack {
@@ -136,7 +134,7 @@ struct ProfileView: View {
                     
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 8) {
-                            Text(userService.currentUsername.isEmpty ? NSLocalizedString("用户", comment: "") : userService.currentUsername)
+                            Text(userService.currentUsername)
                                 .font(.title3)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.textPrimary)
@@ -163,174 +161,66 @@ struct ProfileView: View {
                             }
                         }
                         
-                        Text(subscriptionManager.isProMember ? NSLocalizedString("Pro会员", comment: "") : NSLocalizedString("免费用户", comment: ""))
-                            .font(.callout)
-                            .foregroundColor(.textSecondary)
-                    }
-                    
-                    Spacer()
-                    
-                    VStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(.appPrimary.opacity(0.7))
-                        
-                        Text(NSLocalizedString("编辑", comment: ""))
-                            .font(.caption2)
-                            .foregroundColor(.textTertiary)
+                        if subscriptionManager.isProMember {
+                            if aiManager.useGeminiModel {
+                                Text("已用: \(subscriptionManager.monthlyUsageCount) / 3000")
+                                    .font(.callout)
+                                    .foregroundColor(.textSecondary)
+                            } else {
+                                Text(NSLocalizedString("无限使用", comment: ""))
+                                    .font(.callout)
+                                    .foregroundColor(.textSecondary)
+                            }
+                        } else {
+                            Text(NSLocalizedString("免费用户", comment: ""))
+                                .font(.callout)
+                                .foregroundColor(.textSecondary)
+                        }
                     }
                 }
                 .padding(.vertical, 12)
             }
-            .buttonStyle(.plain)
-            
-            // Login email (if authenticated) - 重新设计
-            if authManager.isAuthenticated {
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.appPrimary.opacity(0.1))
-                            .frame(width: 32, height: 32)
-                        
-                        Image(systemName: "envelope.fill")
-                            .foregroundColor(.appPrimary)
-                            .font(.system(size: 14, weight: .medium))
+        }
+    }
+    
+    // MARK: - Subscription Management Section
+    private var subscriptionManagementSection: some View {
+        Section {
+            Button(action: { 
+                Task {
+                    // 打开sheet前先加载数据
+                    if subscriptionManager.availableProducts.isEmpty {
+                        await subscriptionManager.loadProducts()
                     }
+                    await subscriptionManager.checkSubscriptionStatus()
+                    showProSubscription = true
+                }
+            }) {
+                HStack {
+                    Image(systemName: subscriptionManager.isProMember ? "gearshape.fill" : "crown.fill")
+                        .foregroundColor(.appAccent)
+                        .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(NSLocalizedString("登录邮箱", comment: ""))
-                            .font(.callout)
-                            .fontWeight(.medium)
-                            .foregroundColor(.textPrimary)
-                        
-                        Text(authManager.currentUser?.email ?? NSLocalizedString("未知", comment: ""))
+                    Text(subscriptionManager.isProMember ? NSLocalizedString("管理订阅", comment: "") : NSLocalizedString("升级到 Pro", comment: ""))
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.textPrimary)
+                    
+                    Spacer()
+                    
+                    if !subscriptionManager.isProMember {
+                        Text(NSLocalizedString("解锁无限畅聊", comment: ""))
                             .font(.caption)
                             .foregroundColor(.textSecondary)
                     }
                     
-                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
                 }
                 .padding(.vertical, 4)
             }
-        }
-        .sheet(isPresented: $showingEditProfile) {
-            EditProfileView(username: $editingUsername) { newUsername in
-                userService.updateUsername(newUsername)
-            }
-        }
-    }
-    
-    // MARK: - Pro Membership Section
-    private var proMembershipSection: some View {
-        Section {
-            if !subscriptionManager.isProMember {
-                Button(action: { showProSubscription = true }) {
-                    HStack {
-                        Image(systemName: "crown")
-                            .foregroundColor(.appAccent)
-                            .frame(width: 24)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(NSLocalizedString("升级到Pro", comment: ""))
-                                .font(.body)
-                                .fontWeight(.medium)
-                                .foregroundColor(.textPrimary)
-                            
-                            Text(NSLocalizedString("无限次提问，更多功能", comment: ""))
-                                .font(.caption)
-                                .foregroundColor(.textSecondary)
-                                }
-                                
-                                Spacer()
-                                
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundColor(.textTertiary)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            } else {
-                VStack(spacing: 12) {
-                    HStack {
-                        Image(systemName: "crown.fill")
-                            .foregroundColor(.appAccent)
-                            .frame(width: 24)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                                    Text(NSLocalizedString("Pro会员", comment: ""))
-                                .font(.body)
-                                .fontWeight(.medium)
-                                .foregroundColor(.textPrimary)
-                                    
-                                    Text(NSLocalizedString("享受完整功能体验", comment: ""))
-                                .font(.caption)
-                                .foregroundColor(.textSecondary)
-                                }
-                                
-                                Spacer()
-                                
-                        Text(NSLocalizedString("已激活", comment: ""))
-                            .font(.caption)
-                            .foregroundColor(.statusSuccess)
-                    }
-                    
-                    // 月度使用情况 - 仅对使用云端模型的Pro用户显示
-                    if aiManager.useGeminiModel {
-                        Divider()
-                        
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(NSLocalizedString("本月剩余问答次数", comment: ""))
-                                    .font(.caption)
-                                    .foregroundColor(.textSecondary)
-                                
-                                HStack(spacing: 6) {
-                                    Text("\(subscriptionManager.monthlyRemaining)")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(subscriptionManager.monthlyRemaining > 500 ? .statusSuccess : 
-                                                        subscriptionManager.monthlyRemaining > 100 ? .orange : .statusError)
-                                    
-                                    Text("/ 3000")
-                                        .font(.subheadline)
-                                        .foregroundColor(.textSecondary)
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            // 使用进度环
-                            ZStack {
-                                Circle()
-                                    .stroke(Color.fillSecondary, lineWidth: 4)
-                                    .frame(width: 40, height: 40)
-                                
-                                Circle()
-                                    .trim(from: 0, to: CGFloat(subscriptionManager.monthlyUsageCount) / 3000.0)
-                                    .stroke(
-                                        subscriptionManager.monthlyRemaining > 500 ? Color.statusSuccess : 
-                                        subscriptionManager.monthlyRemaining > 100 ? Color.orange : Color.statusError,
-                                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
-                                    )
-                                    .frame(width: 40, height: 40)
-                                    .rotationEffect(.degrees(-90))
-                                
-                                Text("\(Int((Double(subscriptionManager.monthlyUsageCount) / 3000.0) * 100))%")
-                                    .font(.system(size: 8, weight: .bold))
-                                    .foregroundColor(.textSecondary)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                }
-            }
-        }
-        .task {
-            // 加载月度使用情况
-            if subscriptionManager.isProMember {
-                await subscriptionManager.fetchMonthlyUsage()
-            }
+            .buttonStyle(.plain)
         }
     }
     

@@ -13,6 +13,7 @@
 		72201E3D2E858D90000AB25E /* MLXRandom in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E3C2E858D90000AB25E /* MLXRandom */; };
 		72201E422E85927E000AB25E /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E412E85927E000AB25E /* MLXLLM */; };
 		72201E442E85927E000AB25E /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 72201E432E85927E000AB25E /* MLXLMCommon */; };
+		7259FDA12EDC854900CF4A11 /* LocalSubscription.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 7259FDA02EDC854900CF4A11 /* LocalSubscription.storekit */; };
 		72F855E62E6B3748003C290C /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E52E6B3748003C290C /* Auth */; };
 		72F855E82E6B3748003C290C /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E72E6B3748003C290C /* Functions */; };
 		72F855EA2E6B3748003C290C /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 72F855E92E6B3748003C290C /* PostgREST */; };
@@ -41,6 +42,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7259FDA02EDC854900CF4A11 /* LocalSubscription.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = LocalSubscription.storekit; sourceTree = "<group>"; };
 		72F855012E6B2D66003C290C /* DadaKnows.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DadaKnows.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		72F8550E2E6B2D68003C290C /* DadaKnowsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DadaKnowsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		72F855182E6B2D68003C290C /* DadaKnowsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DadaKnowsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -126,6 +128,7 @@
 		72F854F82E6B2D66003C290C = {
 			isa = PBXGroup;
 			children = (
+				7259FDA02EDC854900CF4A11 /* LocalSubscription.storekit */,
 				72F855032E6B2D66003C290C /* DadaKnows */,
 				72F855112E6B2D68003C290C /* DadaKnowsTests */,
 				72F8551B2E6B2D68003C290C /* DadaKnowsUITests */,
@@ -285,6 +288,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7259FDA12EDC854900CF4A11 /* LocalSubscription.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

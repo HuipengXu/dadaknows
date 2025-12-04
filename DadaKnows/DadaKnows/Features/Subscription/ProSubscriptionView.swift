@@ -40,15 +40,33 @@ struct ProSubscriptionView: View {
                         // Hero Section
                         heroSection
                         
-                        // Subscription Plans
-                        if !subscriptionManager.availableProducts.isEmpty {
-                            subscriptionPlansSection
-                        } else {
-                            loadingPlansSection
-                        }
-                        
                         // Features Highlight
                         featuresSection
+                        
+                        // Pro用户：显示当前订阅管理
+                        if subscriptionManager.isProMember {
+                            currentSubscriptionSection
+                        } else {
+                            // 非Pro用户：显示订阅计划
+                            if !subscriptionManager.availableProducts.isEmpty {
+                                subscriptionPlansSection
+                            } else if subscriptionManager.isLoading {
+                                loadingPlansSection
+                            } else {
+                                VStack(spacing: 12) {
+                                    Image(systemName: "exclamationmark.triangle")
+                                        .font(.largeTitle)
+                                        .foregroundColor(.orange)
+                                    Text(NSLocalizedString("无法加载订阅计划", comment: ""))
+                                        .font(.headline)
+                                    Text(NSLocalizedString("请检查网络连接或 StoreKit 配置", comment: ""))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 40)
+                            }
+                        }
                         
                         // Benefits
                         benefitsSection
@@ -62,8 +80,8 @@ struct ProSubscriptionView: View {
                     .padding(.top, 10)
                 }
                 
-                // Fixed Purchase Button
-                if selectedProduct != nil {
+                // Fixed Purchase Button (only for non-Pro users)
+                if selectedProduct != nil && !subscriptionManager.isProMember {
                     VStack {
                         Spacer()
                         purchaseButtonSection
@@ -95,9 +113,8 @@ struct ProSubscriptionView: View {
                 }
             }
             .onAppear {
-                Task {
-                    await subscriptionManager.loadProducts()
-                    // 默认选择年付订阅（排除 biannual）
+                // 默认选择年付订阅（排除 biannual）
+                if selectedProduct == nil {
                     if let annualProduct = subscriptionManager.availableProducts.first(where: { 
                         $0.id.contains("annual") && !$0.id.contains("biannual")
                     }) {
@@ -215,6 +232,7 @@ struct ProSubscriptionView: View {
                     ModernSubscriptionCard(
                         product: product,
                         isSelected: selectedProduct?.id == product.id,
+                        isCurrentPlan: subscriptionManager.activeSubscriptionProduct?.id == product.id,
                         onSelect: {
                             withAnimation(.easeInOut(duration: 0.2)) {
                             selectedProduct = product
@@ -371,6 +389,102 @@ struct ProSubscriptionView: View {
         .cornerRadius(12)
     }
     
+    // MARK: - Current Subscription Section (For Pro Users)
+    private var currentSubscriptionSection: some View {
+        VStack(spacing: 20) {
+            HStack {
+                Text(NSLocalizedString("当前订阅", comment: ""))
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            
+            if let activeProduct = subscriptionManager.activeSubscriptionProduct {
+                // Show current plan card
+                VStack(spacing: 16) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(planTitle(for: activeProduct))
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                            
+                            Text(activeProduct.displayPrice + " / " + planDuration(for: activeProduct))
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.appPrimary)
+                        }
+                        
+                        Spacer()
+                        
+                        // Current plan badge
+                        Text("当前套餐")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.green)
+                            )
+                    }
+                    
+                    if let expirationDate = subscriptionManager.expirationDate {
+                        HStack {
+                            Image(systemName: "calendar")
+                                .foregroundColor(.secondary)
+                            Text("到期时间: \(expirationDate, formatter: dateFormatter)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                    }
+                }
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.appPrimary.opacity(0.05))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.appPrimary, lineWidth: 2)
+                        )
+                )
+                
+                // Manage subscription button
+                Button {
+                    if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    HStack {
+                        Text(NSLocalizedString("在 App Store 中管理", comment: ""))
+                            .fontWeight(.semibold)
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.appPrimary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color.appPrimary.opacity(0.1))
+                    .cornerRadius(25)
+                }
+                .padding(.top, 8)
+            } else {
+                Text("无法获取订阅信息")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+    
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }
+    
     // MARK: - Purchase Button Section
     private var purchaseButtonSection: some View {
         VStack(spacing: 0) {
@@ -381,8 +495,17 @@ struct ProSubscriptionView: View {
                 .overlay(
                     VStack(spacing: 12) {
                         if let product = selectedProduct {
+                            let isCurrentPlan = subscriptionManager.activeSubscriptionProduct?.id == product.id
+                            
                             Button {
-                                isShowingPurchaseFlow = true
+                                if isCurrentPlan {
+                                    // 打开 App Store 订阅管理
+                                    if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                } else {
+                                    isShowingPurchaseFlow = true
+                                }
                             } label: {
                                 HStack {
                                     if subscriptionManager.isLoading {
@@ -392,13 +515,15 @@ struct ProSubscriptionView: View {
                                     }
                                     
                                     VStack(spacing: 2) {
-                                        Text(NSLocalizedString("start_subscription", comment: ""))
+                                        Text(isCurrentPlan ? NSLocalizedString("manage_subscription", comment: "Manage Subscription") : NSLocalizedString("start_subscription", comment: ""))
                                             .font(.headline)
                                             .fontWeight(.semibold)
                                         
-                                        Text(product.displayPrice + " / " + planDuration(for: product))
-                                            .font(.caption)
-                                            .opacity(0.9)
+                                        if !isCurrentPlan {
+                                            Text(product.displayPrice + " / " + planDuration(for: product))
+                                                .font(.caption)
+                                                .opacity(0.9)
+                                        }
                                     }
                                 }
                                 .foregroundColor(.white)
@@ -406,13 +531,13 @@ struct ProSubscriptionView: View {
                                 .frame(height: 50)
                                 .background(
                                     LinearGradient(
-                                        colors: [.appPrimary, .appPrimary.opacity(0.8)],
+                                        colors: isCurrentPlan ? [.gray, .gray.opacity(0.8)] : [.appPrimary, .appPrimary.opacity(0.8)],
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
                                 )
                                 .cornerRadius(25)
-                                .shadow(color: .appPrimary.opacity(0.3), radius: 10, x: 0, y: 5)
+                                .shadow(color: (isCurrentPlan ? Color.gray : Color.appPrimary).opacity(0.3), radius: 10, x: 0, y: 5)
                             }
                             .disabled(subscriptionManager.isLoading)
                             .padding(.horizontal, 20)
@@ -556,6 +681,7 @@ struct ProSubscriptionView: View {
 struct ModernSubscriptionCard: View {
     let product: Product
     let isSelected: Bool
+    let isCurrentPlan: Bool
     let onSelect: () -> Void
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     
@@ -584,7 +710,18 @@ struct ModernSubscriptionCard: View {
                         
                         Spacer()
                         
-                        if isPopular {
+                        if isCurrentPlan {
+                            Text("当前套餐")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.green)
+                                )
+                        } else if isPopular {
                             Text(NSLocalizedString("recommended", comment: ""))
                                 .font(.caption2)
                                 .fontWeight(.bold)

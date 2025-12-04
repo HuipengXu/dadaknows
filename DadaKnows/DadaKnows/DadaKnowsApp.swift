@@ -31,6 +31,9 @@ struct DadaKnowsApp: App {
                 .environment(\.managedObjectContext, DataManager.shared.persistentContainer.viewContext)
                 .task {
                     await SubscriptionManager.shared.loadProducts()
+
+                    // 启动数据一致性检查
+                    UsageConsistencyChecker.shared.schedulePeriodicCheck()
                 }
         }
     }

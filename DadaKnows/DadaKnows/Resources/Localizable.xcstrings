@@ -75,6 +75,9 @@
         }
       }
     },
+    "%lld / 3000" : {
+
+    },
     "%lld%%" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1559,6 +1562,9 @@
           }
         }
       }
+    },
+    "manage_subscription" : {
+      "comment" : "Manage Subscription"
     },
     "model_information" : {
       "extractionState" : "manual",
@@ -3555,6 +3561,9 @@
         }
       }
     },
+    "个人信息" : {
+
+    },
     "中文（简体）" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3663,6 +3672,9 @@
     "今日提问已用完" : {
 
     },
+    "会员状态" : {
+
+    },
     "你好，我是答答" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3750,6 +3762,9 @@
           }
         }
       }
+    },
+    "免费版" : {
+
     },
     "免费用户" : {
       "extractionState" : "manual",
@@ -3944,6 +3959,12 @@
         }
       }
     },
+    "到期时间" : {
+
+    },
+    "到期时间: %@" : {
+
+    },
     "前往App Store评价" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4045,6 +4066,9 @@
           }
         }
       }
+    },
+    "升级到 Pro" : {
+
     },
     "升级到Pro" : {
       "extractionState" : "manual",
@@ -4238,6 +4262,9 @@
           }
         }
       }
+    },
+    "在 App Store 中管理" : {
+
     },
     "复制邮箱地址" : {
       "extractionState" : "manual",
@@ -4511,6 +4538,9 @@
         }
       }
     },
+    "已用: %lld / 3000" : {
+
+    },
     "已达到使用限制，请稍后再试" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4561,6 +4591,15 @@
           }
         }
       }
+    },
+    "当前套餐" : {
+
+    },
+    "当前版本" : {
+
+    },
+    "当前订阅" : {
+
     },
     "恢复购买" : {
       "extractionState" : "manual",
@@ -4820,6 +4859,12 @@
         }
       }
     },
+    "无法加载订阅计划" : {
+
+    },
+    "无法获取订阅信息" : {
+
+    },
     "无问题内容" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4836,6 +4881,9 @@
           }
         }
       }
+    },
+    "无限使用" : {
+
     },
     "无限使用 • 离线可用 • 保护隐私" : {
 
@@ -5237,6 +5285,9 @@
           }
         }
       }
+    },
+    "本月已用" : {
+
     },
     "本次会话 · %@" : {
       "extractionState" : "manual",
@@ -5805,6 +5856,9 @@
         }
       }
     },
+    "管理订阅" : {
+
+    },
     "系统版本不支持" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6043,6 +6097,9 @@
         }
       }
     },
+    "解锁无限畅聊" : {
+
+    },
     "订阅: 免费版" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6213,6 +6270,9 @@
         }
       }
     },
+    "请检查网络连接或 StoreKit 配置" : {
+
+    },
     "请求超时，请检查网络连接。" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6280,6 +6340,9 @@
           }
         }
       }
+    },
+    "请输入昵称" : {
+
     },
     "请输入用户名" : {
       "extractionState" : "manual",

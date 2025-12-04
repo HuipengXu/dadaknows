@@ -18,7 +18,7 @@ class UserService: ObservableObject {
     @Published var errorMessage: String?
     
     var currentUsername: String {
-        return userProfile?.nickname ?? "用户"
+        return userProfile?.nickname ?? "momo"
     }
     
     private let supabase = SupabaseClient.shared
@@ -103,7 +103,7 @@ class UserService: ObservableObject {
             let localSettings = dataManager.fetchOrCreateUserSettings()
             userProfile = UserProfile(
                 id: currentUser.id.uuidString,
-                nickname: nil,
+                nickname: "momo",
                 avatarUrl: nil,
                 preferredLanguage: localSettings.preferredLanguage ?? "zh-CN",
                 subscriptionStatus: localSettings.subscriptionStatus ?? "free"

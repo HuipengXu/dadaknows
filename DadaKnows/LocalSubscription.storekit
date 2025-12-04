@@ -1,0 +1,128 @@
+{
+  "identifier" : "LocalSubscription",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "code" : "unknown",
+        "detail" : "Missing machine entitlement",
+        "domain" : "model",
+        "enabled" : false,
+        "name" : "Missing Machine Entitlement"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21453214",
+      "localizations" : [
+
+      ],
+      "name" : "Pro Membership",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "64792831",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Monthly Pro Membership",
+              "displayName" : "Monthly Pro",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "高级会员月付",
+              "displayName" : "高级会员-月付",
+              "locale" : "zh_CN"
+            }
+          ],
+          "productID" : "com.dadaknows.DadaKnows.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly Pro",
+          "subscriptionGroupID" : "21453214",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "49.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "64792832",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Biannual Pro Membership",
+              "displayName" : "Biannual Pro",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "高级会员半年付",
+              "displayName" : "高级会员-半年付",
+              "locale" : "zh_CN"
+            }
+          ],
+          "productID" : "com.dadaknows.DadaKnows.biannual",
+          "recurringSubscriptionPeriod" : "P6M",
+          "referenceName" : "Biannual Pro",
+          "subscriptionGroupID" : "21453214",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "89.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "64792833",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Annual Pro Membership",
+              "displayName" : "Annual Pro",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "高级会员年付",
+              "displayName" : "高级会员-年付",
+              "locale" : "zh_CN"
+            }
+          ],
+          "productID" : "com.dadaknows.DadaKnows.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Annual Pro",
+          "subscriptionGroupID" : "21453214",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

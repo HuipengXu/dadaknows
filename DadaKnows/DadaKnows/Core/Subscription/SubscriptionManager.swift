@@ -42,11 +42,21 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Product Loading
     
     func loadProducts() async {
+        print("🔵 开始加载产品...")
+        print("🔵 产品 ID: \(productIDs)")
+        
         isLoading = true
         errorMessage = nil
         
         do {
+            print("🔵 正在调用 Product.products(for:)...")
             let products = try await Product.products(for: productIDs)
+            print("🔵 成功获取到 \(products.count) 个产品")
+            
+            for product in products {
+                print("🔵 产品: \(product.id) - \(product.displayName) - \(product.displayPrice)")
+            }
+            
             // 按推荐优先级排序：年付 -> 半年付 -> 月付
             self.availableProducts = products.sorted { product1, product2 in
                 if product1.id.contains("annual") { return true }
@@ -56,19 +66,20 @@ class SubscriptionManager: ObservableObject {
                 return product1.price > product2.price
             }
             
-            await checkSubscriptionStatus()
-            // 在成功加载产品后启动交易监听（仅一次；模拟器跳过）
-            #if !targetEnvironment(simulator)
+            print("🔵 已排序产品，共 \(self.availableProducts.count) 个")
+            
+            // 在成功加载产品后启动交易监听
             if updateListenerTask == nil {
                 updateListenerTask = listenForTransactions()
             }
-            #endif
         } catch {
             self.errorMessage = "加载产品失败: \(error.localizedDescription)"
             print("❌ StoreKit 产品加载失败: \(error)")
+            print("❌ 错误详情: \(error)")
         }
         
         isLoading = false
+        print("🔵 加载完成，isLoading = false, 产品数量 = \(self.availableProducts.count)")
     }
     
     // MARK: - Purchase
@@ -83,8 +94,25 @@ class SubscriptionManager: ObservableObject {
             switch result {
             case .success(let verification):
                 let transaction = try await checkVerified(verification)
-                await updateSubscriptionStatus(for: transaction)
+
+                // 获取当前订阅状态，用于计算新的到期时间
+                let currentExpirationDate = self.expirationDate
+                let currentlyActive = self.isProMember
+
                 await transaction.finish()
+
+                // 等待StoreKit处理完成
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1秒延迟
+
+                // 购买成功后，处理订阅时间延后
+                await handleSubscriptionExtension(
+                    currentExpirationDate: currentExpirationDate,
+                    currentlyActive: currentlyActive,
+                    newProductID: transaction.productID
+                )
+
+                // 重新检查所有订阅状态
+                await checkSubscriptionStatus()
                 
             case .userCancelled:
                 // 用户取消购买
@@ -92,7 +120,7 @@ class SubscriptionManager: ObservableObject {
                 
             case .pending:
                 // 购买待处理（例如需要家长批准）
-                self.errorMessage = "购买正在处理中，请稍后查看"
+                self.errorMessage = "购买正在处理中,请稍后查看"
                 
             @unknown default:
                 self.errorMessage = "未知的购买结果"
@@ -121,37 +149,87 @@ class SubscriptionManager: ObservableObject {
     }
     
     // MARK: - Subscription Status
-    
-    private func checkSubscriptionStatus() async {
-        #if targetEnvironment(simulator)
-        // 模拟器环境没有 App Store 账户，跳过交易枚举以避免 ASDErrorDomain 509 噪音
-        self.purchasedProducts = []
-        self.isProMember = false
-        self.subscriptionStatus = .inactive
-        saveSubscriptionStatus()
-        #else
+
+    /// 处理订阅时间延后
+    private func handleSubscriptionExtension(
+        currentExpirationDate: Date?,
+        currentlyActive: Bool,
+        newProductID: String
+    ) async {
+        // 如果用户当前没有活跃订阅，不需要处理延后逻辑
+        guard currentlyActive, let currentExpiration = currentExpirationDate else {
+            return
+        }
+
+        // 确定新订阅的时长
+        let timeInterval: TimeInterval
+        if newProductID.contains("monthly") {
+            timeInterval = 30 * 24 * 60 * 60 // 30天
+        } else if newProductID.contains("biannual") {
+            timeInterval = 180 * 24 * 60 * 60 // 180天（6个月）
+        } else if newProductID.contains("annual") {
+            timeInterval = 365 * 24 * 60 * 60 // 365天
+        } else {
+            return // 未知的订阅类型
+        }
+
+        // 计算新的到期时间
+        let newExpirationDate = currentExpiration.addingTimeInterval(timeInterval)
+
+        // 更新本地存储的到期时间
+        self.expirationDate = newExpirationDate
+
+        // 保存到UserDefaults
+        UserDefaults.standard.set(newExpirationDate, forKey: "subscriptionExpirationDate")
+
+        print("📅 订阅时间已延后: \(currentExpiration) -> \(newExpirationDate) (增加了 \(timeInterval/86400) 天)")
+    }
+
+    func checkSubscriptionStatus() async {
+        // 移除模拟器限制，允许在模拟器中使用 StoreKit 配置文件进行测试
         var hasActiveSubscription = false
         var currentProducts: [Product] = []
         
+        var latestExpirationDate: Date?
+
         for await result in Transaction.currentEntitlements {
             do {
                 let transaction = try await checkVerified(result)
-                
+
                 if let product = availableProducts.first(where: { $0.id == transaction.productID }) {
                     currentProducts.append(product)
-                    
+
                     // 检查订阅是否仍然有效
                     if transaction.productType == .autoRenewable {
                         hasActiveSubscription = true
+                        // 记录最晚的过期时间
+                        if let date = transaction.expirationDate {
+                            if latestExpirationDate == nil || date > latestExpirationDate! {
+                                latestExpirationDate = date
+                            }
+                        }
                     } else if transaction.productType == .nonConsumable {
                         // 终身会员
                         hasActiveSubscription = true
+                        latestExpirationDate = nil // 终身会员无过期时间
                     }
                 }
             } catch {
                 print("❌ 验证交易失败: \(error)")
             }
         }
+
+        // 检查本地存储的延期到期时间
+        let localExpirationDate = UserDefaults.standard.object(forKey: "subscriptionExpirationDate") as? Date
+        if let localDate = localExpirationDate, localDate > Date() {
+            // 如果本地存储的到期时间比StoreKit的更晚，使用本地时间
+            if latestExpirationDate == nil || localDate > latestExpirationDate! {
+                latestExpirationDate = localDate
+                print("📅 使用本地存储的延期到期时间: \(localDate)")
+            }
+        }
+
+        self.expirationDate = latestExpirationDate
         
         self.purchasedProducts = currentProducts
         self.isProMember = hasActiveSubscription
@@ -159,8 +237,9 @@ class SubscriptionManager: ObservableObject {
         
         // 保存订阅状态
         saveSubscriptionStatus()
-        #endif
     }
+    
+    @Published var expirationDate: Date?
     
     private func updateSubscriptionStatus(for transaction: Transaction) async {
         if let product = availableProducts.first(where: { $0.id == transaction.productID }) {
@@ -170,6 +249,7 @@ class SubscriptionManager: ObservableObject {
             
             isProMember = true
             subscriptionStatus = .active
+            expirationDate = transaction.expirationDate
             saveSubscriptionStatus()
         }
     }
@@ -229,6 +309,10 @@ class SubscriptionManager: ObservableObject {
     @Published var monthlyRemaining: Int = Config.monthlyProQuestionLimit
     @Published var monthlyUsageCount: Int = 0
     private let monthlyLimit = Config.monthlyProQuestionLimit
+
+    // 防抖相关属性
+    private var lastIncrementTime: Date?
+    private var lastFetchTime: Date?
     
     private var dailyQuestionCount: Int {
         get {
@@ -322,9 +406,7 @@ class SubscriptionManager: ObservableObject {
         // 免费用户检查日限制
         return dailyQuestionCount < Config.dailyFreeQuestionLimit
     }
-    
-    private var lastIncrementTime: Date?
-    
+
     /// 增加使用次数（仅用于免费用户的日计数）
     func incrementQuestionCount() {
         if !isProMember {
@@ -341,18 +423,44 @@ class SubscriptionManager: ObservableObject {
         }
     }
     
+    /// 增加Pro用户的月度使用次数（本地乐观更新）
+    func incrementMonthlyUsage() {
+        guard isProMember else { return }
+
+        // 防止重复计数（1秒内多次调用只算一次）
+        if let lastTime = lastIncrementTime, Date().timeIntervalSince(lastTime) < 1.0 {
+            if Config.isDebug {
+                print("⚠️ SubscriptionManager: 忽略重复月度计数调用")
+            }
+            return
+        }
+
+        monthlyUsageCount += 1
+        monthlyRemaining = max(0, monthlyLimit - monthlyUsageCount)
+        lastIncrementTime = Date()
+
+        if Config.isDebug {
+            print("📊 SubscriptionManager: 本地更新月度使用计数 -> \(monthlyUsageCount)")
+        }
+    }
+    
+    /// 获取当前日使用次数（供外部访问）
+    func getCurrentDailyCount() -> Int {
+        return dailyQuestionCount
+    }
+
     /// 获取剩余提问次数
     func getRemainingQuestions() -> Int? {
         // 如果正在使用端侧模型，返回无限制
         if AIManager.shared.isUsingOnDeviceModel {
             return nil
         }
-        
+
         if isProMember {
             // Pro用户返回月度剩余次数
             return max(0, monthlyLimit - monthlyUsageCount)
         }
-        
+
         // 免费用户返回日剩余次数
         let limit = Config.dailyFreeQuestionLimit
         return max(0, limit - dailyQuestionCount)
@@ -361,7 +469,17 @@ class SubscriptionManager: ObservableObject {
     /// 从服务器获取月度使用情况
     func fetchMonthlyUsage() async {
         guard isProMember else { return }
-        
+
+        // 防抖：如果最近刚刚获取过数据，跳过本次请求
+        let now = Date()
+        if let lastFetch = lastFetchTime, now.timeIntervalSince(lastFetch) < 2.0 {
+            if Config.isDebug {
+                print("⚠️ SubscriptionManager: 防抖跳过月度使用情况获取")
+            }
+            return
+        }
+        lastFetchTime = now
+
         // 获取当前用户ID
         guard let userId = SupabaseClient.shared.getCurrentUserId() else {
             if Config.isDebug {
@@ -369,17 +487,32 @@ class SubscriptionManager: ObservableObject {
             }
             return
         }
-        
+
+        // 延迟获取，避免立即覆盖本地乐观更新
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5秒延迟
+
         do {
             let result = try await SupabaseClient.shared.checkMonthlyUsage(userId: userId)
-            
+
             await MainActor.run {
-                self.monthlyUsageCount = result.currentUsage
-                self.monthlyRemaining = result.remaining
-            }
-            
-            if Config.isDebug {
-                print("📊 SubscriptionManager: 月度使用情况 - \(result.currentUsage)/\(monthlyLimit) (剩余: \(result.remaining))")
+                // 检查服务器返回的使用次数是否比本地当前次数少
+                // 如果服务器数据更少，可能是由于网络延迟导致的数据不一致
+                // 在这种情况下，保持本地的乐观更新
+                if result.currentUsage >= self.monthlyUsageCount {
+                    // 服务器数据不小于本地数据，使用服务器数据
+                    let oldCount = self.monthlyUsageCount
+                    self.monthlyUsageCount = result.currentUsage
+                    self.monthlyRemaining = result.remaining
+
+                    if Config.isDebug {
+                        print("📊 SubscriptionManager: 服务器同步月度使用情况 \(oldCount) -> \(result.currentUsage)/\(monthlyLimit) (剩余: \(result.remaining))")
+                    }
+                } else {
+                    // 服务器数据小于本地数据，保持本地乐观更新
+                    if Config.isDebug {
+                        print("📊 SubscriptionManager: 保持本地乐观更新，本地: \(self.monthlyUsageCount), 服务器: \(result.currentUsage)")
+                    }
+                }
             }
         } catch {
             if Config.isDebug {
