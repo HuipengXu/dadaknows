@@ -219,6 +219,7 @@ struct ProfileView: View {
                         .foregroundColor(.textTertiary)
                 }
                 .padding(.vertical, 4)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
