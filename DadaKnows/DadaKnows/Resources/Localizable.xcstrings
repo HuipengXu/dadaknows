@@ -3525,7 +3525,21 @@
       }
     },
     "下载模型" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载模型"
+          }
+        }
+      }
     },
     "下载模型时发生错误：%@" : {
       "extractionState" : "manual",
@@ -3562,7 +3576,21 @@
       }
     },
     "个人信息" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personal Info"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "个人信息"
+          }
+        }
+      }
     },
     "中文（简体）" : {
       "extractionState" : "manual",
@@ -3667,13 +3695,55 @@
       }
     },
     "今日免费提问已用完" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily free questions exhausted"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日免费提问已用完"
+          }
+        }
+      }
     },
     "今日提问已用完" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily questions exhausted"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日提问已用完"
+          }
+        }
+      }
     },
     "会员状态" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Membership Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会员状态"
+          }
+        }
+      }
     },
     "你好，我是答答" : {
       "extractionState" : "manual",
@@ -3727,7 +3797,21 @@
       }
     },
     "使用本地大模型" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Local Model"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用本地大模型"
+          }
+        }
+      }
     },
     "使用本地设备模型" : {
       "extractionState" : "manual",
@@ -3960,10 +4044,38 @@
       }
     },
     "到期时间" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expires"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "到期时间"
+          }
+        }
+      }
     },
     "到期时间: %@" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expires: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "到期时间: %@"
+          }
+        }
+      }
     },
     "前往App Store评价" : {
       "extractionState" : "manual",
@@ -4068,7 +4180,21 @@
       }
     },
     "升级到 Pro" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade to Pro"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "升级到 Pro"
+          }
+        }
+      }
     },
     "升级到Pro" : {
       "extractionState" : "manual",
@@ -4105,7 +4231,21 @@
       }
     },
     "升级到Pro会员" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade to Pro Member"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "升级到Pro会员"
+          }
+        }
+      }
     },
     "即将重置" : {
 
@@ -4264,7 +4404,21 @@
       }
     },
     "在 App Store 中管理" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage in App Store"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 App Store 中管理"
+          }
+        }
+      }
     },
     "复制邮箱地址" : {
       "extractionState" : "manual",
@@ -4539,7 +4693,21 @@
       }
     },
     "已用: %lld / 3000" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used: %lld / 3000"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已用: %lld / 3000"
+          }
+        }
+      }
     },
     "已达到使用限制，请稍后再试" : {
       "extractionState" : "manual",
@@ -4593,13 +4761,55 @@
       }
     },
     "当前套餐" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current Plan"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前套餐"
+          }
+        }
+      }
     },
     "当前版本" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current Plan"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前版本"
+          }
+        }
+      }
     },
     "当前订阅" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current Subscription"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前订阅"
+          }
+        }
+      }
     },
     "恢复购买" : {
       "extractionState" : "manual",
@@ -5285,9 +5495,23 @@
           }
         }
       }
-    },
+   },
     "本月已用" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used This Month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本月已用"
+          }
+        }
+      }
     },
     "本次会话 · %@" : {
       "extractionState" : "manual",
@@ -5786,7 +6010,21 @@
       }
     },
     "稍后再说" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稍后再说"
+          }
+        }
+      }
     },
     "立即同步" : {
       "extractionState" : "manual",
@@ -5857,7 +6095,21 @@
       }
     },
     "管理订阅" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage Subscription"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理订阅"
+          }
+        }
+      }
     },
     "系统版本不支持" : {
       "extractionState" : "manual",
@@ -6098,7 +6350,21 @@
       }
     },
     "解锁无限畅聊" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock Unlimited Chat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解锁无限畅聊"
+          }
+        }
+      }
     },
     "订阅: 免费版" : {
       "extractionState" : "manual",

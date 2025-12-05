@@ -218,13 +218,13 @@ struct TermsOfServiceView: View {
                         content: isEnglish ? """
                         If you have any questions about these Terms of Service, please contact us:
                         
-                        Email: support@dadaknows.com
+                        Email: support@dada.llamafactory.cn
                         
                         We will respond to your inquiry within 48 hours.
                         """ : """
                         如果您对服务条款有任何疑问，请联系我们：
                         
-                        邮箱：support@dadaknows.com
+                        邮箱：support@dada.llamafactory.cn
                         
                         我们会在收到您的询问后48小时内回复。
                         """

@@ -161,13 +161,13 @@ struct PrivacyPolicyView: View {
                         content: isEnglish ? """
                         If you have any questions about this privacy policy, please contact us:
                         
-                        Email: privacy@dadaknows.com
+                        Email: support@dada.llamafactory.cn
                         
                         We will respond to your inquiry within 48 hours.
                         """ : """
                         如果您对本隐私政策有任何疑问，请联系我们：
                         
-                        邮箱：privacy@dadaknows.com
+                        邮箱：support@dada.llamafactory.cn
                         
                         我们会在收到您的询问后48小时内回复。
                         """
