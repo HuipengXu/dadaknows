@@ -9,12 +9,12 @@ import SwiftUI
 import Combine
 
 struct ChatView: View {
-    @StateObject private var aiManager = AIManager.shared
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var offlineManager = OfflineManager.shared
-    @StateObject private var analyticsManager = AnalyticsManager.shared
-    @StateObject private var chatService = ChatService.shared
-    @StateObject private var localAIManager = LocalAIManager.shared
+    @ObservedObject private var aiManager = AIManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var offlineManager = OfflineManager.shared
+    @ObservedObject private var analyticsManager = AnalyticsManager.shared
+    @ObservedObject private var chatService = ChatService.shared
+    @ObservedObject private var localAIManager = LocalAIManager.shared
     
     // Parameters from HomeView or HistoryView
     let question: String

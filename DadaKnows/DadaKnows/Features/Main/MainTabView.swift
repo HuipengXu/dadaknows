@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
-    @StateObject private var offlineManager = OfflineManager.shared
+    @ObservedObject private var offlineManager = OfflineManager.shared
     
     var body: some View {
         TabView(selection: $selectedTab) {

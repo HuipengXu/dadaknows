@@ -18,7 +18,7 @@ import SwiftUI
 
 /// 语音输入按钮
 struct VoiceInputButton: View {
-    @StateObject private var speechManager = SpeechRecognitionManager.shared
+    @ObservedObject private var speechManager = SpeechRecognitionManager.shared
 
     let onVoiceInputUpdate: (String) -> Void
     let onError: (String) -> Void

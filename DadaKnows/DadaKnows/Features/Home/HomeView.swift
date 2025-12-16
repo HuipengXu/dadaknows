@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var aiManager = AIManager.shared
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var aiManager = AIManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @State private var question = ""
     @State private var selectedAge = 6
     @State private var isAsking = false
