@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ForgotPasswordView: View {
-    @StateObject private var authManager = AuthManager.shared
+    @ObservedObject private var authManager = AuthManager.shared
     @Environment(\.dismiss) private var dismiss
     
     @State private var email = ""

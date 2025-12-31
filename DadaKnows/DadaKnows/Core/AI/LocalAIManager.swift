@@ -58,7 +58,11 @@ class LocalAIManager: ObservableObject {
     private init() {
         checkAvailability()
         updateModelStatus()
-        setupObservers()
+        
+        // Setup observers asynchronously to avoid blocking main thread
+        Task(priority: .utility) {
+            await setupObservers()
+        }
         
         if Config.isDebug {
             print("📱 LocalAI: 本地AI管理器初始化")

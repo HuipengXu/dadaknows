@@ -24,7 +24,13 @@ struct ChatView: View {
     
     @State private var currentQuestion = ""
     @State private var showingProUpgrade = false
+    @State private var showingLimitReachedSheet = false
     @State private var sessionStartTime: Date?
+
+    // 监听AIManager的showLimitReachedSheet状态
+    private var aiManagerShowLimitReachedSheet: Bool {
+        aiManager.showLimitReachedSheet
+    }
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
@@ -132,6 +138,16 @@ struct ChatView: View {
             .sheet(isPresented: $showingProUpgrade) {
                 ProSubscriptionView()
             }
+            .sheet(isPresented: $showingLimitReachedSheet) {
+                LimitReachedSheet()
+            }
+            .onChange(of: aiManager.showLimitReachedSheet) { newValue in
+                if newValue {
+                    showingLimitReachedSheet = true
+                    // 重置AIManager的标志，避免下次进入时再次触发
+                    aiManager.showLimitReachedSheet = false
+                }
+            }
         }
         .onAppear {
             if let session = historicalSession {
@@ -177,12 +193,17 @@ struct ChatView: View {
     
     private var canSendQuestion: Bool {
         !currentQuestion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !aiManager.isLoading &&
-        subscriptionManager.canAskQuestionSync()
+        !aiManager.isLoading
     }
 
     private func sendQuestion() {
         guard canSendQuestion else { return }
+        
+        // Check quota before sending
+        if !subscriptionManager.canAskQuestionSync() {
+            showingLimitReachedSheet = true
+            return
+        }
         
         let question = currentQuestion.trimmingCharacters(in: .whitespacesAndNewlines)
         currentQuestion = ""

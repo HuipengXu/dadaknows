@@ -26,9 +26,13 @@ class OfflineManager: ObservableObject {
     private lazy var chatService = ChatService.shared
     
     private init() {
-        setupNetworkMonitoring()
         loadLastSyncDate()
         checkPendingSync()
+        
+        // Start network monitoring asynchronously to avoid blocking main thread
+        Task(priority: .utility) {
+            await setupNetworkMonitoring()
+        }
     }
     
     // MARK: - Network Monitoring

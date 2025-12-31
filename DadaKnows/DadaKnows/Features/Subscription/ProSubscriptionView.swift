@@ -9,13 +9,14 @@ import SwiftUI
 import StoreKit
 
 struct ProSubscriptionView: View {
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedProduct: Product?
     @State private var isShowingPurchaseFlow = false
     @State private var showingTermsOfService = false
     @State private var showingPrivacyPolicy = false
+    @State private var showingErrorDetails = false
     
     private var isEnglish: Bool {
         Locale.current.language.languageCode?.identifier == "en"
@@ -53,15 +54,62 @@ struct ProSubscriptionView: View {
                             } else if subscriptionManager.isLoading {
                                 loadingPlansSection
                             } else {
-                                VStack(spacing: 12) {
-                                    Image(systemName: "exclamationmark.triangle")
-                                        .font(.largeTitle)
+                                // 产品加载失败
+                                VStack(spacing: 16) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 50))
                                         .foregroundColor(.orange)
-                                    Text(NSLocalizedString("无法加载订阅计划", comment: ""))
+
+                                    VStack(spacing: 8) {
+                                        Text(NSLocalizedString("无法加载订阅计划", comment: ""))
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+
+                                        Text(NSLocalizedString("请检查网络连接", comment: ""))
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+
+                                        // 显示错误详情（如果有）
+                                        if let error = subscriptionManager.errorMessage {
+                                            Text(error)
+                                                .font(.caption)
+                                                .foregroundColor(.red)
+                                                .padding(.horizontal)
+                                        }
+                                    }
+
+                                    // 重试按钮
+                                    Button(action: {
+                                        Task {
+                                            await subscriptionManager.loadProducts()
+                                        }
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "arrow.clockwise")
+                                            Text(NSLocalizedString("重试", comment: ""))
+                                        }
                                         .font(.headline)
-                                    Text(NSLocalizedString("请检查网络连接或 StoreKit 配置", comment: ""))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 24)
+                                        .padding(.vertical, 12)
+                                        .background(Color.appPrimary)
+                                        .cornerRadius(25)
+                                    }
+                                    .padding(.top, 8)
+
+                                    // 诊断信息按钮
+                                    if subscriptionManager.errorDetails != nil {
+                                        Button(action: {
+                                            showingErrorDetails = true
+                                        }) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "info.circle")
+                                                Text(NSLocalizedString("查看详细错误", comment: ""))
+                                            }
+                                            .font(.caption)
+                                            .foregroundColor(.blue)
+                                        }
+                                    }
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 40)
@@ -101,16 +149,8 @@ struct ProSubscriptionView: View {
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(NSLocalizedString("恢复购买", comment: "")) {
-                        Task {
-                            await subscriptionManager.restorePurchases()
-                        }
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.appPrimary)
-                    .disabled(subscriptionManager.isLoading)
-                }
+                
+
             }
             .onAppear {
                 // 默认选择年付订阅（排除 biannual）
@@ -131,9 +171,39 @@ struct ProSubscriptionView: View {
             .sheet(isPresented: $showingPrivacyPolicy) {
                 PrivacyPolicyView()
             }
-            .alert(NSLocalizedString("错误", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil)) {
+            .sheet(isPresented: $showingErrorDetails) {
+                ErrorDetailView(
+                    errorMessage: subscriptionManager.errorMessage ?? "",
+                    errorDetails: subscriptionManager.errorDetails ?? "",
+                    onDismiss: {
+                        subscriptionManager.errorMessage = nil
+                        subscriptionManager.errorDetails = nil
+                        showingErrorDetails = false
+                    }
+                )
+            }
+            .alert(NSLocalizedString("错误", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil && subscriptionManager.errorDetails == nil)) {
                 Button(NSLocalizedString("确定", comment: "")) {
                     subscriptionManager.errorMessage = nil
+                }
+            } message: {
+                Text(subscriptionManager.errorMessage ?? "")
+            }
+            .alert(NSLocalizedString("错误详情", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil && subscriptionManager.errorDetails != nil)) {
+                Button(NSLocalizedString("查看详情", comment: "")) {
+                    showingErrorDetails = true
+                }
+                Button(NSLocalizedString("复制", comment: "")) {
+                    // 复制错误详情到剪贴板
+                    let fullError = """
+                    错误: \(subscriptionManager.errorMessage ?? "")
+                    \(subscriptionManager.errorDetails ?? "")
+                    """
+                    UIPasteboard.general.string = fullError
+                }
+                Button(NSLocalizedString("确定", comment: "")) {
+                    subscriptionManager.errorMessage = nil
+                    subscriptionManager.errorDetails = nil
                 }
             } message: {
                 Text(subscriptionManager.errorMessage ?? "")
@@ -288,7 +358,7 @@ struct ProSubscriptionView: View {
             ], spacing: 16) {
                 FeatureCard(
                     icon: "cloud.fill",
-                    title: NSLocalizedString("月度3000次", comment: ""),
+                    title: String(format: NSLocalizedString("月度%d次", comment: ""), Config.monthlyProQuestionLimit),
                     description: NSLocalizedString("远程模型问答配额", comment: ""),
                     color: .blue
                 )
@@ -481,7 +551,11 @@ struct ProSubscriptionView: View {
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
-        formatter.timeStyle = .none
+        formatter.timeStyle = .short
+        // 显式设置时区为设备本地时区
+        formatter.timeZone = TimeZone.current
+        // 使用当前locale
+        formatter.locale = Locale.current
         return formatter
     }
     
@@ -683,7 +757,7 @@ struct ModernSubscriptionCard: View {
     let isSelected: Bool
     let isCurrentPlan: Bool
     let onSelect: () -> Void
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     
     var body: some View {
         Button(action: onSelect) {
@@ -923,6 +997,95 @@ struct ModernBenefitRow: View {
             Spacer()
         }
         .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Error Detail View
+
+struct ErrorDetailView: View {
+    let errorMessage: String
+    let errorDetails: String
+    let onDismiss: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // 错误图标
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.red)
+                        Text("错误详情")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Spacer()
+                    }
+                    .padding()
+
+                    Divider()
+
+                    // 简短错误消息
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("错误消息")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        Text(errorMessage)
+                            .font(.body)
+                            .foregroundColor(.primary)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
+                    }
+                    .padding(.horizontal)
+
+                    // 详细错误信息
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("详细诊断信息")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        Text(errorDetails)
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundColor(.primary)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
+                    }
+                    .padding(.horizontal)
+
+                    // 说明文字
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundColor(.blue)
+                            Text("提示")
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                        }
+
+                        Text("请截图此页面并发送给开发者，以便我们能够帮助您解决问题。")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                }
+                .padding(.vertical)
+            }
+            .navigationTitle("错误诊断")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("完成") {
+                        onDismiss()
+                        dismiss()
+                    }
+                }
+            }
+        }
     }
 }
 

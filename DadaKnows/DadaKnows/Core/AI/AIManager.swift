@@ -42,6 +42,7 @@ class AIManager: ObservableObject {
     // Chat history used by ChatView
     @Published var chatHistory: [ChatMessage] = []
     @Published var error: Error?
+    @Published var showLimitReachedSheet = false
     
     // 是否使用Gemini模型（默认false，使用本地模型）
     @Published var useGeminiModel: Bool {
@@ -634,7 +635,7 @@ extension AIManager {
         } catch {
             // If an error occurs, show an error message.
             let errorMessage = getErrorMessage(for: error)
-            
+
             // Check if we already have a bubble to update, otherwise create a new one.
             if let index = chatHistory.firstIndex(where: { $0.id == responseId }) {
                 chatHistory[index].message = errorMessage
@@ -643,7 +644,12 @@ extension AIManager {
                 chatHistory.append(ChatMessage(id: responseId, message: errorMessage, isFromUser: false, isError: true))
             }
             self.error = error
-            
+
+            // 如果是额度限制错误，触发LimitReachedSheet
+            if case AIError.monthlyLimitExceeded = error {
+                self.showLimitReachedSheet = true
+            }
+
             if Config.isDebug {
                 print("❌ AI问答错误: \(error)")
             }
@@ -692,7 +698,7 @@ enum AIError: LocalizedError {
         case .localModelDeleted:
             return NSLocalizedString("本地模型已被删除，已自动切换到云端模型", comment: "")
         case .monthlyLimitExceeded:
-            return NSLocalizedString("您本月的3000次问答额度已用完，请下月再来或切换到本地模型使用。", comment: "")
+            return String(format: NSLocalizedString("您本月的%d次问答额度已用完，请下月再来或切换到本地模型使用。", comment: ""), Config.monthlyProQuestionLimit)
         }
     }
 }

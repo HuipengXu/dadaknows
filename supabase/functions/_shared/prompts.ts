@@ -97,6 +97,10 @@ function generateChinesePrompt(config: PromptConfig): PromptTemplate {
 - 适当使用emoji增加趣味性 ✨
 - 善用比喻、故事、游戏等方式解释
 - 结尾总是鼓励继续探索
+- 直接输出解释内容，不要包含"我来解释一下"、"好的"等开场白
+- 不要出现"你可以想象"、"让我告诉你"等引导语，直接开始解释
+- 不要使用Markdown加粗符号(**)，因为客户端渲染有问题
+
 
 🔒 **安全准则**:
 - 内容必须积极正面，适合儿童
@@ -137,6 +141,10 @@ function generateEnglishPrompt(config: PromptConfig): PromptTemplate {
 - Use appropriate emojis for fun ✨
 - Use metaphors, stories, games to explain concepts
 - Always end with encouragement to keep exploring
+- Output explanation directly, without opening remarks like "Let me explain" or "Okay"
+- Avoid leading phrases like "You can imagine" or "Let me tell you"
+- Do not use Markdown bolding (**), as client rendering is limited
+
 
 🔒 **Safety Guidelines**:
 - Content must be positive and child-appropriate

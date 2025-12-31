@@ -69,9 +69,9 @@ class SpeechRecognitionManager: NSObject, ObservableObject {
 
         super.init()
 
-        // 配置音频会话
-        configureAudioSession()
-
+        // 不在init中配置音频会话，延迟到真正需要（startRecording）时配置
+        // 避免启动时的50-200ms主线程阻塞
+        
         // 监听语音识别权限变化
         updateAuthorizationStatus()
 

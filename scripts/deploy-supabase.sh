@@ -127,7 +127,7 @@ fi
 
 # 8. 验证Edge Functions结构
 log_info "验证 Edge Functions 结构..."
-FUNCTIONS_DIR="functions"
+FUNCTIONS_DIR="supabase/functions"
 REQUIRED_FUNCTIONS=("ask-dada")
 REQUIRED_SHARED_FILES=("_shared/cors.ts" "_shared/gemini.ts" "_shared/prompts.ts")
 

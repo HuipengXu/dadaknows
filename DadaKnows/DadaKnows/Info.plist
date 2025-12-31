@@ -53,6 +53,7 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
@@ -60,10 +61,8 @@
 	<true/>
 	<key>UIKeyboardDismissMode</key>
 	<string>interactive</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>background-fetch</string>
-	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>需要访问麦克风来录制语音输入，让您可以通过语音与AI伙伴"答答"对话。</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

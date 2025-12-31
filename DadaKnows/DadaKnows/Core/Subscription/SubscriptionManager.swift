@@ -19,6 +19,7 @@ class SubscriptionManager: ObservableObject {
     @Published var purchasedProducts: [Product] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var errorDetails: String?  // 详细的错误诊断信息
     
     // 产品ID - 与App Store Connect配置保持一致
     private let productIDs = [
@@ -74,8 +75,19 @@ class SubscriptionManager: ObservableObject {
             }
         } catch {
             self.errorMessage = "加载产品失败: \(error.localizedDescription)"
+            let nsError = error as NSError
+            self.errorDetails = """
+错误类型: \(type(of: error))
+Domain: \(nsError.domain)
+Code: \(nsError.code)
+UserInfo: \(nsError.userInfo)
+
+请求的产品ID: \(productIDs.joined(separator: ", "))
+已加载的产品数量: \(availableProducts.count)
+"""
             print("❌ StoreKit 产品加载失败: \(error)")
             print("❌ 错误详情: \(error)")
+            print("❌ 详细诊断: \(errorDetails ?? "")")
         }
         
         isLoading = false
@@ -87,49 +99,180 @@ class SubscriptionManager: ObservableObject {
     func purchase(_ product: Product) async {
         isLoading = true
         errorMessage = nil
-        
+        errorDetails = nil
+
+        // 验证产品是否已加载
+        if availableProducts.isEmpty {
+            self.errorMessage = "产品信息未加载，请稍后重试"
+            self.errorDetails = """
+错误: availableProducts.count = 0
+已加载的产品数量为0，请检查：
+1. 网络连接是否正常
+2. App Store Connect中产品是否已配置
+3. 产品ID是否正确: \(product.id)
+"""
+            print("❌ 产品未加载: \(errorDetails ?? "")")
+            isLoading = false
+            return
+        }
+
+        // 验证购买的产品是否在已加载列表中
+        guard availableProducts.contains(where: { $0.id == product.id }) else {
+            self.errorMessage = "购买的产品不可用：\(product.id)"
+            self.errorDetails = """
+请求的产品ID: \(product.id)
+已加载的产品: \(availableProducts.map { $0.id }.joined(separator: ", "))
+产品可能在App Store Connect中未配置或状态不可用
+"""
+            print("❌ 产品不可用: \(errorDetails ?? "")")
+            isLoading = false
+            return
+        }
+
+        // 添加详细日志
+        print("💰 [SubscriptionManager] 开始购买流程")
+        print("💰 产品ID: \(product.id)")
+        print("💰 产品价格: \(product.displayPrice)")
+        print("💰 当前订阅状态: \(subscriptionStatus.rawValue)")
+        print("💰 是否为Pro会员: \(isProMember)")
+
         do {
             let result = try await product.purchase()
-            
+
+            print("💰 购买结果: \(result)")
+
             switch result {
             case .success(let verification):
-                let transaction = try await checkVerified(verification)
+                print("✅ 购买成功，开始验证交易...")
 
-                // 获取当前订阅状态，用于计算新的到期时间
-                let currentExpirationDate = self.expirationDate
-                let currentlyActive = self.isProMember
+                let transaction = try await checkVerified(verification)
+                print("✅ 交易验证成功")
+                print("✅ 交易ID: \(transaction.id)")
+                print("✅ 产品ID: \(transaction.productID)")
+                print("✅ 产品类型: \(transaction.productType.rawValue)")
+                if let expirationDate = transaction.expirationDate {
+                    print("✅ 过期时间: \(expirationDate)")
+                } else {
+                    print("✅ 无过期时间（可能是终身购买）")
+                }
 
                 await transaction.finish()
+                print("✅ 交易已finish")
 
                 // 等待StoreKit处理完成
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1秒延迟
 
-                // 购买成功后，处理订阅时间延后
-                await handleSubscriptionExtension(
-                    currentExpirationDate: currentExpirationDate,
-                    currentlyActive: currentlyActive,
-                    newProductID: transaction.productID
-                )
-
                 // 重新检查所有订阅状态
+                print("🔄 重新检查订阅状态...")
                 await checkSubscriptionStatus()
-                
+                print("🔄 订阅状态更新完成: isPro=\(isProMember), status=\(subscriptionStatus.rawValue)")
+
             case .userCancelled:
+                print("❌ 用户取消购买")
                 // 用户取消购买
                 break
-                
+
             case .pending:
+                print("⏳ 购买待处理")
                 // 购买待处理（例如需要家长批准）
                 self.errorMessage = "购买正在处理中,请稍后查看"
-                
+
             @unknown default:
+                print("⚠️ 未知的购买结果")
                 self.errorMessage = "未知的购买结果"
             }
+        } catch let error as StoreKitError {
+            // 详细的StoreKit错误处理
+            print("❌ StoreKit错误: \(error)")
+            print("❌ 错误描述: \(error.localizedDescription)")
+
+            let nsError = error as NSError
+            self.errorDetails = """
+StoreKit错误
+错误类型: \(type(of: error))
+Domain: \(nsError.domain)
+Code: \(nsError.code)
+描述: \(error.localizedDescription)
+UserInfo: \(nsError.userInfo)
+
+产品ID: \(product.id)
+产品价格: \(product.displayPrice)
+已加载的产品: \(availableProducts.map { "\($0.id) - \($0.displayPrice)" }.joined(separator: "\n"))
+"""
+
+            switch error {
+            case .userCancelled:
+                print("❌ 用户取消（StoreKitError）")
+                // User cancelled, do nothing
+                break
+
+            case .networkError(let urlError):
+                print("❌ 网络错误: \(urlError)")
+                print("❌ URL错误代码: \(urlError.code.rawValue)")
+                let urlNsError = urlError as NSError
+                print("❌ URL错误域: \(urlNsError.domain)")
+                self.errorMessage = "网络连接失败，请检查网络后重试"
+
+            case .systemError(let systemError):
+                print("❌ 系统错误: \(systemError)")
+
+                // 检查是否是App Store配置问题
+                let systemNsError = systemError as NSError
+                print("❌ NSError domain: \(systemNsError.domain)")
+                print("❌ NSError code: \(systemNsError.code)")
+                print("❌ NSError userInfo: \(systemNsError.userInfo)")
+
+                if systemNsError.domain == "NSCocoaErrorDomain" {
+                    switch systemNsError.code {
+                    case 1002: // NSURLErrorCancelled
+                        self.errorMessage = "购买已取消"
+                    case 4...1000: // 网络相关错误
+                        self.errorMessage = "网络连接不稳定，请重试"
+                    default:
+                        self.errorMessage = "系统错误: \(systemError.localizedDescription)"
+                    }
+                } else {
+                    self.errorMessage = "系统错误: \(systemError.localizedDescription)"
+                }
+
+            case .notAvailableInStorefront:
+                print("❌ 当前商店不可用")
+                self.errorMessage = "当前商店不可用，请检查Apple ID设置"
+
+            @unknown default:
+                print("❌ 未知的StoreKit错误: \(error)")
+                self.errorMessage = "购买失败: \(error.localizedDescription)"
+            }
+
         } catch {
+            // 捕获所有其他错误
+            print("❌ 通用错误: \(error)")
+            print("❌ 错误类型: \(type(of: error))")
+            print("❌ 错误描述: \(error.localizedDescription)")
+
+            // 检查是否是特定错误类型
+            let nsError = error as NSError
+            print("❌ NSError domain: \(nsError.domain)")
+            print("❌ NSError code: \(nsError.code)")
+            print("❌ NSError userInfo: \(nsError.userInfo)")
+
+            self.errorDetails = """
+通用错误
+错误类型: \(type(of: error))
+Domain: \(nsError.domain)
+Code: \(nsError.code)
+描述: \(error.localizedDescription)
+UserInfo: \(nsError.userInfo)
+
+产品ID: \(product.id)
+产品价格: \(product.displayPrice)
+"""
+
             self.errorMessage = "购买失败: \(error.localizedDescription)"
         }
-        
+
         isLoading = false
+        print("💰 购买流程结束")
     }
     
     // MARK: - Restore Purchases
@@ -138,52 +281,30 @@ class SubscriptionManager: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        var syncError: Error?
+        
         do {
             try await AppStore.sync()
-            await checkSubscriptionStatus()
         } catch {
+            syncError = error
+            print("⚠️ 恢复购买时 AppStore.sync 失败: \(error)")
+        }
+        
+        // 无论 sync 是否成功，都检查当前的 entitlements
+        await checkSubscriptionStatus()
+        
+        // 只有当 sync 失败且用户仍然不是会员时，才显示错误
+        if let error = syncError, !isProMember {
             self.errorMessage = "恢复购买失败: \(error.localizedDescription)"
+        } else if syncError != nil && isProMember {
+            // 如果 sync 失败但我们发现了有效的订阅（可能来自本地缓存），则不向用户报错，只是打印日志
+            print("✅ 虽然 AppStore.sync 失败，但成功检测到有效订阅")
         }
         
         isLoading = false
     }
     
     // MARK: - Subscription Status
-
-    /// 处理订阅时间延后
-    private func handleSubscriptionExtension(
-        currentExpirationDate: Date?,
-        currentlyActive: Bool,
-        newProductID: String
-    ) async {
-        // 如果用户当前没有活跃订阅，不需要处理延后逻辑
-        guard currentlyActive, let currentExpiration = currentExpirationDate else {
-            return
-        }
-
-        // 确定新订阅的时长
-        let timeInterval: TimeInterval
-        if newProductID.contains("monthly") {
-            timeInterval = 30 * 24 * 60 * 60 // 30天
-        } else if newProductID.contains("biannual") {
-            timeInterval = 180 * 24 * 60 * 60 // 180天（6个月）
-        } else if newProductID.contains("annual") {
-            timeInterval = 365 * 24 * 60 * 60 // 365天
-        } else {
-            return // 未知的订阅类型
-        }
-
-        // 计算新的到期时间
-        let newExpirationDate = currentExpiration.addingTimeInterval(timeInterval)
-
-        // 更新本地存储的到期时间
-        self.expirationDate = newExpirationDate
-
-        // 保存到UserDefaults
-        UserDefaults.standard.set(newExpirationDate, forKey: "subscriptionExpirationDate")
-
-        print("📅 订阅时间已延后: \(currentExpiration) -> \(newExpirationDate) (增加了 \(timeInterval/86400) 天)")
-    }
 
     func checkSubscriptionStatus() async {
         // 移除模拟器限制，允许在模拟器中使用 StoreKit 配置文件进行测试
@@ -216,16 +337,6 @@ class SubscriptionManager: ObservableObject {
                 }
             } catch {
                 print("❌ 验证交易失败: \(error)")
-            }
-        }
-
-        // 检查本地存储的延期到期时间
-        let localExpirationDate = UserDefaults.standard.object(forKey: "subscriptionExpirationDate") as? Date
-        if let localDate = localExpirationDate, localDate > Date() {
-            // 如果本地存储的到期时间比StoreKit的更晚，使用本地时间
-            if latestExpirationDate == nil || localDate > latestExpirationDate! {
-                latestExpirationDate = localDate
-                print("📅 使用本地存储的延期到期时间: \(localDate)")
             }
         }
 

@@ -9,10 +9,10 @@ import SwiftUI
 
 struct ModelSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @StateObject private var aiManager = AIManager.shared
-    @StateObject private var localAIManager = LocalAIManager.shared
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var downloadManager = ModelDownloadManager.shared
+    @ObservedObject private var aiManager = AIManager.shared
+    @ObservedObject private var localAIManager = LocalAIManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var downloadManager = ModelDownloadManager.shared
     
     @State private var showingUpgradeAlert = false
     @State private var selectedModel: LMModel?
@@ -216,7 +216,7 @@ struct ModelSettingsView: View {
                 // Status indicators
                 HStack(spacing: 12) {
                     if subscriptionManager.isProMember {
-                        Label(NSLocalizedString("pro用户月度3000次配额", comment: ""), systemImage: "crown.fill")
+                        Label(String(format: NSLocalizedString("Pro会员月度%d次配额", comment: ""), Config.monthlyProQuestionLimit), systemImage: "crown.fill")
                             .font(.caption)
                             .foregroundColor(.appAccent)
                     } else {

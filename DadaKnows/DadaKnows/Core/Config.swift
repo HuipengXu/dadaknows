@@ -40,7 +40,14 @@ struct Config {
     
     /// Pro用户每月远程模型使用次数限制
     /// 注意：本地模型不受此限制
-    static let monthlyProQuestionLimit = 3000
+    /// 测试环境使用5次，生产环境使用3000次
+    static let monthlyProQuestionLimit: Int = {
+        #if DEBUG
+        return 5  // 测试环境：5次
+        #else
+        return 3000  // 生产环境：3000次
+        #endif
+    }()
     
     // MARK: - Environment
     static let isDebug: Bool = {

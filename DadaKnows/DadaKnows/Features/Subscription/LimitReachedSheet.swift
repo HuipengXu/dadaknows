@@ -10,8 +10,8 @@ import SwiftUI
 
 struct LimitReachedSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var aiManager = AIManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var aiManager = AIManager.shared
     @State private var showSubscriptionView = false
     @State private var showLocalModelView = false
 
@@ -121,13 +121,13 @@ struct LimitReachedSheet: View {
                 .foregroundColor(.orange)
 
             VStack(spacing: 8) {
-                Text(NSLocalizedString("今日免费提问已用完", comment: ""))
+                Text(subscriptionManager.isProMember ? NSLocalizedString("本月提问额度已用完", comment: "") : NSLocalizedString("今日免费提问已用完", comment: ""))
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text(NSLocalizedString("免费用户每天可提问2次", comment: ""))
+                Text(subscriptionManager.isProMember ? String(format: NSLocalizedString("Pro会员每月享有%d次提问额度", comment: ""), Config.monthlyProQuestionLimit) : NSLocalizedString("免费用户每天可提问2次", comment: ""))
                     .font(.body)
                     .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
@@ -149,52 +149,64 @@ struct LimitReachedSheet: View {
     // MARK: - Countdown Section
 
     private var countdownSection: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Image(systemName: "clock.badge.clock")
-                    .foregroundColor(.blue)
-                    .font(.system(size: 16))
+        // Pro用户如果是月度限额，可能不需要显示每日重置倒计时，
+        // 但为了简单起见，如果Pro用户也关心每日刷新(如果逻辑有变)或者每月刷新时间
+        // 目前Config逻辑是月度3000次，没有自动重置倒计时(除非是每月1号重置，逻辑比较复杂)
+        // 暂时对Pro用户隐藏倒计时，因为月度重置时间比较久，或者显示"下个月1号重置"
+        // 鉴于目前backend逻辑可能未必完善，暂时仅对免费用户显示倒计时
+        
+        Group {
+            if !subscriptionManager.isProMember {
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "clock.badge.clock")
+                            .foregroundColor(.blue)
+                            .font(.system(size: 16))
 
-                Text(NSLocalizedString("下次重置时间", comment: ""))
-                    .font(.headline)
-                    .foregroundColor(.textPrimary)
+                        Text(NSLocalizedString("下次重置时间", comment: ""))
+                            .font(.headline)
+                            .foregroundColor(.textPrimary)
 
-                Spacer()
-            }
+                        Spacer()
+                    }
 
-            VStack(spacing: 4) {
-                Text(nextResetTime)
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .foregroundColor(.blue)
+                    VStack(spacing: 4) {
+                        Text(nextResetTime)
+                            .font(.title3)
+                            .fontWeight(.medium)
+                            .foregroundColor(.blue)
 
-                Text(String(format: NSLocalizedString("还有%@", comment: ""), timeUntilReset))
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
+                        Text(String(format: NSLocalizedString("还有%@", comment: ""), timeUntilReset))
+                            .font(.caption)
+                            .foregroundColor(.textSecondary)
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.blue.opacity(0.1))
+                )
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.blue.opacity(0.1))
-        )
     }
 
     // MARK: - Options Section
 
     private var optionsSection: some View {
         VStack(spacing: 16) {
-            // Pro订阅选项
-            optionButton(
-                title: NSLocalizedString("升级到Pro会员", comment: ""),
-                subtitle: NSLocalizedString("每月3000次提问 • 优先响应", comment: ""),
-                iconName: "crown.fill",
-                iconColor: .yellow,
-                backgroundColor: Color.yellow.opacity(0.1),
-                action: {
-                    showSubscriptionView = true
-                }
-            )
+            // Pro订阅选项 - 仅对非Pro用户显示
+            if !subscriptionManager.isProMember {
+                optionButton(
+                    title: NSLocalizedString("升级到Pro会员", comment: ""),
+                    subtitle: String(format: NSLocalizedString("每月%d次提问 • 优先响应", comment: ""), Config.monthlyProQuestionLimit),
+                    iconName: "crown.fill",
+                    iconColor: .yellow,
+                    backgroundColor: Color.yellow.opacity(0.1),
+                    action: {
+                        showSubscriptionView = true
+                    }
+                )
+            }
 
             // 本地模型选项
             optionButton(

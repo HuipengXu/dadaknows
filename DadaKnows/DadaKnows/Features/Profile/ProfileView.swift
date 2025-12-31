@@ -10,12 +10,12 @@ import StoreKit
 import MessageUI
 
 struct ProfileView: View {
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var analyticsManager = AnalyticsManager.shared
-    @StateObject private var authManager = AuthManager.shared
-    @StateObject private var userService = UserService.shared
-    @StateObject private var offlineManager = OfflineManager.shared
-    @StateObject private var aiManager = AIManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var analyticsManager = AnalyticsManager.shared
+    @ObservedObject private var authManager = AuthManager.shared
+    @ObservedObject private var userService = UserService.shared
+    @ObservedObject private var offlineManager = OfflineManager.shared
+    @ObservedObject private var aiManager = AIManager.shared
     @State private var showProSubscription = false
     @State private var showModelSettings = false
     @State private var showingMailComposer = false
@@ -163,7 +163,7 @@ struct ProfileView: View {
                         
                         if subscriptionManager.isProMember {
                             if aiManager.useGeminiModel {
-                                Text("已用: \(subscriptionManager.monthlyUsageCount) / 3000")
+                                Text("已用: \(subscriptionManager.monthlyUsageCount) / \(Config.monthlyProQuestionLimit)")
                                     .font(.callout)
                                     .foregroundColor(.textSecondary)
                             } else {

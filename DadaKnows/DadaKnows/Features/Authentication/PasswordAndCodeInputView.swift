@@ -16,7 +16,7 @@ struct PasswordInputView: View {
     let onAuthSuccess: () -> Void
     let onRegistrationSuccess: (() -> Void)?
 
-    @StateObject private var authManager = AuthManager.shared
+    @ObservedObject private var authManager = AuthManager.shared
     @State private var isSecurePassword = true
     @State private var isSecureConfirmPassword = true
     @State private var confirmPassword = ""

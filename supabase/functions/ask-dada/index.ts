@@ -26,6 +26,7 @@ interface RequestBody {
   }>;
   apiKey?: string;
   userId?: string;
+  monthlyLimit?: number;  // 可选的月度限制参数
 }
 
 interface StreamChunk {
@@ -77,29 +78,32 @@ function validateRequest(body: any): { isValid: boolean; error?: string; data?: 
 /**
  * 检查用户的月度使用配额
  */
-async function checkUsageLimit(supabase: any, userId: string): Promise<{ allowed: boolean; reason?: string }> {
+async function checkUsageLimit(supabase: any, userId: string, monthlyLimit?: number): Promise<{ allowed: boolean; reason?: string }> {
   try {
+    // 从参数中获取monthlyLimit，如果未提供则使用默认值3000
+    const limit = monthlyLimit ?? 3000;
+
     // 调用数据库函数检查使用限制
     const { data, error } = await supabase.rpc('check_monthly_usage_limit', {
       p_user_id: userId,
-      p_monthly_limit: 3000
+      p_monthly_limit: limit
     });
-    
+
     if (error) {
       console.error('[Ask-Dada] Usage check error:', error);
       // 如果检查失败，允许继续（降级处理）
       return { allowed: true };
     }
-    
+
     if (!data.allowed) {
       return {
         allowed: false,
-        reason: data.is_pro 
-          ? 'Monthly usage limit exceeded. You have used all 3000 questions for this month.'
+        reason: data.is_pro
+          ? `Monthly usage limit exceeded. You have used all ${limit} questions for this month.`
           : 'Daily usage limit exceeded.'
       };
     }
-    
+
     return { allowed: true };
   } catch (error) {
     console.error('[Ask-Dada] Usage check exception:', error);
@@ -195,11 +199,11 @@ serve(async (req) => {
       );
     }
     
-    const { question, age, language, previousAnswer, conversationHistory, apiKey, userId } = validation.data!;
-    
+    const { question, age, language, previousAnswer, conversationHistory, apiKey, userId, monthlyLimit } = validation.data!;
+
     // 如果提供了userId，检查使用配额
     if (userId) {
-      const usageCheck = await checkUsageLimit(supabase, userId);
+      const usageCheck = await checkUsageLimit(supabase, userId, monthlyLimit);
       if (!usageCheck.allowed) {
         return new Response(
           JSON.stringify({ 

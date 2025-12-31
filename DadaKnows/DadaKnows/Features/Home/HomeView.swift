@@ -66,6 +66,13 @@ struct HomeView: View {
         .sheet(isPresented: $showLimitReachedSheet) {
             LimitReachedSheet()
         }
+        .onChange(of: aiManager.showLimitReachedSheet) { newValue in
+            if newValue {
+                showLimitReachedSheet = true
+                // 重置AIManager的标志，避免下次进入时再次触发
+                aiManager.showLimitReachedSheet = false
+            }
+        }
     }
     
     // MARK: - Welcome Section

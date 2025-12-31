@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct UserInfoView: View {
-    @StateObject private var userService = UserService.shared
-    @StateObject private var authManager = AuthManager.shared
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var aiManager = AIManager.shared
+    @ObservedObject private var userService = UserService.shared
+    @ObservedObject private var authManager = AuthManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var aiManager = AIManager.shared
     
     @Environment(\.dismiss) private var dismiss
     @State private var isEditingUsername = false
@@ -127,8 +127,8 @@ struct UserInfoView: View {
                         HStack {
                             Text("本月已用")
                             Spacer()
-                            Text("\(subscriptionManager.monthlyUsageCount) / 3000")
-                                .foregroundColor(subscriptionManager.monthlyRemaining > 500 ? .textSecondary : .orange)
+                            Text("\(subscriptionManager.monthlyUsageCount) / \(Config.monthlyProQuestionLimit)")
+                                .foregroundColor(subscriptionManager.monthlyRemaining > 0 ? .textSecondary : .orange)
                         }
                     }
                 }

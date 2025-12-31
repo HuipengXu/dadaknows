@@ -391,7 +391,7 @@ class SupabaseClient: ObservableObject {
         
         let params = RPCParams(
             p_user_id: userId,
-            p_monthly_limit: 3000
+            p_monthly_limit: Config.monthlyProQuestionLimit
         )
         
         let response: UsageResponse = try await supabase

@@ -9,6 +9,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 
 interface RequestBody {
   userId: string;
+  monthlyLimit?: number;  // 可选的月度限制参数
 }
 
 interface UsageCheckResponse {
@@ -66,9 +67,12 @@ serve(async (req) => {
     }
     
     // 调用数据库函数检查使用限制
+    // 从请求body中获取monthlyLimit，如果未提供则使用默认值3000
+    const monthlyLimit = body.monthlyLimit ?? 3000;
+
     const { data, error } = await supabase.rpc('check_monthly_usage_limit', {
       p_user_id: userId,
-      p_monthly_limit: 3000
+      p_monthly_limit: monthlyLimit
     });
     
     if (error) {

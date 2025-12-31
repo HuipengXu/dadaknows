@@ -75,8 +75,15 @@
         }
       }
     },
-    "%lld / 3000" : {
-
+    "%lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld / %2$lld"
+          }
+        }
+      }
     },
     "%lld%%" : {
       "extractionState" : "manual",
@@ -2263,6 +2270,12 @@
         }
       }
     },
+    "Pro会员月度%d次配额" : {
+
+    },
+    "Pro会员每月享有%d次提问额度" : {
+
+    },
     "pro用户月度3000次配额" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4420,6 +4433,9 @@
         }
       }
     },
+    "复制" : {
+
+    },
     "复制邮箱地址" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4692,6 +4708,16 @@
         }
       }
     },
+    "已用: %lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "已用: %1$lld / %2$lld"
+          }
+        }
+      }
+    },
     "已用: %lld / 3000" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4845,6 +4871,9 @@
         }
       }
     },
+    "您本月的%d次问答额度已用完，请下月再来或切换到本地模型使用。" : {
+
+    },
     "您本月的3000次问答额度已用完，请下月再来或切换到本地模型使用。" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4949,6 +4978,9 @@
           }
         }
       }
+    },
+    "提示" : {
+
     },
     "搜索问题或答案" : {
       "extractionState" : "manual",
@@ -5168,6 +5200,9 @@
           }
         }
       }
+    },
+    "月度%d次" : {
+
     },
     "月度3000次" : {
       "extractionState" : "manual",
@@ -5495,7 +5530,7 @@
           }
         }
       }
-   },
+    },
     "本月已用" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5513,6 +5548,9 @@
         }
       }
     },
+    "本月提问额度已用完" : {
+
+    },
     "本次会话 · %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5529,6 +5567,12 @@
           }
         }
       }
+    },
+    "查看详情" : {
+
+    },
+    "查看详细错误" : {
+
     },
     "模型信息" : {
       "extractionState" : "manual",
@@ -5717,7 +5761,7 @@
         }
       }
     },
-    "每月3000次提问 • 优先响应" : {
+    "每月%d次提问 • 优先响应" : {
 
     },
     "没有找到相关记录" : {
@@ -6485,6 +6529,9 @@
         }
       }
     },
+    "详细诊断信息" : {
+
+    },
     "语言: 中文" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6536,7 +6583,10 @@
         }
       }
     },
-    "请检查网络连接或 StoreKit 配置" : {
+    "请截图此页面并发送给开发者，以便我们能够帮助您解决问题。" : {
+
+    },
+    "请检查网络连接" : {
 
     },
     "请求超时，请检查网络连接。" : {
@@ -6868,6 +6918,9 @@
         }
       }
     },
+    "重试" : {
+
+    },
     "错误" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6884,6 +6937,15 @@
           }
         }
       }
+    },
+    "错误消息" : {
+
+    },
+    "错误诊断" : {
+
+    },
+    "错误详情" : {
+
     },
     "问题" : {
       "extractionState" : "manual",

@@ -23,10 +23,14 @@ class AnalyticsManager: ObservableObject {
     
     private init() {
         loadStoredData()
-        reconcileWithChatHistory()
-        generateWeeklyProgress()
-        updateTopCategories()
-        checkAchievements()
+        
+        // Execute expensive Core Data queries asynchronously to avoid blocking main thread
+        Task(priority: .utility) {
+            await reconcileWithChatHistory()
+            await generateWeeklyProgress()
+            await updateTopCategories()
+            await checkAchievements()
+        }
     }
     
     // MARK: - Event Tracking
