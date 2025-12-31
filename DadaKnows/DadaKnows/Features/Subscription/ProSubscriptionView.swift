@@ -483,6 +483,13 @@ struct ProSubscriptionView: View {
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.appPrimary)
+                            
+                            // 调试信息：显示实际的产品ID
+                            if Config.isTestFlightOrSandbox {
+                                Text("ID: \(activeProduct.id)")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
                         }
                         
                         Spacer()
@@ -508,6 +515,19 @@ struct ProSubscriptionView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             Spacer()
+                        }
+                        
+                        // TestFlight/Sandbox 提示
+                        if Config.isTestFlightOrSandbox {
+                            HStack {
+                                Image(systemName: "testtube.2")
+                                    .foregroundColor(.orange)
+                                Text("测试环境: 订阅时间加速 (1年 ≈ 1小时)")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                                Spacer()
+                            }
+                            .padding(.top, 4)
                         }
                     }
                 }
@@ -552,9 +572,7 @@ struct ProSubscriptionView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        // 显式设置时区为设备本地时区
         formatter.timeZone = TimeZone.current
-        // 使用当前locale
         formatter.locale = Locale.current
         return formatter
     }

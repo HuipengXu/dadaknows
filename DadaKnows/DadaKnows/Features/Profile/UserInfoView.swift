@@ -120,6 +120,15 @@ struct UserInfoView: View {
                             Text(expirationDate.formatted(date: .long, time: .shortened))
                                 .foregroundColor(.textSecondary)
                         }
+                        
+                        if Config.isTestFlightOrSandbox {
+                            HStack {
+                                Spacer()
+                                Text("⚠️ 测试环境: 时间加速模式")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                            }
+                        }
                     }
                     
                     // 仅对使用云端模型的Pro用户显示剩余次数

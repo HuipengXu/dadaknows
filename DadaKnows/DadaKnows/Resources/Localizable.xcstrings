@@ -170,6 +170,9 @@
         }
       }
     },
+    "⚠️ 测试环境: 时间加速模式" : {
+
+    },
     "🤖 激活你的专属AI伙伴答答" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1331,6 +1334,9 @@
           }
         }
       }
+    },
+    "ID: %@" : {
+
     },
     "insufficient_storage_message" : {
       "extractionState" : "manual",
@@ -5797,6 +5803,9 @@
           }
         }
       }
+    },
+    "测试环境: 订阅时间加速 (1年 ≈ 1小时)" : {
+
     },
     "浮动文字" : {
       "extractionState" : "manual",

@@ -59,9 +59,13 @@ class SubscriptionManager: ObservableObject {
             }
             
             // 按推荐优先级排序：年付 -> 半年付 -> 月付
+            // 按推荐优先级排序：年付 -> 半年付 -> 月付
             self.availableProducts = products.sorted { product1, product2 in
-                if product1.id.contains("annual") { return true }
-                if product2.id.contains("annual") { return false }
+                let isProduct1Annual = product1.id.contains("annual") && !product1.id.contains("biannual")
+                let isProduct2Annual = product2.id.contains("annual") && !product2.id.contains("biannual")
+                
+                if isProduct1Annual { return true }
+                if isProduct2Annual { return false }
                 if product1.id.contains("biannual") { return true }
                 if product2.id.contains("biannual") { return false }
                 return product1.price > product2.price
@@ -150,8 +154,12 @@ UserInfo: \(nsError.userInfo)
                 print("✅ 交易ID: \(transaction.id)")
                 print("✅ 产品ID: \(transaction.productID)")
                 print("✅ 产品类型: \(transaction.productType.rawValue)")
+                print("✅ 购买时间: \(transaction.purchaseDate)")
+                print("✅ 原始购买时间: \(transaction.originalPurchaseDate)")
                 if let expirationDate = transaction.expirationDate {
                     print("✅ 过期时间: \(expirationDate)")
+                    let duration = expirationDate.timeIntervalSince(transaction.purchaseDate)
+                    print("✅ 订阅时长(秒): \(duration) = \(duration / 60)分钟 = \(duration / 3600)小时")
                 } else {
                     print("✅ 无过期时间（可能是终身购买）")
                 }
@@ -323,10 +331,14 @@ UserInfo: \(nsError.userInfo)
                     // 检查订阅是否仍然有效
                     if transaction.productType == .autoRenewable {
                         hasActiveSubscription = true
+                        print("📅 [checkSubscriptionStatus] 交易ID: \(transaction.id)")
+                        print("📅 [checkSubscriptionStatus] 购买时间: \(transaction.purchaseDate)")
+                        print("📅 [checkSubscriptionStatus] 过期时间: \(transaction.expirationDate?.description ?? "nil")")
                         // 记录最晚的过期时间
                         if let date = transaction.expirationDate {
                             if latestExpirationDate == nil || date > latestExpirationDate! {
                                 latestExpirationDate = date
+                                print("📅 [checkSubscriptionStatus] 更新最新过期时间为: \(date)")
                             }
                         }
                     } else if transaction.productType == .nonConsumable {
@@ -643,7 +655,7 @@ UserInfo: \(nsError.userInfo)
             case .biannual:
                 return product.id.contains("biannual")
             case .annual:
-                return product.id.contains("annual")
+                return product.id.contains("annual") && !product.id.contains("biannual")
             }
         }
     }

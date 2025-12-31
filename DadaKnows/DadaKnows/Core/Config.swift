@@ -40,14 +40,38 @@ struct Config {
     
     /// Pro用户每月远程模型使用次数限制
     /// 注意：本地模型不受此限制
-    /// 测试环境使用5次，生产环境使用3000次
+    /// DEBUG/TestFlight/Sandbox环境使用5次，正式生产环境使用3000次
     static let monthlyProQuestionLimit: Int = {
         #if DEBUG
-        return 5  // 测试环境：5次
+        return 5  // DEBUG环境：5次
         #else
-        return 3000  // 生产环境：3000次
+        // 检测是否为 TestFlight/Sandbox 环境
+        if isTestFlightOrSandbox {
+            return 5  // TestFlight/Sandbox环境：5次
+        }
+        return 3000  // 正式生产环境：3000次
         #endif
     }()
+    
+    /// 检测是否为 TestFlight 或 Sandbox 环境
+    static var isTestFlightOrSandbox: Bool {
+        // 方法1：检查是否存在 receipt 文件（Sandbox 使用 sandboxReceipt）
+        if let receiptURL = Bundle.main.appStoreReceiptURL {
+            let receiptPath = receiptURL.path
+            // Sandbox 或 TestFlight 的 receipt 路径包含 "sandboxReceipt"
+            if receiptPath.contains("sandboxReceipt") {
+                return true
+            }
+        }
+        
+        // 方法2：检查是否缺少 embedded.mobileprovision（App Store 版本没有此文件）
+        // 如果存在此文件，说明是开发版本
+        if Bundle.main.path(forResource: "embedded", ofType: "mobileprovision") != nil {
+            return true
+        }
+        
+        return false
+    }
     
     // MARK: - Environment
     static let isDebug: Bool = {
