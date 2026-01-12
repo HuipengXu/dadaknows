@@ -24,15 +24,15 @@ struct LimitReachedSheet: View {
             // 检查是否是今天
             let calendar = Calendar.current
             if calendar.isDateInToday(resetTime) {
-                return NSLocalizedString("今天", comment: "") + " " + formatter.string(from: resetTime)
+                return NSLocalizedString("time_today", comment: "") + " " + formatter.string(from: resetTime)
             } else {
-                return NSLocalizedString("明天", comment: "") + " " + formatter.string(from: resetTime)
+                return NSLocalizedString("time_tomorrow", comment: "") + " " + formatter.string(from: resetTime)
             }
         }
 
         // 默认返回明天午夜
         let tomorrow = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date())
-        return NSLocalizedString("明天", comment: "") + " " + formatter.string(from: tomorrow)
+        return NSLocalizedString("time_tomorrow", comment: "") + " " + formatter.string(from: tomorrow)
     }
 
     // 计算剩余时间（24小时计时）
@@ -41,22 +41,22 @@ struct LimitReachedSheet: View {
         let now = Date()
 
         guard let resetTime = subscriptionManager.getNextResetTime() else {
-            return NSLocalizedString("明天", comment: "")
+            return NSLocalizedString("time_tomorrow", comment: "")
         }
 
         let components = calendar.dateComponents([.hour, .minute], from: now, to: resetTime)
 
         if let hours = components.hour, let minutes = components.minute {
             if hours > 0 {
-                return String(format: NSLocalizedString("%d小时%d分钟后", comment: ""), hours, minutes)
+                return String(format: NSLocalizedString("hours_minutes_remaining", comment: ""), hours, minutes)
             } else if minutes > 0 {
-                return String(format: NSLocalizedString("%d分钟后", comment: ""), minutes)
+                return String(format: NSLocalizedString("minutes_remaining", comment: ""), minutes)
             } else {
-                return NSLocalizedString("即将重置", comment: "")
+                return NSLocalizedString("reset_soon", comment: "")
             }
         }
 
-        return NSLocalizedString("明天", comment: "")
+        return NSLocalizedString("time_tomorrow", comment: "")
     }
 
     var body: some View {
@@ -80,11 +80,11 @@ struct LimitReachedSheet: View {
                 .padding(20)
             }
             .background(Color.backgroundPrimary)
-            .navigationTitle(NSLocalizedString("今日提问已用完", comment: ""))
+            .navigationTitle(NSLocalizedString("daily_limit_reached", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(NSLocalizedString("稍后再说", comment: "")) {
+                    Button(NSLocalizedString("not_now", comment: "")) {
                         dismiss()
                     }
                     .foregroundColor(.appPrimary)
@@ -121,13 +121,13 @@ struct LimitReachedSheet: View {
                 .foregroundColor(.orange)
 
             VStack(spacing: 8) {
-                Text(subscriptionManager.isProMember ? NSLocalizedString("本月提问额度已用完", comment: "") : NSLocalizedString("今日免费提问已用完", comment: ""))
+                Text(subscriptionManager.isProMember ? NSLocalizedString("monthly_limit_reached", comment: "") : NSLocalizedString("daily_free_limit_reached", comment: ""))
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text(subscriptionManager.isProMember ? String(format: NSLocalizedString("Pro会员每月享有%d次提问额度", comment: ""), Config.monthlyProQuestionLimit) : NSLocalizedString("免费用户每天可提问2次", comment: ""))
+                Text(subscriptionManager.isProMember ? String(format: NSLocalizedString("pro_monthly_quota_desc", comment: ""), Config.monthlyProQuestionLimit) : NSLocalizedString("free_daily_quota_desc", comment: ""))
                     .font(.body)
                     .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
@@ -139,7 +139,7 @@ struct LimitReachedSheet: View {
 
     private var messageSection: some View {
         VStack(spacing: 12) {
-            Text(NSLocalizedString("想要继续使用答答？选择以下方式：", comment: ""))
+            Text(NSLocalizedString("continue_usage_options", comment: ""))
                 .font(.body)
                 .foregroundColor(.textPrimary)
                 .multilineTextAlignment(.center)
@@ -163,7 +163,7 @@ struct LimitReachedSheet: View {
                             .foregroundColor(.blue)
                             .font(.system(size: 16))
 
-                        Text(NSLocalizedString("下次重置时间", comment: ""))
+                        Text(NSLocalizedString("next_reset_time", comment: ""))
                             .font(.headline)
                             .foregroundColor(.textPrimary)
 
@@ -176,7 +176,7 @@ struct LimitReachedSheet: View {
                             .fontWeight(.medium)
                             .foregroundColor(.blue)
 
-                        Text(String(format: NSLocalizedString("还有%@", comment: ""), timeUntilReset))
+                        Text(String(format: NSLocalizedString("time_remaining_prefix", comment: ""), timeUntilReset))
                             .font(.caption)
                             .foregroundColor(.textSecondary)
                     }
@@ -197,8 +197,8 @@ struct LimitReachedSheet: View {
             // Pro订阅选项 - 仅对非Pro用户显示
             if !subscriptionManager.isProMember {
                 optionButton(
-                    title: NSLocalizedString("升级到Pro会员", comment: ""),
-                    subtitle: String(format: NSLocalizedString("每月%d次提问 • 优先响应", comment: ""), Config.monthlyProQuestionLimit),
+                    title: NSLocalizedString("upgrade_to_pro_button", comment: ""),
+                    subtitle: String(format: NSLocalizedString("pro_benefits_short", comment: ""), Config.monthlyProQuestionLimit),
                     iconName: "crown.fill",
                     iconColor: .yellow,
                     backgroundColor: Color.yellow.opacity(0.1),
@@ -210,8 +210,8 @@ struct LimitReachedSheet: View {
 
             // 本地模型选项
             optionButton(
-                title: NSLocalizedString("使用本地大模型", comment: ""),
-                subtitle: NSLocalizedString("无限使用 • 离线可用 • 保护隐私", comment: ""),
+                title: NSLocalizedString("use_local_model", comment: ""),
+                subtitle: NSLocalizedString("local_model_benefits", comment: ""),
                 iconName: "brain.head.profile",
                 iconColor: .green,
                 backgroundColor: Color.green.opacity(0.1),

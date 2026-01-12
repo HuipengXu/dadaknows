@@ -60,7 +60,7 @@ struct ProfileView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle(NSLocalizedString("设置", comment: ""))
+            .navigationTitle(NSLocalizedString("settings_title", comment: ""))
             .navigationBarTitleDisplayMode(.large)
         }
         .sheet(isPresented: $showingPrivacyPolicy) {
@@ -88,20 +88,20 @@ struct ProfileView: View {
         } message: {
             Text(NSLocalizedString("language_changed_message", comment: ""))
         }
-        .confirmationDialog(NSLocalizedString("选择反馈方式", comment: ""), isPresented: $showingFeedbackOptions, titleVisibility: .visible) {
-            Button(NSLocalizedString("复制邮箱地址", comment: "")) {
+        .confirmationDialog(NSLocalizedString("feedback_options_title", comment: ""), isPresented: $showingFeedbackOptions, titleVisibility: .visible) {
+            Button(NSLocalizedString("copy_email", comment: "")) {
                 UIPasteboard.general.string = Config.feedbackEmail
                 let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                 impactFeedback.impactOccurred()
             }
-            Button(NSLocalizedString("前往App Store评价", comment: "")) {
+            Button(NSLocalizedString("rate_on_app_store_button", comment: "")) {
                 if let url = URL(string: Config.appStoreURL) {
                     UIApplication.shared.open(url)
                 }
             }
             Button(NSLocalizedString("cancel", comment: ""), role: .cancel) {}
         } message: {
-            Text(NSLocalizedString("您的设备未配置邮件账户，请选择其他反馈方式", comment: ""))
+            Text(NSLocalizedString("no_mail_account_msg", comment: ""))
         }
     }
     
@@ -163,16 +163,16 @@ struct ProfileView: View {
                         
                         if subscriptionManager.isProMember {
                             if aiManager.useGeminiModel {
-                                Text("已用: \(subscriptionManager.monthlyUsageCount) / \(Config.monthlyProQuestionLimit)")
+                                Text(String(format: NSLocalizedString("used_count_format", comment: ""), subscriptionManager.monthlyUsageCount, Config.monthlyProQuestionLimit))
                                     .font(.callout)
                                     .foregroundColor(.textSecondary)
                             } else {
-                                Text(NSLocalizedString("无限使用", comment: ""))
+                                Text(NSLocalizedString("unlimited_usage", comment: ""))
                                     .font(.callout)
                                     .foregroundColor(.textSecondary)
                             }
                         } else {
-                            Text(NSLocalizedString("免费用户", comment: ""))
+                            Text(NSLocalizedString("free_user", comment: ""))
                                 .font(.callout)
                                 .foregroundColor(.textSecondary)
                         }
@@ -201,7 +201,7 @@ struct ProfileView: View {
                         .foregroundColor(.appAccent)
                         .frame(width: 24)
                     
-                    Text(subscriptionManager.isProMember ? NSLocalizedString("管理订阅", comment: "") : NSLocalizedString("升级到 Pro", comment: ""))
+                    Text(subscriptionManager.isProMember ? NSLocalizedString("manage_subscription_button", comment: "") : NSLocalizedString("upgrade_to_pro_short", comment: ""))
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.textPrimary)
@@ -209,7 +209,7 @@ struct ProfileView: View {
                     Spacer()
                     
                     if !subscriptionManager.isProMember {
-                        Text(NSLocalizedString("解锁无限畅聊", comment: ""))
+                        Text(NSLocalizedString("unlock_unlimited_chat", comment: ""))
                             .font(.caption)
                             .foregroundColor(.textSecondary)
                     }
@@ -310,14 +310,14 @@ struct ProfileView: View {
     
     // MARK: - Privacy & Legal Section
     private var privacyLegalSection: some View {
-        Section(NSLocalizedString("隐私与法律", comment: "")) {
+        Section(NSLocalizedString("privacy_legal_section", comment: "")) {
             Button(action: { showingPrivacyPolicy = true }) {
                 HStack {
                     Image(systemName: "doc.text")
                         .foregroundColor(.appSecondary)
                         .frame(width: 24)
                     
-                    Text(NSLocalizedString("隐私政策", comment: ""))
+                    Text(NSLocalizedString("privacy_policy", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -336,7 +336,7 @@ struct ProfileView: View {
                         .foregroundColor(.appSecondary)
                         .frame(width: 24)
                     
-                    Text(NSLocalizedString("服务条款", comment: ""))
+                    Text(NSLocalizedString("terms_of_service", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -353,14 +353,14 @@ struct ProfileView: View {
     
     // MARK: - About Section
     private var aboutSection: some View {
-        Section(NSLocalizedString("关于", comment: "")) {
+        Section(NSLocalizedString("about_section", comment: "")) {
             // Version info
             HStack {
                 Image(systemName: "info.circle")
                     .foregroundColor(.appPrimary)
                     .frame(width: 24)
                 
-                Text(NSLocalizedString("版本信息", comment: ""))
+                Text(NSLocalizedString("version_info", comment: ""))
                     .foregroundColor(.textPrimary)
                 
                 Spacer()
@@ -374,14 +374,14 @@ struct ProfileView: View {
     
     // MARK: - Support Section
     private var supportSection: some View {
-        Section(NSLocalizedString("支持", comment: "")) {
+        Section(NSLocalizedString("support_section", comment: "")) {
             Button(action: { showingRatingDialog = true }) {
                 HStack {
                     Image(systemName: "star")
                         .foregroundColor(.appAccent)
                         .frame(width: 24)
                     
-                    Text(NSLocalizedString("给我们评分", comment: ""))
+                    Text(NSLocalizedString("rate_us", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -400,7 +400,7 @@ struct ProfileView: View {
                         .foregroundColor(.appPrimary)
                         .frame(width: 24)
                     
-                    Text(NSLocalizedString("意见反馈", comment: ""))
+                    Text(NSLocalizedString("feedback", comment: ""))
                         .foregroundColor(.textPrimary)
                     
                     Spacer()
@@ -424,7 +424,7 @@ struct ProfileView: View {
                         .foregroundColor(.statusError)
                         .frame(width: 24)
                     
-                    Text(NSLocalizedString("退出登录", comment: ""))
+                    Text(NSLocalizedString("sign_out", comment: ""))
                         .foregroundColor(.statusError)
                     
                     Spacer()
@@ -433,9 +433,9 @@ struct ProfileView: View {
             }
             .buttonStyle(.plain)
         }
-        .alert(NSLocalizedString("退出登录", comment: ""), isPresented: $showingLogoutAlert) {
+        .alert(NSLocalizedString("sign_out", comment: ""), isPresented: $showingLogoutAlert) {
             Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
-            Button(NSLocalizedString("退出", comment: ""), role: .destructive) {
+            Button(NSLocalizedString("sign_out_action", comment: ""), role: .destructive) {
                 Task {
                     do {
                         try await authManager.signOut()
@@ -445,7 +445,7 @@ struct ProfileView: View {
                 }
             }
         } message: {
-            Text(NSLocalizedString("确定要退出登录吗？", comment: ""))
+            Text(NSLocalizedString("sign_out_confirm_msg", comment: ""))
         }
         .alert(NSLocalizedString("rate_app_title", comment: ""), isPresented: $showingRatingDialog) {
             Button(NSLocalizedString("rate_on_app_store", comment: "")) {
@@ -545,9 +545,9 @@ struct ProfileView: View {
 		let currentLanguage = normalizeLanguageCode(rawLanguage)
 		switch currentLanguage {
 		case "zh-Hans":
-			return NSLocalizedString("中文（简体）", comment: "")
+			return NSLocalizedString("language_zh_hans", comment: "")
 		default:
-			return NSLocalizedString("english", comment: "")
+			return NSLocalizedString("language_en", comment: "")
 		}
 	}
 

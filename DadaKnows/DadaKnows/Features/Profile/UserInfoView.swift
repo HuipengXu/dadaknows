@@ -106,7 +106,7 @@ struct UserInfoView: View {
                                 .foregroundColor(.appAccent)
                         }
                     } else {
-                        Text("免费版")
+                        Text(NSLocalizedString("free_version", comment: ""))
                             .foregroundColor(.textSecondary)
                     }
                 }

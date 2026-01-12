@@ -1,0 +1,30 @@
+{
+  "offline_mode": {
+    "en": "Offline Mode",
+    "zh": "离线模式"
+  },
+  "syncing": {
+    "en": "Syncing...",
+    "zh": "同步中..."
+  },
+  "waiting_for_sync": {
+    "en": "Waiting for Sync",
+    "zh": "等待同步"
+  },
+  "network_disconnected": {
+    "en": "Network Disconnected",
+    "zh": "网络连接已断开"
+  },
+  "offline_description": {
+    "en": "You can browse offline content. Questions will be processed when online.",
+    "zh": "您可以浏览离线内容，问题将在联网后处理"
+  },
+  "got_it": {
+    "en": "Got it",
+    "zh": "知道了"
+  },
+  "network_status": {
+    "en": "Network Status",
+    "zh": "网络状态"
+  }
+}

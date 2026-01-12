@@ -61,11 +61,11 @@ struct ProSubscriptionView: View {
                                         .foregroundColor(.orange)
 
                                     VStack(spacing: 8) {
-                                        Text(NSLocalizedString("无法加载订阅计划", comment: ""))
+                                        Text(NSLocalizedString("failed_load_plans", comment: ""))
                                             .font(.headline)
                                             .foregroundColor(.primary)
 
-                                        Text(NSLocalizedString("请检查网络连接", comment: ""))
+                                        Text(NSLocalizedString("check_network", comment: ""))
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
 
@@ -86,7 +86,7 @@ struct ProSubscriptionView: View {
                                     }) {
                                         HStack {
                                             Image(systemName: "arrow.clockwise")
-                                            Text(NSLocalizedString("重试", comment: ""))
+                                            Text(NSLocalizedString("retry", comment: ""))
                                         }
                                         .font(.headline)
                                         .foregroundColor(.white)
@@ -104,7 +104,7 @@ struct ProSubscriptionView: View {
                                         }) {
                                             HStack(spacing: 6) {
                                                 Image(systemName: "info.circle")
-                                                Text(NSLocalizedString("查看详细错误", comment: ""))
+                                                Text(NSLocalizedString("view_error_details", comment: ""))
                                             }
                                             .font(.caption)
                                             .foregroundColor(.blue)
@@ -182,18 +182,18 @@ struct ProSubscriptionView: View {
                     }
                 )
             }
-            .alert(NSLocalizedString("错误", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil && subscriptionManager.errorDetails == nil)) {
-                Button(NSLocalizedString("确定", comment: "")) {
+            .alert(NSLocalizedString("error_title", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil && subscriptionManager.errorDetails == nil)) {
+                Button(NSLocalizedString("ok_button", comment: "")) {
                     subscriptionManager.errorMessage = nil
                 }
             } message: {
                 Text(subscriptionManager.errorMessage ?? "")
             }
-            .alert(NSLocalizedString("错误详情", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil && subscriptionManager.errorDetails != nil)) {
-                Button(NSLocalizedString("查看详情", comment: "")) {
+            .alert(NSLocalizedString("error_details_title", comment: ""), isPresented: .constant(subscriptionManager.errorMessage != nil && subscriptionManager.errorDetails != nil)) {
+                Button(NSLocalizedString("view_details_button", comment: "")) {
                     showingErrorDetails = true
                 }
-                Button(NSLocalizedString("复制", comment: "")) {
+                Button(NSLocalizedString("copy_button", comment: "")) {
                     // 复制错误详情到剪贴板
                     let fullError = """
                     错误: \(subscriptionManager.errorMessage ?? "")
@@ -201,7 +201,7 @@ struct ProSubscriptionView: View {
                     """
                     UIPasteboard.general.string = fullError
                 }
-                Button(NSLocalizedString("确定", comment: "")) {
+                Button(NSLocalizedString("ok_button", comment: "")) {
                     subscriptionManager.errorMessage = nil
                     subscriptionManager.errorDetails = nil
                 }
@@ -276,7 +276,7 @@ struct ProSubscriptionView: View {
     private var subscriptionPlansSection: some View {
         VStack(spacing: 20) {
             HStack {
-                Text(NSLocalizedString("选择订阅计划", comment: ""))
+                Text(NSLocalizedString("choose_plan", comment: ""))
                     .font(.title2)
                 .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -323,7 +323,7 @@ struct ProSubscriptionView: View {
     private var loadingPlansSection: some View {
         VStack(spacing: 16) {
             HStack {
-                Text(NSLocalizedString("Loading subscription plans...", comment: ""))
+                Text(NSLocalizedString("loading_plans", comment: ""))
                     .font(.title2)
                 .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -358,8 +358,8 @@ struct ProSubscriptionView: View {
             ], spacing: 16) {
                 FeatureCard(
                     icon: "cloud.fill",
-                    title: String(format: NSLocalizedString("月度%d次", comment: ""), Config.monthlyProQuestionLimit),
-                    description: NSLocalizedString("远程模型问答配额", comment: ""),
+                    title: String(format: NSLocalizedString("monthly_count_format", comment: ""), Config.monthlyProQuestionLimit),
+                    description: NSLocalizedString("cloud_model_quota", comment: ""),
                     color: .blue
                 )
                 
@@ -391,7 +391,7 @@ struct ProSubscriptionView: View {
     private var benefitsSection: some View {
         VStack(spacing: 20) {
             HStack {
-                Text(NSLocalizedString("为什么选择Pro？", comment: ""))
+                Text(NSLocalizedString("why_choose_pro", comment: ""))
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -463,7 +463,7 @@ struct ProSubscriptionView: View {
     private var currentSubscriptionSection: some View {
         VStack(spacing: 20) {
             HStack {
-                Text(NSLocalizedString("当前订阅", comment: ""))
+                Text(NSLocalizedString("current_subscription", comment: ""))
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -495,7 +495,7 @@ struct ProSubscriptionView: View {
                         Spacer()
                         
                         // Current plan badge
-                        Text("当前套餐")
+                        Text(NSLocalizedString("current_plan_badge", comment: ""))
                             .font(.caption2)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
@@ -511,7 +511,7 @@ struct ProSubscriptionView: View {
                         HStack {
                             Image(systemName: "calendar")
                                 .foregroundColor(.secondary)
-                            Text("到期时间: \(expirationDate, formatter: dateFormatter)")
+                            Text(String(format: NSLocalizedString("expiration_date_format", comment: ""), dateFormatter.string(from: expirationDate)))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -548,7 +548,7 @@ struct ProSubscriptionView: View {
                     }
                 } label: {
                     HStack {
-                        Text(NSLocalizedString("在 App Store 中管理", comment: ""))
+                        Text(NSLocalizedString("manage_in_app_store", comment: ""))
                             .fontWeight(.semibold)
                         Image(systemName: "arrow.up.right")
                             .font(.caption)

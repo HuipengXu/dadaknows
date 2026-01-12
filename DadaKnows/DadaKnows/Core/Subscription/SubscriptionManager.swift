@@ -107,7 +107,7 @@ UserInfo: \(nsError.userInfo)
 
         // 验证产品是否已加载
         if availableProducts.isEmpty {
-            self.errorMessage = "产品信息未加载，请稍后重试"
+            self.errorMessage = NSLocalizedString("error_products_not_loaded", comment: "")
             self.errorDetails = """
 错误: availableProducts.count = 0
 已加载的产品数量为0，请检查：
@@ -122,7 +122,7 @@ UserInfo: \(nsError.userInfo)
 
         // 验证购买的产品是否在已加载列表中
         guard availableProducts.contains(where: { $0.id == product.id }) else {
-            self.errorMessage = "购买的产品不可用：\(product.id)"
+            self.errorMessage = String(format: NSLocalizedString("error_product_unavailable", comment: ""), product.id)
             self.errorDetails = """
 请求的产品ID: \(product.id)
 已加载的产品: \(availableProducts.map { $0.id }.joined(separator: ", "))
@@ -183,7 +183,7 @@ UserInfo: \(nsError.userInfo)
             case .pending:
                 print("⏳ 购买待处理")
                 // 购买待处理（例如需要家长批准）
-                self.errorMessage = "购买正在处理中,请稍后查看"
+                self.errorMessage = NSLocalizedString("error_purchase_processing", comment: "")
 
             @unknown default:
                 print("⚠️ 未知的购买结果")
@@ -219,7 +219,7 @@ UserInfo: \(nsError.userInfo)
                 print("❌ URL错误代码: \(urlError.code.rawValue)")
                 let urlNsError = urlError as NSError
                 print("❌ URL错误域: \(urlNsError.domain)")
-                self.errorMessage = "网络连接失败，请检查网络后重试"
+                self.errorMessage = NSLocalizedString("error_network_connection", comment: "")
 
             case .systemError(let systemError):
                 print("❌ 系统错误: \(systemError)")
@@ -233,7 +233,7 @@ UserInfo: \(nsError.userInfo)
                 if systemNsError.domain == "NSCocoaErrorDomain" {
                     switch systemNsError.code {
                     case 1002: // NSURLErrorCancelled
-                        self.errorMessage = "购买已取消"
+                        self.errorMessage = NSLocalizedString("error_purchase_cancelled", comment: "")
                     case 4...1000: // 网络相关错误
                         self.errorMessage = "网络连接不稳定，请重试"
                     default:
@@ -245,7 +245,7 @@ UserInfo: \(nsError.userInfo)
 
             case .notAvailableInStorefront:
                 print("❌ 当前商店不可用")
-                self.errorMessage = "当前商店不可用，请检查Apple ID设置"
+                self.errorMessage = NSLocalizedString("error_store_not_available", comment: "")
 
             @unknown default:
                 print("❌ 未知的StoreKit错误: \(error)")
@@ -721,22 +721,22 @@ enum SubscriptionType: String, CaseIterable {
     var displayName: String {
         switch self {
         case .monthly:
-            return "高级会员-月付"
+            return NSLocalizedString("subscription_monthly_name", comment: "")
         case .biannual:
-            return "高级会员-半年付"
+            return NSLocalizedString("subscription_biannual_name", comment: "")
         case .annual:
-            return "高级会员-年付"
+            return NSLocalizedString("subscription_annual_name", comment: "")
         }
     }
     
     var duration: String {
         switch self {
         case .monthly:
-            return "月"
+            return NSLocalizedString("duration_month", comment: "")
         case .biannual:
-            return "半年"
+            return NSLocalizedString("duration_half_year", comment: "")
         case .annual:
-            return "年"
+            return NSLocalizedString("duration_year", comment: "")
         }
     }
 }
@@ -757,11 +757,11 @@ enum SubscriptionError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .failedVerification:
-            return "购买验证失败"
+            return NSLocalizedString("error_verification_failed", comment: "")
         case .productNotFound:
-            return "产品未找到"
+            return NSLocalizedString("error_product_not_found", comment: "")
         case .purchaseFailed:
-            return "购买失败"
+            return NSLocalizedString("error_purchase_failed", comment: "")
         }
     }
 }

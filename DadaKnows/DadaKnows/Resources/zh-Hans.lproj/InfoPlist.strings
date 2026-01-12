@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "需要访问麦克风来录制语音输入，让您可以通过语音与AI伙伴\"答答\"对话。";
+"NSSpeechRecognitionUsageDescription" = "需要语音识别权限来将您的语音转换为文字，实现智能语音输入功能。";

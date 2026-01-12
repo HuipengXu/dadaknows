@@ -18,7 +18,7 @@ struct OfflineIndicator: View {
                     Image(systemName: "wifi.slash")
                         .font(.system(size: 14, weight: .medium))
                     
-                    Text(NSLocalizedString("离线模式", comment: ""))
+                    Text(NSLocalizedString("offline_mode", comment: ""))
                         .font(.caption)
                         .fontWeight(.medium)
                 } else if offlineManager.hasPendingSync {
@@ -27,7 +27,7 @@ struct OfflineIndicator: View {
                         .rotationEffect(.degrees(dataManager.isSyncing ? 360 : 0))
                         .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: dataManager.isSyncing)
                     
-                    Text(dataManager.isSyncing ? NSLocalizedString("同步中...", comment: "") : NSLocalizedString("等待同步", comment: ""))
+                    Text(dataManager.isSyncing ? NSLocalizedString("syncing", comment: "") : NSLocalizedString("waiting_for_sync", comment: ""))
                         .font(.caption)
                         .fontWeight(.medium)
                 }
@@ -62,19 +62,19 @@ struct NetworkStatusBanner: View {
                         .foregroundColor(.white)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(NSLocalizedString("网络连接已断开", comment: ""))
+                        Text(NSLocalizedString("network_disconnected", comment: ""))
                             .font(.subheadline)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
                         
-                        Text(NSLocalizedString("您可以浏览离线内容，问题将在联网后处理", comment: ""))
+                        Text(NSLocalizedString("offline_description", comment: ""))
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.9))
                     }
                     
                     Spacer()
                     
-                    Button(NSLocalizedString("知道了", comment: "")) {
+                    Button(NSLocalizedString("got_it", comment: "")) {
                         hideBanner()
                     }
                     .font(.caption)
@@ -140,7 +140,7 @@ struct SyncStatusView: View {
                     .foregroundColor(offlineManager.isOnline ? .green : .red)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(NSLocalizedString("网络状态", comment: ""))
+                    Text(NSLocalizedString("network_status", comment: ""))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     

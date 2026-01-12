@@ -39,30 +39,16 @@ class SupabaseClient: ObservableObject {
     
     // MARK: - Authentication
     func signInWithEmail(email: String, password: String) async throws {
-        // let response = try await supabase.auth.signIn(email: email, password: password)
-        // // 处理登录响应
-        
-        // // 临时实现 - 模拟登录成功
-        // print("模拟登录成功: \(email)")
         _ = try await supabase.auth.signIn(email: email, password: password)
-        // 处理登录响应
         AppState.shared.signIn()
     }
     
     func signUpWithEmail(email: String, password: String) async throws {
-        // let response = try await supabase.auth.signUp(email: email, password: password)
-        // // 处理注册响应
-        
-        // // 临时实现 - 模拟注册成功
-        // print("模拟注册成功: \(email)")
         _ = try await supabase.auth.signUp(email: email, password: password)
-        // 处理注册响应
         AppState.shared.signIn()
     }
     
     func signOut() async throws {
-        // try await supabase.auth.signOut()
-        // print("模拟登出成功")
         try await supabase.auth.signOut()
         AppState.shared.signOut()
     }

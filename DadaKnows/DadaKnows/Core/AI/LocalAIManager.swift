@@ -554,9 +554,9 @@ enum LocalAIAvailabilityStatus {
     var localizedDescription: String {
         switch self {
         case .supported:
-            return NSLocalizedString("支持本地模型", comment: "")
+            return NSLocalizedString("local_model_supported", comment: "")
         case .unsupportedVersion(let current, let required):
-            return String(format: NSLocalizedString("需要iOS %@或更高版本（当前：%@）", comment: ""), required, current)
+            return String(format: NSLocalizedString("local_model_unsupported_version", comment: ""), required, current)
         }
     }
 }
@@ -570,13 +570,13 @@ enum LocalAIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notAvailable:
-            return NSLocalizedString("本地AI模型不可用", comment: "")
+            return NSLocalizedString("local_model_unavailable", comment: "")
         case .modelNotReady:
-            return NSLocalizedString("本地模型未准备就绪，请先下载模型", comment: "")
+            return NSLocalizedString("local_model_not_ready", comment: "")
         case .modelNotInitialized:
-            return NSLocalizedString("本地AI模型未初始化", comment: "")
+            return NSLocalizedString("local_model_not_initialized", comment: "")
         case .generationFailed(let error):
-            return String(format: NSLocalizedString("生成失败：%@", comment: ""), error.localizedDescription)
+            return String(format: NSLocalizedString("local_model_generation_failed", comment: ""), error.localizedDescription)
         }
     }
 }

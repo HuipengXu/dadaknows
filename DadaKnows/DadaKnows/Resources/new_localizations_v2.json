@@ -1,0 +1,90 @@
+{
+  "subscription_monthly_name": {
+    "en": "Pro Monthly",
+    "zh": "高级会员-月付"
+  },
+  "subscription_biannual_name": {
+    "en": "Pro Biannual",
+    "zh": "高级会员-半年付"
+  },
+  "subscription_annual_name": {
+    "en": "Pro Annual",
+    "zh": "高级会员-年付"
+  },
+  "duration_month": {
+    "en": "Month",
+    "zh": "月"
+  },
+  "duration_half_year": {
+    "en": "6 Months",
+    "zh": "半年"
+  },
+  "duration_year": {
+    "en": "Year",
+    "zh": "年"
+  },
+  "error_load_products": {
+    "en": "Failed to load products: %@",
+    "zh": "加载产品失败: %@"
+  },
+  "error_products_not_loaded": {
+    "en": "Product info not loaded, please try again later",
+    "zh": "产品信息未加载，请稍后重试"
+  },
+  "error_product_unavailable": {
+    "en": "Product unavailable: %@",
+    "zh": "购买的产品不可用：%@"
+  },
+  "error_purchase_processing": {
+    "en": "Purchase processing, please check later",
+    "zh": "购买正在处理中,请稍后查看"
+  },
+  "error_network_connection": {
+    "en": "Network connection failed, please check and try again",
+    "zh": "网络连接失败，请检查网络后重试"
+  },
+  "error_purchase_cancelled": {
+    "en": "Purchase cancelled",
+    "zh": "购买已取消"
+  },
+  "error_store_not_available": {
+    "en": "Storefront not available, please check Apple ID settings",
+    "zh": "当前商店不可用，请检查Apple ID设置"
+  },
+  "error_verification_failed": {
+    "en": "Purchase verification failed",
+    "zh": "购买验证失败"
+  },
+  "error_product_not_found": {
+    "en": "Product not found",
+    "zh": "产品未找到"
+  },
+  "error_purchase_failed": {
+    "en": "Purchase failed",
+    "zh": "购买失败"
+  },
+  "local_model_supported": {
+    "en": "Local model supported",
+    "zh": "支持本地模型"
+  },
+  "local_model_unsupported_version": {
+    "en": "Requires iOS %@ or later (Current: %@)",
+    "zh": "需要iOS %@或更高版本（当前：%@）"
+  },
+  "local_model_unavailable": {
+    "en": "Local AI model unavailable",
+    "zh": "本地AI模型不可用"
+  },
+  "local_model_not_ready": {
+    "en": "Local model not ready, please download first",
+    "zh": "本地模型未准备就绪，请先下载模型"
+  },
+  "local_model_not_initialized": {
+    "en": "Local AI model not initialized",
+    "zh": "本地AI模型未初始化"
+  },
+  "local_model_generation_failed": {
+    "en": "Generation failed: %@",
+    "zh": "生成失败：%@"
+  }
+}

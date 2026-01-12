@@ -464,10 +464,26 @@ class AIManager: ObservableObject {
 // MARK: - Chat Message Support
 
 extension AIManager {
+    /// Get the current app language setting
+    private func getCurrentLanguage() -> String {
+        let list = UserDefaults.standard.stringArray(forKey: "AppleLanguages") ?? Locale.preferredLanguages
+        let first = list.first ?? "en"
+        let lowercased = first.lowercased()
+
+        // Normalize language code
+        if lowercased.hasPrefix("zh") {
+            return "zh-CN"
+        }
+        return "en"
+    }
+
     /// Simple helper to send a message and append it to the chat history.
     /// This is a stub implementation to unblock compilation; you can replace it with a real streaming call later.
     @MainActor
     func sendMessage(_ text: String, targetAge: Int) async {
+        // Get current language setting
+        let currentLanguage = getCurrentLanguage()
+
         // Add the user's question
         chatHistory.append(ChatMessage(message: text, isFromUser: true))
 
@@ -476,7 +492,7 @@ extension AIManager {
             question: text,
             answer: "", // empty answer for now
             targetAge: targetAge,
-            language: "zh-CN"
+            language: currentLanguage
         )
 
         let responseId = UUID()
@@ -486,8 +502,9 @@ extension AIManager {
         // Call askQuestion with conversation history
         do {
             let stream = askQuestion(
-                question: text, 
+                question: text,
                 targetAge: targetAge,
+                language: currentLanguage,
                 conversationHistory: chatHistory.isEmpty ? nil : chatHistory
             )
             var parserState: StreamParserState = .idle

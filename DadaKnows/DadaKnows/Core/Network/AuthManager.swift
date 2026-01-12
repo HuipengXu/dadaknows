@@ -169,7 +169,7 @@ class AuthManager: ObservableObject {
             let user = session.user
             if user.emailConfirmedAt == nil {
                 // 需要邮箱验证 - 使用验证码方式
-                self.successMessage = "注册成功！验证码已发送到您的邮箱，有效期为10分钟。"
+                self.successMessage = NSLocalizedString("signup_success_otp_sent", comment: "")
 
                 if Config.isDebug {
                     print("📧 验证码邮件已发送，用户ID: \(user.id)")
@@ -178,7 +178,7 @@ class AuthManager: ObservableObject {
                 // 无需邮箱验证，直接登录
                 self.currentUser = user
                 self.isAuthenticated = true
-                self.successMessage = "注册成功！欢迎使用DadaKnows！"
+                self.successMessage = NSLocalizedString("signup_success_welcome", comment: "")
                 AppState.shared.signIn()
 
                 if Config.isDebug {
@@ -226,7 +226,7 @@ class AuthManager: ObservableObject {
             // 验证成功，设置用户状态
             self.currentUser = session.user
             self.isAuthenticated = true
-            self.successMessage = "验证成功！欢迎使用DadaKnows！"
+            self.successMessage = NSLocalizedString("verify_otp_success", comment: "")
             AppState.shared.signIn()
 
             if Config.isDebug {
@@ -272,7 +272,7 @@ class AuthManager: ObservableObject {
             // 成功发送后记录到频率限制器
             await OTPRateLimiter.shared.recordSend(for: email)
 
-            self.successMessage = "验证码已重新发送，请检查您的邮箱。"
+            self.successMessage = NSLocalizedString("resend_otp_success", comment: "")
 
             if Config.isDebug {
                 print("✅ OTP重新发送成功")
@@ -335,7 +335,7 @@ class AuthManager: ObservableObject {
                 user: UserAttributes(password: newPassword)
             )
             self.currentUser = updatedUser
-            self.successMessage = "密码已更新"
+            self.successMessage = NSLocalizedString("password_updated", comment: "")
             isRecoveryInProgress = false
         } catch {
             print("❌ updatePassword error: \(error)")
@@ -619,14 +619,14 @@ class AuthManager: ObservableObject {
         // 邮箱已存在错误
         if errorDescription.contains("already") && errorDescription.contains("registered") {
             return (
-                "该邮箱已经被注册，请直接登录或使用其他邮箱注册。",
+                NSLocalizedString("signup_error_email_already_exists", comment: ""),
                 .authenticationFailed
             )
         }
 
         if errorDescription.contains("user_already_exists") {
             return (
-                "该用户已存在，请直接登录或使用其他邮箱。",
+                NSLocalizedString("signup_error_user_already_exists", comment: ""),
                 .authenticationFailed
             )
         }
@@ -634,7 +634,7 @@ class AuthManager: ObservableObject {
         // 密码强度错误
         if errorDescription.contains("password") && errorDescription.contains("weak") {
             return (
-                "密码强度不够。需要包含大写字母、小写字母、数字和特殊符号，且至少8位字符。",
+                NSLocalizedString("signup_error_password_weak", comment: ""),
                 .authenticationFailed
             )
         }
@@ -642,7 +642,7 @@ class AuthManager: ObservableObject {
         // 邮箱格式错误
         if errorDescription.contains("email") && (errorDescription.contains("invalid") || errorDescription.contains("malformed")) {
             return (
-                "邮箱格式不正确，请检查邮箱地址是否有效。",
+                NSLocalizedString("signup_error_email_invalid", comment: ""),
                 .authenticationFailed
             )
         }
@@ -653,7 +653,7 @@ class AuthManager: ObservableObject {
            errorDescription.contains("timeout") ||
            errorDescription.contains("unreachable") {
             return (
-                "网络连接失败，请检查网络连接后重试。\n\n如果问题持续存在，可能是因为：\n• 邮件服务器暂时无法访问\n• 网络连接不稳定\n请稍后再试。",
+                NSLocalizedString("signup_error_network_failed", comment: ""),
                 .networkError
             )
         }
@@ -663,7 +663,7 @@ class AuthManager: ObservableObject {
            errorDescription.contains("mail") ||
            errorDescription.contains("email") && errorDescription.contains("failed") {
             return (
-                "验证邮件发送失败。\n\n可能的解决方案：\n• 请检查邮箱地址是否正确\n• 稍后重试注册\n• 如果问题持续，请使用社交账号登录\n• 联系客服获取帮助",
+                NSLocalizedString("signup_error_email_send_failed", comment: ""),
                 .unknownError
             )
         }
@@ -672,7 +672,7 @@ class AuthManager: ObservableObject {
         if errorDescription.contains("too") && errorDescription.contains("many") ||
            errorDescription.contains("rate") && errorDescription.contains("limit") {
             return (
-                "注册请求过于频繁，请稍等片刻后再试。\n\n为了系统安全，我们对注册频率有一定限制。",
+                NSLocalizedString("signup_error_rate_limit", comment: ""),
                 .unknownError
             )
         }
@@ -681,7 +681,7 @@ class AuthManager: ObservableObject {
         if errorDescription.contains("server") && errorDescription.contains("error") ||
            errorDescription.contains("internal") && errorDescription.contains("error") {
             return (
-                "服务器暂时出现问题，注册请求未能完成。\n\n请稍后再试，或使用社交账号登录。我们对造成的不便深表歉意。",
+                NSLocalizedString("signup_error_server_error", comment: ""),
                 .unknownError
             )
         }
@@ -693,7 +693,7 @@ class AuthManager: ObservableObject {
 
         // 默认错误信息
         return (
-            "注册过程中出现未知错误：\(error.localizedDescription)\n\n建议：\n• 检查网络连接\n• 稍后重试\n• 使用社交账号登录\n• 联系客服获取帮助",
+            String(format: NSLocalizedString("signup_error_unknown", comment: ""), error.localizedDescription),
             .unknownError
         )
     }
@@ -745,18 +745,18 @@ class AuthManager: ObservableObject {
            debugDescription.contains("over_email_send_rate_limit") ||
            (errorDescription.contains("rate") && errorDescription.contains("limit")) ||
            (errorDescription.contains("security") && errorDescription.contains("purposes") && errorDescription.contains("after")) {
-            
+
             if let waitTime = extractWaitTimeFromError(error) {
-                return ("发送过于频繁，请等待 \(waitTime) 秒后再试", waitTime)
+                return (String(format: NSLocalizedString("rate_limit_wait_seconds", comment: ""), waitTime), waitTime)
             }
-            return ("发送过于频繁，请稍后再试", nil)
+            return (NSLocalizedString("rate_limit_try_again_later", comment: ""), nil)
         }
 
         if errorDescription.contains("too") && errorDescription.contains("many") {
             if let waitTime = extractWaitTimeFromError(error) {
-                return ("发送过于频繁，请等待 \(waitTime) 秒后再试", waitTime)
+                return (String(format: NSLocalizedString("rate_limit_wait_seconds", comment: ""), waitTime), waitTime)
             }
-            return ("发送过于频繁，请稍等片刻后再试", nil)
+            return (NSLocalizedString("rate_limit_try_again_shortly", comment: ""), nil)
         }
 
         // 对于其他错误，使用通用的错误处理
@@ -768,52 +768,52 @@ class AuthManager: ObservableObject {
             switch authError {
             case .invalidCredentials:
                 authErrorType = .authenticationFailed
-                return "邮箱或密码错误"
+                return NSLocalizedString("auth_error_invalid_credentials", comment: "")
             case .emailNotConfirmed:
                 authErrorType = .authenticationFailed
-                return "请先验证您的邮箱"
+                return NSLocalizedString("auth_error_email_not_confirmed", comment: "")
             case .userNotFound:
                 authErrorType = .authenticationFailed
-                return "用户不存在"
+                return NSLocalizedString("auth_error_user_not_found", comment: "")
             case .weakPassword:
                 authErrorType = .authenticationFailed
-                return "密码强度不够，需要包含大写字母、小写字母、数字和符号，且至少8位"
+                return NSLocalizedString("auth_error_password_weak", comment: "")
             case .emailAlreadyRegistered:
                 authErrorType = .authenticationFailed
-                return "该邮箱已被注册"
+                return NSLocalizedString("auth_error_email_already_registered", comment: "")
             case .notAuthenticated:
                 authErrorType = .authenticationFailed
-                return "请先登录"
+                return NSLocalizedString("auth_error_not_authenticated", comment: "")
             case .noViewController:
                 authErrorType = .unknownError
-                return "无法获取视图控制器"
+                return NSLocalizedString("auth_error_no_view_controller", comment: "")
             case .noGoogleToken:
                 authErrorType = .authenticationFailed
-                return "Google登录失败"
+                return NSLocalizedString("error_google_sign_in_failed", comment: "")
             case .noAppleToken:
                 authErrorType = .authenticationFailed
-                return "Apple登录失败"
+                return NSLocalizedString("error_apple_sign_in_failed", comment: "")
             case .userCanceled:
                 authErrorType = .userCancelled
-                return "用户取消了登录"
+                return NSLocalizedString("auth_error_user_cancelled", comment: "")
             case .authorizationFailed:
                 authErrorType = .authenticationFailed
-                return "Apple登录授权失败"
+                return NSLocalizedString("error_apple_authorization_failed", comment: "")
             case .invalidResponse:
                 authErrorType = .authenticationFailed
-                return "Apple登录响应无效"
+                return NSLocalizedString("error_apple_invalid_response", comment: "")
             case .notHandled:
                 authErrorType = .authenticationFailed
-                return "Apple登录请求未处理"
+                return NSLocalizedString("error_apple_not_handled", comment: "")
             case .rateLimitExceeded(let waitTime):
                 authErrorType = .authenticationFailed
                 if let time = waitTime {
-                    return "发送过于频繁，请等待 \(time) 秒后再试"
+                    return String(format: NSLocalizedString("rate_limit_wait_seconds", comment: ""), time)
                 }
-                return "发送过于频繁，请稍后再试"
+                return NSLocalizedString("rate_limit_try_again_later", comment: "")
             case .unknownError:
                 authErrorType = .unknownError
-                return "Apple登录发生未知错误"
+                return NSLocalizedString("error_apple_unknown_error", comment: "")
             }
         }
 
@@ -823,7 +823,7 @@ class AuthManager: ObservableObject {
            error.localizedDescription.contains("User cancelled") ||
            error.localizedDescription.contains("The user canceled the sign-in flow") {
             authErrorType = .userCancelled
-            return "用户取消了登录"
+            return NSLocalizedString("auth_error_user_cancelled", comment: "")
         }
 
         // 处理Supabase特定错误
@@ -831,33 +831,33 @@ class AuthManager: ObservableObject {
 
         if errorDescription.contains("password") && errorDescription.contains("weak") {
             authErrorType = .authenticationFailed
-            return "密码强度不够，需要包含大写字母、小写字母、数字和符号，且至少8位"
+            return NSLocalizedString("auth_error_password_weak", comment: "")
         }
 
         if errorDescription.contains("email") && errorDescription.contains("already") {
             authErrorType = .authenticationFailed
-            return "该邮箱已被注册"
+            return NSLocalizedString("auth_error_email_already_registered", comment: "")
         }
 
         if errorDescription.contains("invalid") && errorDescription.contains("credentials") {
             authErrorType = .authenticationFailed
-            return "邮箱或密码错误"
+            return NSLocalizedString("auth_error_invalid_credentials", comment: "")
         }
 
         if errorDescription.contains("email") && errorDescription.contains("not") && errorDescription.contains("confirmed") {
             authErrorType = .authenticationFailed
-            return "请先验证您的邮箱"
+            return NSLocalizedString("auth_error_email_not_confirmed", comment: "")
         }
 
         // Handle OTP expired error
         if errorDescription.contains("token has expired") && errorDescription.contains("invalid") {
             authErrorType = .authenticationFailed
-            return "验证码已过期，请重新发送验证码"
+            return NSLocalizedString("auth_error_otp_expired", comment: "")
         }
 
         if errorDescription.contains("otp_expired") {
             authErrorType = .authenticationFailed
-            return "验证码已过期，请重新发送验证码"
+            return NSLocalizedString("auth_error_otp_expired", comment: "")
         }
 
         // Handle network errors
@@ -869,7 +869,7 @@ class AuthManager: ObservableObject {
             authErrorType = .unknownError
         }
 
-        return "发生未知错误，请稍后再试"
+        return NSLocalizedString("auth_error_unknown", comment: "")
     }
 }
 

@@ -17,7 +17,7 @@ struct MainTabView: View {
             HomeView()
                 .tabItem {
                     Image(systemName: "house")
-                    Text(NSLocalizedString("首页", comment: ""))
+                    Text(NSLocalizedString("tab_home", comment: ""))
                 }
                 .tag(0)
             
@@ -25,7 +25,7 @@ struct MainTabView: View {
             QAHistoryView()
                 .tabItem {
                     Image(systemName: "clock")
-                    Text(NSLocalizedString("历史", comment: ""))
+                    Text(NSLocalizedString("tab_history", comment: ""))
                 }
                 .tag(1)
             
@@ -33,7 +33,7 @@ struct MainTabView: View {
             ProfileView()
                 .tabItem {
                     Image(systemName: "gearshape")
-                    Text(NSLocalizedString("设置", comment: ""))
+                    Text(NSLocalizedString("tab_settings", comment: ""))
                 }
                 .tag(2)
         }

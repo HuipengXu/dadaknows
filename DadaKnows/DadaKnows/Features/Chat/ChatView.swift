@@ -86,14 +86,14 @@ struct ChatView: View {
                                         .foregroundColor(.textSecondary)
                                         .font(.caption)
                                     
-                                    Text(String(format: NSLocalizedString("今天还可以问 %lld 个问题", comment: ""), remaining))
+                                    Text(String(format: NSLocalizedString("questions_remaining_format", comment: ""), remaining))
                                         .font(.caption)
                                         .foregroundColor(.textSecondary)
                                     
                                     Spacer()
                                     
                                     if remaining <= 5 {
-                                        Button(NSLocalizedString("升级Pro", comment: "")) {
+                                        Button(NSLocalizedString("upgrade_pro_short", comment: "")) {
                                             showingProUpgrade = true
                                         }
                                         .font(.caption)
@@ -119,12 +119,12 @@ struct ChatView: View {
                 }
                 
             }
-            .navigationTitle(historicalSession != nil ? NSLocalizedString("继续对话", comment: "") : NSLocalizedString("对话", comment: ""))
+            .navigationTitle(historicalSession != nil ? NSLocalizedString("continue_chat_title", comment: "") : NSLocalizedString("chat_title", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(NSLocalizedString("完成", comment: "")) {
+                    Button(NSLocalizedString("done_button", comment: "")) {
                         // Track session end before dismissing
                         if let startTime = sessionStartTime {
                             let sessionDuration = Date().timeIntervalSince(startTime)
@@ -169,7 +169,7 @@ struct ChatView: View {
             Task {
                 if let session = historicalSession, let firstChat = session.chats.first {
                     // For historical sessions, use the first question as title
-                    await chatService.startNewSessionIfNeeded(title: String((firstChat.question ?? NSLocalizedString("继续对话", comment: "")).prefix(80)))
+                    await chatService.startNewSessionIfNeeded(title: String((firstChat.question ?? NSLocalizedString("continue_chat_title", comment: "")).prefix(80)))
                 } else {
                     // For new sessions, use the current question
                     await chatService.startNewSessionIfNeeded(title: String(question.prefix(80)))
@@ -356,7 +356,7 @@ struct ModelLoadingIndicator: View {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .appPrimary))
                 
-                Text(NSLocalizedString("正在加载AI模型...", comment: ""))
+                Text(NSLocalizedString("model_loading", comment: ""))
                     .font(.body)
                     .foregroundColor(.textSecondary)
             }
@@ -439,7 +439,7 @@ struct InputAreaView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Text input
-            TextField(NSLocalizedString("输入你的问题...", comment: ""), text: $currentQuestion, axis: .vertical)
+            TextField(NSLocalizedString("input_placeholder", comment: ""), text: $currentQuestion, axis: .vertical)
                 .lineLimit(1...4)
                 .onSubmit {
                     onSendQuestion()

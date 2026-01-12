@@ -11,7 +11,6 @@ struct Config {
     // MARK: - Supabase Configuration
     static let supabaseURL = "https://fwvyrcekbngcpiudljpj.supabase.co"
     static let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3dnlyY2VrYm5nY3BpdWRsanBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3MzQ4ODYsImV4cCI6MjA3MjMxMDg4Nn0.c62pXLg1sU8ZAz2bETNdtIKqBXnwGMzhj6M7cMIeUCg"
-    static let supabaseServiceRoleKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3dnlyY2VrYm5nY3BpdWRsanBqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjczNDg4NiwiZXhwIjoyMDcyMzEwODg2fQ.j1bediOZ0EmPAfo0FcMpbdp15ww1zB1XnhE1ialQrPs"
     
     // MARK: - AI Configuration
     static let geminiAPIKey = "AIzaSyD-YSyKmhc4d23ybooPBbJJaskhZshOV20"

@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "We need microphone access to record your voice for hands-free conversations with \"Dada\", your AI companion.";
+"NSSpeechRecognitionUsageDescription" = "We need speech recognition access to convert your voice into text for smart voice input.";

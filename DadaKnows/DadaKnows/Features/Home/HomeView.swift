@@ -17,11 +17,11 @@ struct HomeView: View {
     @State private var showLimitReachedSheet = false
     
     let ageRanges = [
-        (2, NSLocalizedString("2-3岁", comment: "")),
-        (4, NSLocalizedString("4-5岁", comment: "")),
-        (6, NSLocalizedString("6-7岁", comment: "")),
-        (8, NSLocalizedString("8-9岁", comment: "")),
-        (10, NSLocalizedString("10-12岁", comment: ""))
+        (2, NSLocalizedString("age_range_2_3", comment: "")),
+        (4, NSLocalizedString("age_range_4_5", comment: "")),
+        (6, NSLocalizedString("age_range_6_7", comment: "")),
+        (8, NSLocalizedString("age_range_8_9", comment: "")),
+        (10, NSLocalizedString("age_range_10_12", comment: ""))
     ]
     
     var body: some View {
@@ -82,12 +82,12 @@ struct HomeView: View {
             DLogoView.large
             
             VStack(spacing: 8) {
-                Text(NSLocalizedString("你好，我是答答", comment: ""))
+                Text(NSLocalizedString("dada_greeting", comment: ""))
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.textPrimary)
                 
-                Text(NSLocalizedString("有什么想问的吗？", comment: ""))
+                Text(NSLocalizedString("dada_ask_prompt", comment: ""))
                     .font(.body)
                     .foregroundColor(.textSecondary)
             }
@@ -99,7 +99,7 @@ struct HomeView: View {
     private var questionInputSection: some View {
         VStack(spacing: 0) {
             HStack(alignment: .bottom, spacing: 12) {
-                TextField(NSLocalizedString("输入你的问题...", comment: ""), text: $question, axis: .vertical)
+                TextField(NSLocalizedString("input_placeholder", comment: ""), text: $question, axis: .vertical)
                     .font(.body)
                     .lineLimit(5...8)
                     .padding(.horizontal, 16)
@@ -133,13 +133,13 @@ struct HomeView: View {
     // MARK: - Age Selection Section
     private var ageSelectionSection: some View {
         VStack(spacing: 16) {
-            Text(NSLocalizedString("宝贝多大啦", comment: ""))
+            Text(NSLocalizedString("age_selection_title", comment: ""))
                 .font(.headline)
                 .foregroundColor(.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             // iOS native picker style
-            Picker(NSLocalizedString("选择年龄", comment: ""), selection: $selectedAge) {
+            Picker(NSLocalizedString("select_age", comment: ""), selection: $selectedAge) {
                 ForEach(ageRanges, id: \.0) { age, ageText in
                     Text(ageText).tag(age)
                 }
@@ -162,7 +162,9 @@ struct HomeView: View {
                         .scaleEffect(0.8)
                 }
                 
-                Text(isAsking ? NSLocalizedString("正在思考...", comment: "") : NSLocalizedString("ask_button", comment: ""))
+                
+                
+                Text(isAsking ? NSLocalizedString("thinking_status", comment: "") : NSLocalizedString("ask_button", comment: ""))
                     .font(.headline)
                     .fontWeight(.semibold)
             }
