@@ -344,6 +344,32 @@ class AuthManager: ObservableObject {
         }
     }
 
+    func deleteAccount() async throws {
+        isLoading = true
+        clearError()
+        
+        defer { isLoading = false }
+        
+        do {
+            // Call the database function to delete the user
+            // Ensure you have created the 'delete_user' RPC function in Supabase
+            try await supabase.supabase.database.rpc("delete_user").execute()
+            
+            // Sign out locally
+            await MainActor.run {
+                AppState.shared.signOut()
+            }
+            
+            if Config.isDebug {
+                print("✅ Account deleted successfully")
+            }
+        } catch {
+            print("❌ deleteAccount error: \(error)")
+            self.errorMessage = NSLocalizedString("delete_account_failed", comment: "")
+            throw error
+        }
+    }
+
     func resetPassword(email: String) async throws {
         isLoading = true
         clearError()

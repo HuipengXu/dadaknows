@@ -126,6 +126,16 @@ struct AuthView: View {
         VStack(spacing: ResponsiveLayoutHelper.getVerticalSpacing(geometry, base: 12)) {
             googleSignInButton(geometry: geometry)
             appleSignInButton(geometry: geometry)
+            
+            Button(action: {
+                AppState.shared.enterGuestMode()
+            }) {
+                Text(NSLocalizedString("continue_as_guest", comment: ""))
+                    .font(.body)
+                    .foregroundColor(.textSecondary)
+                    .underline()
+                    .padding(.top, 8)
+            }
         }
         .frame(maxWidth: ResponsiveLayoutHelper.getContentMaxWidth(geometry))
     }

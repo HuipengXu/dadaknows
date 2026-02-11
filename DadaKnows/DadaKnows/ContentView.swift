@@ -18,7 +18,7 @@ struct ContentView: View {
                 SplashView {
                     appState.isLoading = false
                 }
-            } else if !appState.isAuthenticated {
+            } else if !appState.isAuthenticated && !appState.isGuest {
                 AuthView {
                     appState.signIn()
                 }

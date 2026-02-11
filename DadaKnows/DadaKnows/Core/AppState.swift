@@ -12,6 +12,7 @@ class AppState: ObservableObject {
     @Published var isAuthenticated = false
     @Published var isLoading = true
     @Published var hasCompletedOnboarding = false
+    @Published var isGuest = false
     @Published var currentLanguage = "en"
     @Published var subscriptionStatus = "free"
     
@@ -75,10 +76,21 @@ class AppState: ObservableObject {
     
     func signIn() {
         isAuthenticated = true
+        isGuest = false
+    }
+    
+    func enterGuestMode() {
+        isGuest = true
+        isAuthenticated = false
+    }
+    
+    func exitGuestMode() {
+        isGuest = false
     }
     
     func signOut() {
         isAuthenticated = false
+        isGuest = false
         // Clear user data
         subscriptionStatus = "free"
     }

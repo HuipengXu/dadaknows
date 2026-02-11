@@ -31,37 +31,59 @@ struct ProfileView: View {
     @State private var showingLanguageChangedAlert = false
     @State private var showingRatingDialog = false
     @State private var showingUpgradeAlert = false
+    @State private var showingDeleteAccountAlert = false
     
     var body: some View {
-        NavigationStack {
-            List {
-                // User profile section with email
-                userProfileSection
-                
-                // Subscription management section (for all users)
-                subscriptionManagementSection
-                
+        ZStack {
+            NavigationStack {
+                List {
+                    // User profile section with email
+                    userProfileSection
+                    
+                    // Subscription management section (for all users)
+                    subscriptionManagementSection
+                    
 
-                // App settings section
-                appSettingsSection
-                
-                // Privacy & Legal section
-                privacyLegalSection
-                
-                // About section
-                aboutSection
-                
-                // Support section
-                supportSection
-                
-                // Logout section (if authenticated)
-                if authManager.isAuthenticated {
-                    logoutSection
+                    // App settings section
+                    appSettingsSection
+                    
+                    // Privacy & Legal section
+                    privacyLegalSection
+                    
+                    // About section
+                    aboutSection
+                    
+                    // Support section
+                    supportSection
+                    
+                    // Account actions (Sign In / Logout / Delete)
+                    accountActionSection
                 }
+                .listStyle(.insetGrouped)
+                .navigationTitle(NSLocalizedString("settings_title", comment: ""))
+                .navigationBarTitleDisplayMode(.large)
             }
-            .listStyle(.insetGrouped)
-            .navigationTitle(NSLocalizedString("settings_title", comment: ""))
-            .navigationBarTitleDisplayMode(.large)
+            
+            // Loading Overlay
+            if authManager.isLoading {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .tint(.white)
+                    
+                    Text(NSLocalizedString("processing_request", comment: ""))
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                }
+                .padding(24)
+                .background(Color.black.opacity(0.7))
+                .cornerRadius(12)
+                .shadow(radius: 10)
+            }
         }
         .sheet(isPresented: $showingPrivacyPolicy) {
             PrivacyPolicyView()
@@ -134,7 +156,7 @@ struct ProfileView: View {
                     
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 8) {
-                            Text(userService.currentUsername)
+                            Text(AppState.shared.isGuest ? NSLocalizedString("guest_user", comment: "") : userService.currentUsername)
                                 .font(.title3)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.textPrimary)
@@ -415,23 +437,56 @@ struct ProfileView: View {
         }
     }
     
-    // MARK: - Logout Section
-    private var logoutSection: some View {
+    // MARK: - Account Actions Section
+    private var accountActionSection: some View {
         Section {
-            Button(action: { showingLogoutAlert = true }) {
-                HStack {
-                    Image(systemName: "arrow.right.square")
-                        .foregroundColor(.statusError)
-                        .frame(width: 24)
-                    
-                    Text(NSLocalizedString("sign_out", comment: ""))
-                        .foregroundColor(.statusError)
-                    
-                    Spacer()
+            if AppState.shared.isGuest {
+                Button(action: {
+                    // Exit guest mode -> returns to AuthView
+                    AppState.shared.signOut()
+                }) {
+                    HStack {
+                        Image(systemName: "arrow.right.circle")
+                            .foregroundColor(.appAccent)
+                            .frame(width: 24)
+                        Text(NSLocalizedString("sign_in_or_register", comment: ""))
+                            .foregroundColor(.appAccent)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
                 }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+            } else {
+                Button(action: { showingLogoutAlert = true }) {
+                    HStack {
+                        Image(systemName: "arrow.right.square")
+                            .foregroundColor(.statusError)
+                            .frame(width: 24)
+                        
+                        Text(NSLocalizedString("sign_out", comment: ""))
+                            .foregroundColor(.statusError)
+                        
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: { showingDeleteAccountAlert = true }) {
+                    HStack {
+                        Image(systemName: "trash")
+                            .foregroundColor(.statusError)
+                            .frame(width: 24)
+                        
+                        Text(NSLocalizedString("delete_account", comment: ""))
+                            .foregroundColor(.statusError)
+                        
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .alert(NSLocalizedString("sign_out", comment: ""), isPresented: $showingLogoutAlert) {
             Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
@@ -446,6 +501,22 @@ struct ProfileView: View {
             }
         } message: {
             Text(NSLocalizedString("sign_out_confirm_msg", comment: ""))
+        }
+        .alert(NSLocalizedString("delete_account_confirm_title", comment: ""), isPresented: $showingDeleteAccountAlert) {
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
+            Button(NSLocalizedString("delete_account", comment: ""), role: .destructive) {
+                Task {
+                    do {
+                        try await authManager.deleteAccount()
+                    } catch {
+                        print("Delete account error: \(error)")
+                        // Only show error alert if it's not a success
+                        // (Usually deleteAccount throws on error)
+                    }
+                }
+            }
+        } message: {
+            Text(NSLocalizedString("delete_account_confirm_msg", comment: ""))
         }
         .alert(NSLocalizedString("rate_app_title", comment: ""), isPresented: $showingRatingDialog) {
             Button(NSLocalizedString("rate_on_app_store", comment: "")) {
